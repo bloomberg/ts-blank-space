@@ -1,0 +1,17 @@
+{
+  "name": "ts-blank-space",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "dependencies": {
+    "@types/node": "^20.9.4",
+    "magic-string": "^0.30.5",
+    "typescript": "^5.3.2"
+  },
+  "scripts": {
+    "fixture": "node ./fixtures/_run.js",
+    "fixture:watch": "node --watch-path ./fixtures/a.ts --watch-path ./index.js ./fixtures/_run.js"
+  }
+}
