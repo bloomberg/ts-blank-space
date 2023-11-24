@@ -54,6 +54,7 @@ export default function tsBlankSpace(input, onErrorArg) {
 const {
     Identifier,
     VariableDeclaration,
+    VariableStatement,
     InterfaceDeclaration,
     TypeAliasDeclaration,
     ClassDeclaration,
@@ -108,6 +109,7 @@ function visitor(node) {
     switch (node.kind) {
         case Identifier: return;
         case VariableDeclaration: visitVariableDeclaration(n); return;
+        case VariableStatement: visitVariableStatement(n); return;
         case TypeAliasDeclaration:
         case InterfaceDeclaration: blankNode(n); return;
         case ClassDeclaration:
@@ -130,7 +132,19 @@ function visitor(node) {
 }
 
 /**
- * `let x : T = v`
+ * `let x : T` (outer)
+ * @param {ts.VariableStatement} node
+ */
+function visitVariableStatement(node) {
+    if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
+        blankExact(node);
+        return;
+    }
+    node.forEachChild(visitor);
+}
+
+/**
+ * `let x : T = v` (inner)
  * @param {ts.VariableDeclaration} node
  */
 function visitVariableDeclaration(node) {
@@ -145,6 +159,13 @@ function visitVariableDeclaration(node) {
  * @param {ts.ClassLikeDeclaration} node
  */
 function visitClassLike(node) {
+    if (node.modifiers) {
+        if (modifiersContainsDeclare(node.modifiers)) {
+            blankExact(node);
+            return;
+        }
+    }
+
     // ... <T>
     if (node.typeParameters && node.typeParameters.length) {
         blankGenerics(node, node.typeParameters);
@@ -262,7 +283,13 @@ function visitTypeAssertion(node) {
  * @param {ts.FunctionLikeDeclaration} node
  */
 function visitFunctionLikeDeclaration(node) {
-    node.modifiers && visitModifiers(node.modifiers);
+    if (node.modifiers) {
+        if (modifiersContainsDeclare(node.modifiers)) {
+            blankExact(node);
+            return;
+        }
+        visitModifiers(node.modifiers);
+    }
 
     if (node.typeParameters && node.typeParameters.length) {
         blankGenerics(node, node.typeParameters);

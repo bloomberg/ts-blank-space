@@ -63,16 +63,31 @@ function foo   (p      = ()      => 1)      {
 }
 
                       
-//  ^^^^^^^^^^^^^^^^^^ enum
+//  ^^^^^^^^^^^^^^^^^^ `declare enum`
 
 void 0;
 
                           
-//  ^^^^^^^^^^^^^^^^^^^^^^ namespace
+//  ^^^^^^^^^^^^^^^^^^^^^^ `declare namespace`
 
 void 0;
 
                        
-//  ^^^^^^^^^^^^^^^^^^^ module
+//  ^^^^^^^^^^^^^^^^^^^ `declare module`
+
+void 0;
+
+/**/              
+//  ^^^^^^^^^^^^^^ `declare let`
+
+void 0;
+
+/**/                              
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare class`
+
+void 0;
+
+/**/                                          
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare function`
 
 void 0;

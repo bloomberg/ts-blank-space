@@ -63,16 +63,31 @@ function foo<T>(p: any = (): any => 1): any {
 }
 
 /**/declare enum E1 {}
-//  ^^^^^^^^^^^^^^^^^^ enum
+//  ^^^^^^^^^^^^^^^^^^ `declare enum`
 
 void 0;
 
 /**/declare namespace N {}
-//  ^^^^^^^^^^^^^^^^^^^^^^ namespace
+//  ^^^^^^^^^^^^^^^^^^^^^^ `declare namespace`
 
 void 0;
 
 /**/declare module M {}
-//  ^^^^^^^^^^^^^^^^^^^ module
+//  ^^^^^^^^^^^^^^^^^^^ `declare module`
+
+void 0;
+
+/**/declare let a;
+//  ^^^^^^^^^^^^^^ `declare let`
+
+void 0;
+
+/**/declare class DeclaredClass {}
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare class`
+
+void 0;
+
+/**/declare function DeclaredFunction(): void;
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare function`
 
 void 0;
