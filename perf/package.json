@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "dependencies": {
+    "sucrase": "^3.34.0"
+  },
+  "scripts": {
+    "this": "node ./this.js ./checker.txt 100",
+    "sucrase": "node ./sucrase.js ./checker.txt 100"
+  }
+}
