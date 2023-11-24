@@ -28,19 +28,23 @@ let ast;
  * @returns {string}
  */
 export default function tsBlankSpace(input) {
-    str = new BlankString(input);
+    try {
+        str = new BlankString(input);
 
-    scanner.setText(input);
-    ast = ts.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, ts.ScriptKind.TS);
+        scanner.setText(input);
+        ast = ts.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, ts.ScriptKind.TS);
 
-    visitor(ast);
+        visitor(ast);
 
-    // cleanup
-    scanner.setText("");
-    // @ts-expect-error
-    ast = undefined;
-
-    return str.toString();
+        return str.toString();
+    } finally {
+        // cleanup. Release memory.
+        scanner.setText("");
+        // @ts-expect-error
+        ast = undefined;
+        // @ts-expect-error
+        str = undefined;
+    }
 }
 
 /**
@@ -110,6 +114,14 @@ function visitor(node) {
                     case ts.SyntaxKind.ReadonlyKeyword:
                         blankExact(modifier);
                         continue;
+                }
+
+                // at runtime skip the remaining checks
+                // these are here only as a compile-time exhaustive check
+                const trueAsFalse = /** @type {false} */(true);
+                if (trueAsFalse) continue;
+
+                switch (modifier.kind) {
                     case ts.SyntaxKind.ConstKeyword:
                     case ts.SyntaxKind.DefaultKeyword:
                     case ts.SyntaxKind.ExportKeyword:
