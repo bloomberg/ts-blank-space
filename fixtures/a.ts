@@ -1,16 +1,19 @@
-let x /*▶︎*/: number/*◀︎*/ = 1!;
-//                          ^
+let x /**/: number/**/ = 1!;
+//        ^^^^^^^^        ^
 
-[] /**/as [] satisfies []/*︎*/;
+[] as [] satisfies [];
+// ^^^^^^^^^^^^^^^^^^
 
-class C /*▶︎*/< T >/*◀︎*/ extends Array/**/<T> /*▶︎*/implements I,I/*◀︎*/ {
-    /*▶︎*/readonly/*◀︎*/ field /*▶︎*/: string/*◀︎*/ = "";
+class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,I/*︎*/ {
+//          ^^^^^                      ^^^     ^^^^^^^^^^^^^^
+    readonly field/**/: string/**/ = "";
+//  ^^^^^^^^          ^^^^^^^^
     static accessor f1;
-    /*▶︎*/private/*◀︎*/ f2! /*▶︎*/: string/*◀︎*/;
-//                      ^
+    private f2/**/!/**/: string/*︎*/;
+//  ^^^^^^^       ^    ^^^^^^^^
 
-    method/*▶︎*/<T>/*◀︎*/(/*▶︎*/this: T,/*◀︎*/ a? /*▶︎*/: string/*◀︎*/)/*▶︎*/: void/*◀︎*/ {
-//                                          ^
+    method/**/<T>/*︎*/(/*︎*/this: T,/**/ a? /*︎*/: string/**/)/*︎*/: void/*︎*/ {
+//            ^^^         ^^^^^^^^      ^     ^^^^^^^^         ^^^^^^
     }
 }
 
