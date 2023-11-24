@@ -167,48 +167,51 @@ function visitExpressionWithTypeArguments(node) {
 }
 
 /**
+ * @param {ArrayLike<ts.ModifierLike>} modifiers
+ */
+function visitModifiers(modifiers) {
+    for (let i = 0; i < modifiers.length; i++) {
+        const modifier = modifiers[i];
+        switch (modifier.kind) {
+            case ts.SyntaxKind.PrivateKeyword:
+            case ts.SyntaxKind.ProtectedKeyword:
+            case ts.SyntaxKind.PublicKeyword:
+            case ts.SyntaxKind.AbstractKeyword:
+            case ts.SyntaxKind.OverrideKeyword:
+            case ts.SyntaxKind.DeclareKeyword:
+            case ts.SyntaxKind.ReadonlyKeyword:
+                blankExact(modifier);
+                continue;
+        }
+
+        // at runtime skip the remaining checks
+        // these are here only as a compile-time exhaustive check
+        const trueAsFalse = /** @type {false} */(true);
+        if (trueAsFalse) continue;
+
+        switch (modifier.kind) {
+            case ts.SyntaxKind.ConstKeyword:
+            case ts.SyntaxKind.DefaultKeyword:
+            case ts.SyntaxKind.ExportKeyword:
+            case ts.SyntaxKind.InKeyword:
+            case ts.SyntaxKind.StaticKeyword:
+            case ts.SyntaxKind.AccessorKeyword:
+            case ts.SyntaxKind.AsyncKeyword:
+            case ts.SyntaxKind.OutKeyword:
+            case ts.SyntaxKind.Decorator:
+                continue;
+            default:
+                never(modifier);
+        }
+    }
+}
+
+/**
  * prop: T
  * @param {ts.PropertyDeclaration} node
  */
 function visitPropertyDeclaration(node) {
-    if (node.modifiers) {
-        const modifiers = node.modifiers;
-        for (let i = 0; i < modifiers.length; i++) {
-            const modifier = modifiers[i];
-            switch (modifier.kind) {
-                case ts.SyntaxKind.PrivateKeyword:
-                case ts.SyntaxKind.ProtectedKeyword:
-                case ts.SyntaxKind.PublicKeyword:
-                case ts.SyntaxKind.AbstractKeyword:
-                case ts.SyntaxKind.OverrideKeyword:
-                case ts.SyntaxKind.DeclareKeyword:
-                case ts.SyntaxKind.ReadonlyKeyword:
-                    blankExact(modifier);
-                    continue;
-            }
-
-            // at runtime skip the remaining checks
-            // these are here only as a compile-time exhaustive check
-            const trueAsFalse = /** @type {false} */(true);
-            if (trueAsFalse) continue;
-
-            switch (modifier.kind) {
-                case ts.SyntaxKind.ConstKeyword:
-                case ts.SyntaxKind.DefaultKeyword:
-                case ts.SyntaxKind.ExportKeyword:
-                case ts.SyntaxKind.InKeyword:
-                case ts.SyntaxKind.StaticKeyword:
-                case ts.SyntaxKind.AccessorKeyword:
-                case ts.SyntaxKind.AsyncKeyword:
-                case ts.SyntaxKind.OutKeyword:
-                case ts.SyntaxKind.Decorator:
-                    continue;
-                default:
-                    never(modifier);
-            }
-        }
-    }
-
+    node.modifiers && visitModifiers(node.modifiers);
     node.exclamationToken && blankExact(node.exclamationToken);
     node.questionToken && blankExact(node.questionToken);
     node.type && blankTypeNode(node.type);
@@ -241,6 +244,8 @@ function visitTypeAssertion(node) {
  * @param {ts.FunctionLikeDeclaration} node
  */
 function visitFunctionLikeDeclaration(node) {
+    node.modifiers && visitModifiers(node.modifiers);
+
     if (node.typeParameters && node.typeParameters.length) {
         blankGenerics(node, node.typeParameters);
     }
@@ -253,6 +258,7 @@ function visitFunctionLikeDeclaration(node) {
             continue;
         }
         if (p.modifiers) {
+            // error on non-standard parameter properties
             for (let i = 0; i < p.modifiers.length; i++) {
                 const mod = p.modifiers[i];
                 switch (mod.kind) {
