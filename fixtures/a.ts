@@ -4,7 +4,7 @@ let x /**/: number/**/ = 1!;
 [] as [] satisfies [];
 // ^^^^^^^^^^^^^^^^^^
 
-class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,I/*︎*/ {
+class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
 //          ^^^^^                      ^^^     ^^^^^^^^^^^^^^
     readonly field/**/: string/**/ = "";
 //  ^^^^^^^^          ^^^^^^^^
@@ -21,7 +21,7 @@ class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,I/*︎*/ {
 interface I {}
 
 /** @doc */
-type T = I;
+type J = I;
 
 /**/import type T from "node:assert";
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
