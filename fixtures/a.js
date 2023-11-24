@@ -17,6 +17,11 @@ class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
            method/**/   /*︎*/(/*︎*/        /**/ a  /*︎*/        /**/)/*︎*/      /*︎*/ {
 //  ^^^^^^           ^^^         ^^^^^^^^      ^     ^^^^^^^^         ^^^^^^
     }
+
+    get g()      { return 1 };
+//         ^^^^^
+    set g(v     ) { };
+//         ^^^^^
 }
 
 class D extends C      {
@@ -38,6 +43,11 @@ class D extends C      {
 {
     let a = (foo )     ([] );
     //          ^ ^^^^^   ^
+}
+
+{
+    let f = function(p     ) {}
+    //                ^^^^^
 }
 
            

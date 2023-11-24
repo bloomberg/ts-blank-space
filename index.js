@@ -68,6 +68,9 @@ const {
     MethodDeclaration,
     FunctionDeclaration,
     ArrowFunction,
+    FunctionExpression,
+    GetAccessor,
+    SetAccessor,
     ImportDeclaration,
     ExportDeclaration,
     EnumDeclaration,
@@ -127,6 +130,9 @@ function visitor(node) {
         case FunctionDeclaration:
         case MethodDeclaration:
         case Constructor:
+        case FunctionExpression:
+        case GetAccessor:
+        case SetAccessor:
             visitFunctionLikeDeclaration(n); return;
         case EnumDeclaration:
         case ModuleDeclaration: visitEnumOrModule(n); return;

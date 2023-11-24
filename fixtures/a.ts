@@ -17,6 +17,11 @@ class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
     public method/**/<T>/*︎*/(/*︎*/this: T,/**/ a? /*︎*/: string/**/)/*︎*/: void/*︎*/ {
 //  ^^^^^^           ^^^         ^^^^^^^^      ^     ^^^^^^^^         ^^^^^^
     }
+
+    get g(): any { return 1 };
+//         ^^^^^
+    set g(v: any) { };
+//         ^^^^^
 }
 
 class D extends C<any> {
@@ -38,6 +43,11 @@ class D extends C<any> {
 {
     let a = (foo!)<any>([]!);
     //          ^ ^^^^^   ^
+}
+
+{
+    let f = function(p: any) {}
+    //                ^^^^^
 }
 
 /** @doc */
