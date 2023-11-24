@@ -83,7 +83,9 @@ const {
     GreaterThanToken,
     LessThanToken,
     ImplementsKeyword,
-    ExtendsKeyword
+    ExtendsKeyword,
+    NewExpression,
+    CallExpression,
 } = ts.SyntaxKind;
 
 /**
@@ -110,6 +112,8 @@ function visitor(node) {
         case Identifier: return;
         case VariableDeclaration: visitVariableDeclaration(n); return;
         case VariableStatement: visitVariableStatement(n); return;
+        case CallExpression:
+        case NewExpression: visitCallOrNewExpression(n); return;
         case TypeAliasDeclaration:
         case InterfaceDeclaration: blankNode(n); return;
         case ClassDeclaration:
@@ -141,6 +145,22 @@ function visitVariableStatement(node) {
         return;
     }
     node.forEachChild(visitor);
+}
+
+/**
+ * `new Set<string>()` | `foo<string>()`
+ * @param {ts.NewExpression | ts.CallExpression} node
+ */
+function visitCallOrNewExpression(node) {
+    visitor(node.expression);
+    if (node.typeArguments) {
+        blankGenerics(node, node.typeArguments);
+    }
+    if (node.arguments) {
+        for (let i = 0; i < node.arguments.length; i++) {
+            visitor(node.arguments[i]);
+        }
+    }
 }
 
 /**

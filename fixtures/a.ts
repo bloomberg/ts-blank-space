@@ -25,6 +25,21 @@ class D extends C<any> {
 //  ^^^^^^^^                ^^^^^
 }
 
+{
+    let m = new (Map!)<string, number>([]!);
+    //              ^ ^^^^^^^^^^^^^^^^   ^
+}
+
+{
+    let a = (foo!)<any>;
+    //          ^ ^^^^^
+}
+
+{
+    let a = (foo!)<any>([]!);
+    //          ^ ^^^^^   ^
+}
+
 /** @doc */
 interface I {}
 // ^^^^^^^^^^^ interface
