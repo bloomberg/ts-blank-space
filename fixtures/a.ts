@@ -51,3 +51,6 @@ function foo<T>(p: any = (): any => 1): any {
     return p as any;
 //           ^^^^^^
 }
+
+/**/declare enum E1 {}
+//  ^^^^^^^^^^^^^^^^^^

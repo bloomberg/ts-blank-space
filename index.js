@@ -23,13 +23,18 @@ let str = new BlankString("");
 /** @type {ts.SourceFile} */
 let ast;
 
+/** @type {undefined | ((n: ts.Node) => void)} */
+let onError;
+
 /**
  * @param {string} input
+ * @param {typeof onError} [onErrorArg]
  * @returns {string}
  */
-export default function tsBlankSpace(input) {
+export default function tsBlankSpace(input, onErrorArg) {
     try {
         str = new BlankString(input);
+        onError = onErrorArg;
 
         scanner.setText(input);
         ast = ts.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, ts.ScriptKind.TS);
@@ -40,10 +45,9 @@ export default function tsBlankSpace(input) {
     } finally {
         // cleanup. Release memory.
         scanner.setText("");
-        // @ts-expect-error
-        ast = undefined;
-        // @ts-expect-error
-        str = undefined;
+        onError = undefined;
+        ast = /** @type {any} */(undefined);
+        str = /** @type {any} */(undefined);
     }
 }
 
@@ -64,6 +68,7 @@ const {
     ArrowFunction,
     ImportDeclaration,
     ExportDeclaration,
+    EnumDeclaration,
 } = ts.SyntaxKind;
 
 /**
@@ -101,6 +106,7 @@ function visitor(node) {
         case ArrowFunction:
         case FunctionDeclaration:
         case MethodDeclaration: visitFunctionLikeDeclaration(n); return;
+        case EnumDeclaration: visitEnum(n); return;
     }
 
     node.forEachChild(visitor);
@@ -291,6 +297,23 @@ function visitExportDeclaration(node) {
             e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
         }
     }
+}
+
+/**
+ * @param {ts.EnumDeclaration} node
+ * @returns {void}
+ */
+function visitEnum(node) {
+    if (node.modifiers) {
+        for (let i = 0; i < node.modifiers.length; i++) {
+            const modifier = node.modifiers[i];
+            if (modifier.kind === ts.SyntaxKind.DeclareKeyword) {
+                str.blank(node.getFullStart(), node.end);
+                return;
+            }
+        }
+    }
+    onError && onError(node);
 }
 
 /** < */

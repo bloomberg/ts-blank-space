@@ -13,6 +13,7 @@
   },
   "scripts": {
     "fixture": "node ./fixtures/_run.js",
-    "fixture:watch": "node --watch-path ./fixtures/a.ts --watch-path ./index.js ./fixtures/_run.js"
+    "fixture:watch": "node --watch-path ./fixtures/a.ts --watch-path ./index.js ./fixtures/_run.js",
+    "test": "node --test"
   }
 }
