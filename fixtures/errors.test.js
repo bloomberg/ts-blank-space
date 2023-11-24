@@ -19,3 +19,31 @@ it("allows ambient enum", () => {
     `, onError);
     assert.equal(onError.mock.callCount(), 0);
 });
+
+it("errors on parameter properties", () => {
+    const onError = mock.fn();
+    tsBlankSpace(`
+        class C {
+            constructor(public a, private b, protected c, readonly d) {}
+        }
+    `, onError);
+    assert.equal(onError.mock.callCount(), 4);
+});
+
+it("errors on namespace value", () => {
+    const onError = mock.fn();
+    tsBlankSpace(`
+        namespace N {}
+        module M {}
+    `, onError);
+    assert.equal(onError.mock.callCount(), 2);
+});
+
+it("allows declared namespace value", () => {
+    const onError = mock.fn();
+    tsBlankSpace(`
+        declare namespace N {}
+        declare module M {}
+    `, onError);
+    assert.equal(onError.mock.callCount(), 0);
+});

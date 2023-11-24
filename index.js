@@ -63,12 +63,14 @@ const {
     NonNullExpression,
     AsExpression,
     SatisfiesExpression,
+    Constructor,
     MethodDeclaration,
     FunctionDeclaration,
     ArrowFunction,
     ImportDeclaration,
     ExportDeclaration,
     EnumDeclaration,
+    ModuleDeclaration,
 } = ts.SyntaxKind;
 
 /**
@@ -105,8 +107,11 @@ function visitor(node) {
         case AsExpression: visitTypeAssertion(n); return;
         case ArrowFunction:
         case FunctionDeclaration:
-        case MethodDeclaration: visitFunctionLikeDeclaration(n); return;
-        case EnumDeclaration: visitEnum(n); return;
+        case MethodDeclaration:
+        case Constructor:
+            visitFunctionLikeDeclaration(n); return;
+        case EnumDeclaration:
+        case ModuleDeclaration: visitEnumOrModule(n); return;
     }
 
     node.forEachChild(visitor);
@@ -247,6 +252,18 @@ function visitFunctionLikeDeclaration(node) {
             str.blank(p.getStart(ast), p.end + commaAdjust);
             continue;
         }
+        if (p.modifiers) {
+            for (let i = 0; i < p.modifiers.length; i++) {
+                const mod = p.modifiers[i];
+                switch (mod.kind) {
+                    case ts.SyntaxKind.PublicKeyword:
+                    case ts.SyntaxKind.ProtectedKeyword:
+                    case ts.SyntaxKind.PrivateKeyword:
+                    case ts.SyntaxKind.ReadonlyKeyword:
+                        onError && onError(mod);
+                }
+            }
+        }
         p.questionToken && blankExact(p.questionToken);
         p.type && blankTypeNode(p.type);
         p.initializer && visitor(p.initializer);
@@ -300,10 +317,10 @@ function visitExportDeclaration(node) {
 }
 
 /**
- * @param {ts.EnumDeclaration} node
+ * @param {ts.EnumDeclaration | ts.ModuleDeclaration} node
  * @returns {void}
  */
-function visitEnum(node) {
+function visitEnumOrModule(node) {
     if (node.modifiers) {
         for (let i = 0; i < node.modifiers.length; i++) {
             const modifier = node.modifiers[i];
