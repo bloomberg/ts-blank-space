@@ -23,4 +23,16 @@ interface I {}
 /** @doc */
 type T = I;
 
-export {}
+/**/import type T from "node:assert";
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+import {type AssertPredicate} from "node:assert";
+//      ^^^^^^^^^^^^^^^^^^^^
+
+export {
+    type T
+//  ^^^^^^
+}
+
+/**/export type T2 = 1;
+//  ^^^^^^^^^^^^^^^^^^^

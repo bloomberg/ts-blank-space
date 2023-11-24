@@ -97,17 +97,7 @@ function visitor(node) {
 
     // Array<T>
     if (ts.isExpressionWithTypeArguments(node) && node.typeArguments) {
-        const start = scanner.scanRange(
-            node.getStart(ast),
-            node.typeArguments[0].getFullStart(),
-            getLessThanToken
-        );
-        const end = scanner.scanRange(
-            node.typeArguments[node.typeArguments.length-1].getEnd(),
-            node.end,
-            getGreaterThanToken
-        );
-        str.blank(start, end);
+        blankGenerics(node, node.typeArguments);
         return;
     }
 
@@ -183,6 +173,31 @@ function visitor(node) {
 
         if (node.body) {
             visitor(node.body);
+        }
+        return;
+    }
+
+    else if (ts.isImportDeclaration(node) && node.importClause) {
+        if (node.importClause.isTypeOnly) {
+            blankExact(node);
+            return;
+        }
+        const {namedBindings} = node.importClause;
+        if (namedBindings && ts.isNamedImports(namedBindings)) {
+            for (const b of namedBindings.elements) {
+                if (b.isTypeOnly) {
+                    blankExact(b);
+                }
+            }
+        }
+        return;
+    }
+
+    else if (ts.isExportDeclaration(node) && node.exportClause) {
+        if (ts.isNamedExports(node.exportClause)) {
+            for (const b of node.exportClause.elements) {
+                blankExact(b);
+            }
         }
         return;
     }
