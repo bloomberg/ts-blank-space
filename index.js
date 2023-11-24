@@ -48,6 +48,7 @@ export default function tsBlankSpace(input) {
 }
 
 const {
+    Identifier,
     VariableDeclaration,
     InterfaceDeclaration,
     TypeAliasDeclaration,
@@ -59,6 +60,8 @@ const {
     AsExpression,
     SatisfiesExpression,
     MethodDeclaration,
+    FunctionDeclaration,
+    ArrowFunction,
     ImportDeclaration,
     ExportDeclaration,
 } = ts.SyntaxKind;
@@ -84,9 +87,10 @@ function visitTop(node) {
 function visitor(node) {
     const n = /** @type {any} */(node);
     switch (node.kind) {
+        case Identifier: return;
         case VariableDeclaration: visitVariableDeclaration(n); return;
-        case InterfaceDeclaration: visitInterfaceDeclaration(n); return;
-        case TypeAliasDeclaration: visitTypeAliasDeclaration(n); return;
+        case TypeAliasDeclaration:
+        case InterfaceDeclaration: visitType(n); return;
         case ClassDeclaration:
         case ClassExpression: visitClassLike(n); return;
         case ExpressionWithTypeArguments: visitExpressionWithTypeArguments(n); return;
@@ -94,7 +98,9 @@ function visitor(node) {
         case NonNullExpression: visitNonNullExpression(n); return;
         case SatisfiesExpression:
         case AsExpression: visitTypeAssertion(n); return;
-        case MethodDeclaration: visitMethodDeclaration(n); return;
+        case ArrowFunction:
+        case FunctionDeclaration:
+        case MethodDeclaration: visitFunctionLikeDeclaration(n); return;
     }
 
     node.forEachChild(visitor);
@@ -109,22 +115,6 @@ function visitVariableDeclaration(node) {
     if (node.initializer) {
         visitor(node.initializer);
     }
-}
-
-/**
- * `interface ...`
- * @param {ts.InterfaceDeclaration} node
- */
-function visitInterfaceDeclaration(node) {
-    str.blank(node.getFullStart(), node.end);
-}
-
-/**
- * `type T ...`
- * @param {ts.TypeAliasDeclaration} node
- */
-function visitTypeAliasDeclaration(node) {
-    str.blank(node.getFullStart(), node.end);
 }
 
 /**
@@ -171,7 +161,9 @@ function visitExpressionWithTypeArguments(node) {
  */
 function visitPropertyDeclaration(node) {
     if (node.modifiers) {
-        for (const modifier of node.modifiers) {
+        const modifiers = node.modifiers;
+        for (let i = 0; i < modifiers.length; i++) {
+            const modifier = modifiers[i];
             switch (modifier.kind) {
                 case ts.SyntaxKind.PrivateKeyword:
                 case ts.SyntaxKind.ProtectedKeyword:
@@ -234,24 +226,24 @@ function visitTypeAssertion(node) {
 }
 
 /**
- * `method<T>(p: T): T {}`
- * @param {ts.MethodDeclaration} node
+ * `function<T>(p: T): T {}`
+ * @param {ts.FunctionLikeDeclaration} node
  */
-function visitMethodDeclaration(node) {
+function visitFunctionLikeDeclaration(node) {
     if (node.typeParameters && node.typeParameters.length) {
         blankGenerics(node, node.typeParameters);
     }
 
-    let i = 0;
-    for (const p of node.parameters) {
-        i++;
-        if (i === 1 && p.name.getText(ast) === "this") {
+    for (let i = 0; i < node.parameters.length; i++) {
+        const p = node.parameters[i];
+        if (i === 0 && p.name.getText(ast) === "this") {
             const commaAdjust = node.parameters.length > 1 ? 1 : 0;
             str.blank(p.getStart(ast), p.end + commaAdjust);
             continue;
         }
         p.questionToken && blankExact(p.questionToken);
         p.type && blankTypeNode(p.type);
+        p.initializer && visitor(p.initializer);
     }
     node.type && blankTypeNode(node.type);
 
@@ -272,8 +264,10 @@ function visitImportDeclaration(node) {
         }
         const {namedBindings} = node.importClause;
         if (namedBindings && ts.isNamedImports(namedBindings)) {
-            for (const b of namedBindings.elements) {
-                b.isTypeOnly && blankExactAndOptionalTrailingComma(b);
+            const elements = namedBindings.elements;
+            for (let i = 0; i < elements.length; i++) {
+                const e = elements[i];
+                e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
             }
         }
     }
@@ -291,8 +285,10 @@ function visitExportDeclaration(node) {
 
     const {exportClause} = node;
     if (exportClause && ts.isNamedExports(exportClause)) {
-        for (const b of exportClause.elements) {
-            b.isTypeOnly && blankExactAndOptionalTrailingComma(b);
+        const elements = exportClause.elements;
+        for (let i = 0; i < elements.length; i++) {
+            const e = elements[i];
+            e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
         }
     }
 }
@@ -306,6 +302,11 @@ function getLessThanToken() {
 function getGreaterThanToken() {
     while (scanner.scan() !== ts.SyntaxKind.GreaterThanToken);
     return scanner.getTokenEnd();
+}
+
+/** @param {ts.Node} n  */
+function visitType(n) {
+    str.blank(n.getFullStart(), n.end);
 }
 
 /** @param {ts.TypeNode} n  */

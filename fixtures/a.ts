@@ -45,3 +45,9 @@ export {
 
 /**/export type T2 = 1;
 //  ^^^^^^^^^^^^^^^^^^^
+
+function foo<T>(p: any = (): any => 1): any {
+//          ^^^  ^^^^^     ^^^^^      ^^^^^
+    return p as any;
+//           ^^^^^^
+}
