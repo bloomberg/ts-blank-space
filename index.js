@@ -71,6 +71,18 @@ const {
     ExportDeclaration,
     EnumDeclaration,
     ModuleDeclaration,
+    PrivateKeyword,
+    ProtectedKeyword,
+    PublicKeyword,
+    AbstractKeyword,
+    OverrideKeyword,
+    DeclareKeyword,
+    ReadonlyKeyword,
+    CommaToken,
+    GreaterThanToken,
+    LessThanToken,
+    ImplementsKeyword,
+    ExtendsKeyword
 } = ts.SyntaxKind;
 
 /**
@@ -97,7 +109,7 @@ function visitor(node) {
         case Identifier: return;
         case VariableDeclaration: visitVariableDeclaration(n); return;
         case TypeAliasDeclaration:
-        case InterfaceDeclaration: visitType(n); return;
+        case InterfaceDeclaration: blankNode(n); return;
         case ClassDeclaration:
         case ClassExpression: visitClassLike(n); return;
         case ExpressionWithTypeArguments: visitExpressionWithTypeArguments(n); return;
@@ -143,11 +155,11 @@ function visitClassLike(node) {
         for (let i = 0; i < heritageClauses.length; i++) {
             const hc = heritageClauses[i];
             // implements T
-            if (hc.token === ts.SyntaxKind.ImplementsKeyword) {
+            if (hc.token === ImplementsKeyword) {
                 blankExact(hc);
             }
             // ... extends C<T> ...
-            else if (hc.token === ts.SyntaxKind.ExtendsKeyword) {
+            else if (hc.token === ExtendsKeyword) {
                 hc.forEachChild(visitor);
             }
         }
@@ -173,13 +185,13 @@ function visitModifiers(modifiers) {
     for (let i = 0; i < modifiers.length; i++) {
         const modifier = modifiers[i];
         switch (modifier.kind) {
-            case ts.SyntaxKind.PrivateKeyword:
-            case ts.SyntaxKind.ProtectedKeyword:
-            case ts.SyntaxKind.PublicKeyword:
-            case ts.SyntaxKind.AbstractKeyword:
-            case ts.SyntaxKind.OverrideKeyword:
-            case ts.SyntaxKind.DeclareKeyword:
-            case ts.SyntaxKind.ReadonlyKeyword:
+            case PrivateKeyword:
+            case ProtectedKeyword:
+            case PublicKeyword:
+            case AbstractKeyword:
+            case OverrideKeyword:
+            case DeclareKeyword:
+            case ReadonlyKeyword:
                 blankExact(modifier);
                 continue;
         }
@@ -211,7 +223,13 @@ function visitModifiers(modifiers) {
  * @param {ts.PropertyDeclaration} node
  */
 function visitPropertyDeclaration(node) {
-    node.modifiers && visitModifiers(node.modifiers);
+    if (node.modifiers) {
+        if (modifiersContainsDeclare(node.modifiers)) {
+            blankExact(node);
+            return;
+        }
+        visitModifiers(node.modifiers);
+    }
     node.exclamationToken && blankExact(node.exclamationToken);
     node.questionToken && blankExact(node.questionToken);
     node.type && blankTypeNode(node.type);
@@ -262,10 +280,10 @@ function visitFunctionLikeDeclaration(node) {
             for (let i = 0; i < p.modifiers.length; i++) {
                 const mod = p.modifiers[i];
                 switch (mod.kind) {
-                    case ts.SyntaxKind.PublicKeyword:
-                    case ts.SyntaxKind.ProtectedKeyword:
-                    case ts.SyntaxKind.PrivateKeyword:
-                    case ts.SyntaxKind.ReadonlyKeyword:
+                    case PublicKeyword:
+                    case ProtectedKeyword:
+                    case PrivateKeyword:
+                    case ReadonlyKeyword:
                         onError && onError(mod);
                 }
             }
@@ -327,31 +345,39 @@ function visitExportDeclaration(node) {
  * @returns {void}
  */
 function visitEnumOrModule(node) {
-    if (node.modifiers) {
-        for (let i = 0; i < node.modifiers.length; i++) {
-            const modifier = node.modifiers[i];
-            if (modifier.kind === ts.SyntaxKind.DeclareKeyword) {
-                str.blank(node.getFullStart(), node.end);
-                return;
-            }
+    if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
+        str.blank(node.getFullStart(), node.end);
+    } else {
+        onError && onError(node);
+    }
+}
+
+/**
+ * @param {ArrayLike<ts.ModifierLike>} modifiers
+ */
+function modifiersContainsDeclare(modifiers) {
+    for (let i = 0; i < modifiers.length; i++) {
+        const modifier = modifiers[i];
+        if (modifier.kind === DeclareKeyword) {
+            return true;
         }
     }
-    onError && onError(node);
+    return false;
 }
 
 /** < */
 function getLessThanToken() {
-    while (scanner.scan() !== ts.SyntaxKind.LessThanToken);
+    while (scanner.scan() !== LessThanToken);
     return scanner.getTokenStart();
 }
 /** > */
 function getGreaterThanToken() {
-    while (scanner.scan() !== ts.SyntaxKind.GreaterThanToken);
+    while (scanner.scan() !== GreaterThanToken);
     return scanner.getTokenEnd();
 }
 
 /** @param {ts.Node} n  */
-function visitType(n) {
+function blankNode(n) {
     str.blank(n.getFullStart(), n.end);
 }
 
@@ -369,7 +395,7 @@ function blankExact(n) {
 /** @param {ts.Node} n  */
 function blankExactAndOptionalTrailingComma(n) {
     scanner.resetTokenState(n.end);
-    const trailingComma = scanner.scan() === ts.SyntaxKind.CommaToken;
+    const trailingComma = scanner.scan() === CommaToken;
     str.blank(n.getStart(ast), trailingComma ? scanner.getTokenEnd() : n.end);
 }
 

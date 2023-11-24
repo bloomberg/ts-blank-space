@@ -11,19 +11,29 @@ class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
     static accessor f1;
     private f2/**/!/**/: string/*︎*/;
 //  ^^^^^^^       ^    ^^^^^^^^
+    declare f3: any;
+//  ^^^^^^^^^^^^^^^^ declared property
 
     public method/**/<T>/*︎*/(/*︎*/this: T,/**/ a? /*︎*/: string/**/)/*︎*/: void/*︎*/ {
 //  ^^^^^^           ^^^         ^^^^^^^^      ^     ^^^^^^^^         ^^^^^^
     }
 }
 
+class D extends C<any> {
+//               ^^^^^
+    override method(...args): any {}
+//  ^^^^^^^^                ^^^^^
+}
+
 /** @doc */
 interface I {}
-// ^^^^^^^^^^^
+// ^^^^^^^^^^^ interface
+
+void 0;
 
 /** @doc */
 type J = I;
-// ^^^^^^^^
+// ^^^^^^^^ type alias
 
 /**/import type T from "node:assert";
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
