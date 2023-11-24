@@ -15,7 +15,7 @@ const languageOptions = {
 
 // State is hoisted to module scope so we can avoid making so many closures
 
-const scanner = ts.createScanner(ts.ScriptTarget.ESNext, true, ts.LanguageVariant.Standard);
+const scanner = ts.createScanner(ts.ScriptTarget.ESNext, /*skipTrivia: */true, ts.LanguageVariant.Standard);
 scanner.setJSDocParsingMode(ts.JSDocParsingMode.ParseNone);
 
 let str = new BlankString("");
@@ -49,29 +49,25 @@ export default function tsBlankSpace(input) {
  */
 function visitor(node) {
     // let x : T = v
-    //       ^^^
     if (ts.isVariableDeclaration(node)) {
         node.type && blankTypeNode(node.type);
         if (node.initializer) {
             visitor(node.initializer);
         }
-        return;
     }
 
     // interface ...
-    if (ts.isInterfaceDeclaration(node)) {
+    else if (ts.isInterfaceDeclaration(node)) {
         str.blank(node.getFullStart(), node.end);
-        return;
     }
 
     // type T = ...
-    if (ts.isTypeAliasDeclaration(node)) {
+    else if (ts.isTypeAliasDeclaration(node)) {
         str.blank(node.getFullStart(), node.end);
-        return;
     }
 
     // class ...
-    if (ts.isClassLike(node)) {
+    else if (ts.isClassLike(node)) {
         // ... <T>
         if (node.typeParameters && node.typeParameters.length) {
             blankGenerics(node, node.typeParameters);
@@ -92,16 +88,16 @@ function visitor(node) {
             }
         }
         node.members.forEach(visitor);
-        return;
     }
 
-    // Array<T>
-    if (ts.isExpressionWithTypeArguments(node) && node.typeArguments) {
+    // Exp<T>
+    else if (ts.isExpressionWithTypeArguments(node) && node.typeArguments) {
+        visitor(node.expression);
         blankGenerics(node, node.typeArguments);
-        return;
     }
 
-    if (ts.isPropertyDeclaration(node)) {
+    // prop: T
+    else if (ts.isPropertyDeclaration(node)) {
         if (node.modifiers) {
             for (const modifier of node.modifiers) {
                 switch (modifier.kind) {
@@ -137,12 +133,11 @@ function visitor(node) {
         if (node.initializer) {
             visitor(node.initializer);
         }
-
-        return;
     }
 
     // exp!
-    if (ts.isNonNullExpression(node)) {
+    else if (ts.isNonNullExpression(node)) {
+        visitor(node.expression);
         str.blank(node.end - 1, node.end)
     }
 
@@ -150,9 +145,9 @@ function visitor(node) {
     else if (ts.isSatisfiesExpression(node) || ts.isAsExpression(node)) {
         visitor(node.expression);
         str.blank(node.expression.end, node.end);
-        return;
     }
 
+    // method<T>(p: T): T {}
     else if (ts.isMethodDeclaration(node)) {
         if (node.typeParameters && node.typeParameters.length) {
             blankGenerics(node, node.typeParameters);
@@ -174,9 +169,9 @@ function visitor(node) {
         if (node.body) {
             visitor(node.body);
         }
-        return;
     }
 
+    // import ...
     else if (ts.isImportDeclaration(node) && node.importClause) {
         if (node.importClause.isTypeOnly) {
             blankExact(node);
@@ -185,24 +180,29 @@ function visitor(node) {
         const {namedBindings} = node.importClause;
         if (namedBindings && ts.isNamedImports(namedBindings)) {
             for (const b of namedBindings.elements) {
-                if (b.isTypeOnly) {
-                    blankExact(b);
-                }
+                b.isTypeOnly && blankExactAndOptionalTrailingComma(b);
             }
         }
-        return;
     }
 
-    else if (ts.isExportDeclaration(node) && node.exportClause) {
-        if (ts.isNamedExports(node.exportClause)) {
-            for (const b of node.exportClause.elements) {
-                blankExact(b);
+    // export ...
+    else if (ts.isExportDeclaration(node)) {
+        if (node.isTypeOnly) {
+            blankExact(node);
+            return;
+        }
+
+        const {exportClause} = node;
+        if (exportClause && ts.isNamedExports(exportClause)) {
+            for (const b of exportClause.elements) {
+                b.isTypeOnly && blankExactAndOptionalTrailingComma(b);
             }
         }
-        return;
     }
 
-    node.forEachChild(visitor);
+    else {
+        node.forEachChild(visitor);
+    }
 }
 
 /** < */
@@ -225,6 +225,13 @@ function blankTypeNode(n) {
 /** @param {ts.Node} n  */
 function blankExact(n) {
     str.blank(n.getStart(ast), n.end);
+}
+
+/** @param {ts.Node} n  */
+function blankExactAndOptionalTrailingComma(n) {
+    scanner.resetTokenState(n.end);
+    const trailingComma = scanner.scan() === ts.SyntaxKind.CommaToken;
+    str.blank(n.getStart(ast), trailingComma ? scanner.getTokenEnd() : n.end);
 }
 
 /**

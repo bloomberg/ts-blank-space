@@ -19,18 +19,27 @@ class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
 
 /** @doc */
 interface I {}
+// ^^^^^^^^^^^
 
 /** @doc */
 type J = I;
+// ^^^^^^^^
 
 /**/import type T from "node:assert";
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-import {type AssertPredicate} from "node:assert";
-//      ^^^^^^^^^^^^^^^^^^^^
+/**/export type { I };
+//  ^^^^^^^^^^^^^^^^^^
+
+/**/export type * from "node:buffer";
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+import {type AssertPredicate/**/, deepEqual} from "node:assert";
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 export {
-    type T
+    C,
+    type T,
 //  ^^^^^^
 }
 
