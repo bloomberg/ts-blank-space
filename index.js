@@ -34,7 +34,7 @@ export default function tsBlankSpace(input) {
         scanner.setText(input);
         ast = ts.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, ts.ScriptKind.TS);
 
-        visitor(ast);
+        ast.forEachChild(visitTop);
 
         return str.toString();
     } finally {
@@ -47,144 +47,225 @@ export default function tsBlankSpace(input) {
     }
 }
 
+const {
+    VariableDeclaration,
+    InterfaceDeclaration,
+    TypeAliasDeclaration,
+    ClassDeclaration,
+    ClassExpression,
+    ExpressionWithTypeArguments,
+    PropertyDeclaration,
+    NonNullExpression,
+    AsExpression,
+    SatisfiesExpression,
+    MethodDeclaration,
+    ImportDeclaration,
+    ExportDeclaration,
+} = ts.SyntaxKind;
+
+/**
+ * @param {ts.Node} node
+ * @returns {void}
+ */
+function visitTop(node) {
+    const n = /** @type {any} */(node);
+    switch (node.kind) {
+        case ImportDeclaration: visitImportDeclaration(n); return;
+        case ExportDeclaration: visitExportDeclaration(n); return;
+    }
+
+    visitor(node);
+}
+
 /**
  * @param {ts.Node} node
  * @returns {void}
  */
 function visitor(node) {
-    // let x : T = v
-    if (ts.isVariableDeclaration(node)) {
-        node.type && blankTypeNode(node.type);
-        if (node.initializer) {
-            visitor(node.initializer);
-        }
+    const n = /** @type {any} */(node);
+    switch (node.kind) {
+        case VariableDeclaration: visitVariableDeclaration(n); return;
+        case InterfaceDeclaration: visitInterfaceDeclaration(n); return;
+        case TypeAliasDeclaration: visitTypeAliasDeclaration(n); return;
+        case ClassDeclaration:
+        case ClassExpression: visitClassLike(n); return;
+        case ExpressionWithTypeArguments: visitExpressionWithTypeArguments(n); return;
+        case PropertyDeclaration: visitPropertyDeclaration(n); return;
+        case NonNullExpression: visitNonNullExpression(n); return;
+        case SatisfiesExpression:
+        case AsExpression: visitTypeAssertion(n); return;
+        case MethodDeclaration: visitMethodDeclaration(n); return;
     }
 
-    // interface ...
-    else if (ts.isInterfaceDeclaration(node)) {
-        str.blank(node.getFullStart(), node.end);
+    node.forEachChild(visitor);
+}
+
+/**
+ * `let x : T = v`
+ * @param {ts.VariableDeclaration} node
+ */
+function visitVariableDeclaration(node) {
+    node.type && blankTypeNode(node.type);
+    if (node.initializer) {
+        visitor(node.initializer);
+    }
+}
+
+/**
+ * `interface ...`
+ * @param {ts.InterfaceDeclaration} node
+ */
+function visitInterfaceDeclaration(node) {
+    str.blank(node.getFullStart(), node.end);
+}
+
+/**
+ * `type T ...`
+ * @param {ts.TypeAliasDeclaration} node
+ */
+function visitTypeAliasDeclaration(node) {
+    str.blank(node.getFullStart(), node.end);
+}
+
+/**
+ * `class ...`
+ * @param {ts.ClassLikeDeclaration} node
+ */
+function visitClassLike(node) {
+    // ... <T>
+    if (node.typeParameters && node.typeParameters.length) {
+        blankGenerics(node, node.typeParameters);
     }
 
-    // type T = ...
-    else if (ts.isTypeAliasDeclaration(node)) {
-        str.blank(node.getFullStart(), node.end);
-    }
-
-    // class ...
-    else if (ts.isClassLike(node)) {
-        // ... <T>
-        if (node.typeParameters && node.typeParameters.length) {
-            blankGenerics(node, node.typeParameters);
-        }
-
-        const {heritageClauses} = node;
-        if (heritageClauses) {
-            for (let i = 0; i < heritageClauses.length; i++) {
-                const hc = heritageClauses[i];
-                // implements T
-                if (hc.token === ts.SyntaxKind.ImplementsKeyword) {
-                    blankExact(hc);
-                }
-                // ... extends C<T> ...
-                else if (hc.token === ts.SyntaxKind.ExtendsKeyword) {
-                    hc.forEachChild(visitor);
-                }
+    const {heritageClauses} = node;
+    if (heritageClauses) {
+        for (let i = 0; i < heritageClauses.length; i++) {
+            const hc = heritageClauses[i];
+            // implements T
+            if (hc.token === ts.SyntaxKind.ImplementsKeyword) {
+                blankExact(hc);
+            }
+            // ... extends C<T> ...
+            else if (hc.token === ts.SyntaxKind.ExtendsKeyword) {
+                hc.forEachChild(visitor);
             }
         }
-        node.members.forEach(visitor);
     }
+    node.members.forEach(visitor);
+}
 
-    // Exp<T>
-    else if (ts.isExpressionWithTypeArguments(node) && node.typeArguments) {
+/**
+ * Exp<T>
+ * @param {ts.ExpressionWithTypeArguments} node
+ */
+function visitExpressionWithTypeArguments(node) {
+    if (node.typeArguments) {
         visitor(node.expression);
         blankGenerics(node, node.typeArguments);
     }
+}
 
-    // prop: T
-    else if (ts.isPropertyDeclaration(node)) {
-        if (node.modifiers) {
-            for (const modifier of node.modifiers) {
-                switch (modifier.kind) {
-                    case ts.SyntaxKind.PrivateKeyword:
-                    case ts.SyntaxKind.ProtectedKeyword:
-                    case ts.SyntaxKind.PublicKeyword:
-                    case ts.SyntaxKind.AbstractKeyword:
-                    case ts.SyntaxKind.OverrideKeyword:
-                    case ts.SyntaxKind.DeclareKeyword:
-                    case ts.SyntaxKind.ReadonlyKeyword:
-                        blankExact(modifier);
-                        continue;
-                }
+/**
+ * prop: T
+ * @param {ts.PropertyDeclaration} node
+ */
+function visitPropertyDeclaration(node) {
+    if (node.modifiers) {
+        for (const modifier of node.modifiers) {
+            switch (modifier.kind) {
+                case ts.SyntaxKind.PrivateKeyword:
+                case ts.SyntaxKind.ProtectedKeyword:
+                case ts.SyntaxKind.PublicKeyword:
+                case ts.SyntaxKind.AbstractKeyword:
+                case ts.SyntaxKind.OverrideKeyword:
+                case ts.SyntaxKind.DeclareKeyword:
+                case ts.SyntaxKind.ReadonlyKeyword:
+                    blankExact(modifier);
+                    continue;
+            }
 
-                // at runtime skip the remaining checks
-                // these are here only as a compile-time exhaustive check
-                const trueAsFalse = /** @type {false} */(true);
-                if (trueAsFalse) continue;
+            // at runtime skip the remaining checks
+            // these are here only as a compile-time exhaustive check
+            const trueAsFalse = /** @type {false} */(true);
+            if (trueAsFalse) continue;
 
-                switch (modifier.kind) {
-                    case ts.SyntaxKind.ConstKeyword:
-                    case ts.SyntaxKind.DefaultKeyword:
-                    case ts.SyntaxKind.ExportKeyword:
-                    case ts.SyntaxKind.InKeyword:
-                    case ts.SyntaxKind.StaticKeyword:
-                    case ts.SyntaxKind.AccessorKeyword:
-                    case ts.SyntaxKind.AsyncKeyword:
-                    case ts.SyntaxKind.OutKeyword:
-                    case ts.SyntaxKind.Decorator:
-                        continue;
-                    default:
-                        never(modifier);
-                }
+            switch (modifier.kind) {
+                case ts.SyntaxKind.ConstKeyword:
+                case ts.SyntaxKind.DefaultKeyword:
+                case ts.SyntaxKind.ExportKeyword:
+                case ts.SyntaxKind.InKeyword:
+                case ts.SyntaxKind.StaticKeyword:
+                case ts.SyntaxKind.AccessorKeyword:
+                case ts.SyntaxKind.AsyncKeyword:
+                case ts.SyntaxKind.OutKeyword:
+                case ts.SyntaxKind.Decorator:
+                    continue;
+                default:
+                    never(modifier);
             }
         }
-
-        node.exclamationToken && blankExact(node.exclamationToken);
-        node.questionToken && blankExact(node.questionToken);
-        node.type && blankTypeNode(node.type);
-
-        if (node.initializer) {
-            visitor(node.initializer);
-        }
     }
 
-    // exp!
-    else if (ts.isNonNullExpression(node)) {
-        visitor(node.expression);
-        str.blank(node.end - 1, node.end)
+    node.exclamationToken && blankExact(node.exclamationToken);
+    node.questionToken && blankExact(node.questionToken);
+    node.type && blankTypeNode(node.type);
+
+    if (node.initializer) {
+        visitor(node.initializer);
+    }
+}
+
+/**
+ * `expr!`
+ * @param {ts.NonNullExpression} node
+ */
+function visitNonNullExpression(node) {
+    visitor(node.expression);
+    str.blank(node.end - 1, node.end)
+}
+
+/**
+ * `exp satisfies T, exp as T`
+ * @param {ts.SatisfiesExpression | ts.AsExpression} node
+ */
+function visitTypeAssertion(node) {
+    visitor(node.expression);
+    str.blank(node.expression.end, node.end);
+}
+
+/**
+ * `method<T>(p: T): T {}`
+ * @param {ts.MethodDeclaration} node
+ */
+function visitMethodDeclaration(node) {
+    if (node.typeParameters && node.typeParameters.length) {
+        blankGenerics(node, node.typeParameters);
     }
 
-    // exp satisfies T, exp as T
-    else if (ts.isSatisfiesExpression(node) || ts.isAsExpression(node)) {
-        visitor(node.expression);
-        str.blank(node.expression.end, node.end);
+    let i = 0;
+    for (const p of node.parameters) {
+        i++;
+        if (i === 1 && p.name.getText(ast) === "this") {
+            const commaAdjust = node.parameters.length > 1 ? 1 : 0;
+            str.blank(p.getStart(ast), p.end + commaAdjust);
+            continue;
+        }
+        p.questionToken && blankExact(p.questionToken);
+        p.type && blankTypeNode(p.type);
     }
+    node.type && blankTypeNode(node.type);
 
-    // method<T>(p: T): T {}
-    else if (ts.isMethodDeclaration(node)) {
-        if (node.typeParameters && node.typeParameters.length) {
-            blankGenerics(node, node.typeParameters);
-        }
-
-        let i = 0;
-        for (const p of node.parameters) {
-            i++;
-            if (i === 1 && p.name.getText(ast) === "this") {
-                const commaAdjust = node.parameters.length > 1 ? 1 : 0;
-                str.blank(p.getStart(ast), p.end + commaAdjust);
-                continue;
-            }
-            p.questionToken && blankExact(p.questionToken);
-            p.type && blankTypeNode(p.type);
-        }
-        node.type && blankTypeNode(node.type);
-
-        if (node.body) {
-            visitor(node.body);
-        }
+    if (node.body) {
+        visitor(node.body);
     }
+}
 
-    // import ...
-    else if (ts.isImportDeclaration(node) && node.importClause) {
+/**
+ * `import ...`
+ * @param {ts.ImportDeclaration} node
+ */
+function visitImportDeclaration(node) {
+    if (node.importClause) {
         if (node.importClause.isTypeOnly) {
             blankExact(node);
             return;
@@ -196,24 +277,23 @@ function visitor(node) {
             }
         }
     }
+}
 
-    // export ...
-    else if (ts.isExportDeclaration(node)) {
-        if (node.isTypeOnly) {
-            blankExact(node);
-            return;
-        }
-
-        const {exportClause} = node;
-        if (exportClause && ts.isNamedExports(exportClause)) {
-            for (const b of exportClause.elements) {
-                b.isTypeOnly && blankExactAndOptionalTrailingComma(b);
-            }
-        }
+/**
+ * `export ...`
+ * @param {ts.ExportDeclaration} node
+ */
+function visitExportDeclaration(node) {
+    if (node.isTypeOnly) {
+        blankExact(node);
+        return;
     }
 
-    else {
-        node.forEachChild(visitor);
+    const {exportClause} = node;
+    if (exportClause && ts.isNamedExports(exportClause)) {
+        for (const b of exportClause.elements) {
+            b.isTypeOnly && blankExactAndOptionalTrailingComma(b);
+        }
     }
 }
 
