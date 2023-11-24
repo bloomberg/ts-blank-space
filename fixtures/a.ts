@@ -1,6 +1,8 @@
 let x /*▶︎*/: number/*◀︎*/ = 1!;
 //                          ^
 
+[] /**/as [] satisfies []/*︎*/;
+
 class C /*▶︎*/< T >/*◀︎*/ extends Array/**/<T> /*▶︎*/implements I,I/*◀︎*/ {
     /*▶︎*/readonly/*◀︎*/ field /*▶︎*/: string/*◀︎*/ = "";
     static accessor f1;

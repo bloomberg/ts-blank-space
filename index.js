@@ -156,7 +156,14 @@ function visitor(node) {
         str.blank(node.end - 1, node.end)
     }
 
-    if (ts.isMethodDeclaration(node)) {
+    // exp satisfies T, exp as T
+    else if (ts.isSatisfiesExpression(node) || ts.isAsExpression(node)) {
+        visitor(node.expression);
+        str.blank(node.expression.end, node.end);
+        return;
+    }
+
+    else if (ts.isMethodDeclaration(node)) {
         if (node.typeParameters && node.typeParameters.length) {
             blankGenerics(node, node.typeParameters);
         }
