@@ -309,6 +309,11 @@ function visitTypeAssertion(node) {
  * @param {ts.FunctionLikeDeclaration} node
  */
 function visitFunctionLikeDeclaration(node) {
+    if (!node.body) {
+        // overload
+        blankExact(node);
+        return;
+    }
     if (node.modifiers) {
         if (modifiersContainsDeclare(node.modifiers)) {
             blankExact(node);
@@ -347,9 +352,7 @@ function visitFunctionLikeDeclaration(node) {
     }
     node.type && blankTypeNode(node.type);
 
-    if (node.body) {
-        visitor(node.body);
-    }
+    visitor(node.body);
 }
 
 /**

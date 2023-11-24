@@ -50,6 +50,13 @@ class D extends C<any> {
     //                ^^^^^
 }
 
+{
+    function overload(): number;
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ overload
+    function overload(): any {}
+//                     ^^^^^
+}
+
 /** @doc */
 interface I {}
 // ^^^^^^^^^^^ interface
@@ -61,13 +68,13 @@ type J = I;
 // ^^^^^^^^ type alias
 
 /**/import type T from "node:assert";
-//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `import type`
 
 /**/export type { I };
-//  ^^^^^^^^^^^^^^^^^^
+//  ^^^^^^^^^^^^^^^^^^ `export type`
 
 /**/export type * from "node:buffer";
-//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `export type *`
 
 import {type AssertPredicate/**/, deepEqual} from "node:assert";
 //      ^^^^^^^^^^^^^^^^^^^^^^^^^
