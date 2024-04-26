@@ -3,6 +3,7 @@ import {it, mock} from 'node:test';
 import assert from 'node:assert';
 import * as fs from "node:fs";
 import tsBlankSpace from '../index.js';
+import ts from "typescript";
 
 it("matches fixture", () => {
     const inputPath = new URL("./a.ts", import.meta.url);
@@ -26,7 +27,33 @@ it("matches fixture", () => {
         assert.equal(latestLines[i], expectedLines[i], `line ${i + 1} should match (\`npm run fixture\` to update)`);
     }
     assert.deepStrictEqual(latestLines.length, expectedLines.length, "should be the same number of lines (`npm run fixture` to update)");
+
+    assertIdentifiersAreAligned(expectedOutput, input);
 });
+
+/**
+ * @param {string} jsString
+ * @param {string} tsString
+ */
+function assertIdentifiersAreAligned(jsString, tsString) {
+    const tsSource = ts.createSourceFile("input.ts", tsString, ts.ScriptTarget.ESNext, false, ts.ScriptKind.TS);
+    const jsSource = ts.createSourceFile("output.js", jsString, ts.ScriptTarget.ESNext, false, ts.ScriptKind.JS);
+
+    let sawIdentifiers = false;
+    jsSource.forEachChild(function visit(n) {
+        if (n.kind === ts.SyntaxKind.Identifier) {
+            sawIdentifiers = true;
+            const id = n.getText(jsSource);
+            const {line, character} = jsSource.getLineAndCharacterOfPosition(n.getStart(jsSource));
+            const inputIndex = tsSource.getPositionOfLineAndCharacter(line, character);
+            if (!tsString.startsWith(id, inputIndex)) {
+                throw new Error(`Expected to see '${id}' at position ${line}:${character} but saw '${tsString.slice(inputIndex, inputIndex + id.length)}'`);
+            }
+        }
+        n.forEachChild(visit);
+    });
+    assert(sawIdentifiers);
+}
 
 it("handles `=>` on new line", (t) => {
     // In this case we can't only blank out the type annotation,
