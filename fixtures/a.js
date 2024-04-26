@@ -18,6 +18,9 @@ class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
 //  ^^^^^^           ^^^         ^^^^^^^^      ^     ^^^^^^^^         ^^^^^^
     }
 
+                       
+//  ^^^^^^^^^^^^^^^^^^^ index signature
+
     get g()      { return 1 };
 //         ^^^^^
     set g(v     ) { };
@@ -28,6 +31,15 @@ class D extends C      {
 //               ^^^^^
              method(...args)      {}
 //  ^^^^^^^^                ^^^^^
+}
+
+            class A {
+// ^^^^^^^^
+               
+//  ^^^^^^^^^^^ abstract property
+    b;
+                      
+//  ^^^^^^^^^^^^^^^^^^ abstract method
 }
 
 {

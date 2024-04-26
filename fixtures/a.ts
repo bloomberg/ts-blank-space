@@ -18,6 +18,9 @@ class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
 //  ^^^^^^           ^^^         ^^^^^^^^      ^     ^^^^^^^^         ^^^^^^
     }
 
+    [key: string]: any;
+//  ^^^^^^^^^^^^^^^^^^^ index signature
+
     get g(): any { return 1 };
 //         ^^^^^
     set g(v: any) { };
@@ -28,6 +31,15 @@ class D extends C<any> {
 //               ^^^^^
     override method(...args): any {}
 //  ^^^^^^^^                ^^^^^
+}
+
+   abstract class A {
+// ^^^^^^^^
+    abstract a;
+//  ^^^^^^^^^^^ abstract property
+    b;
+    abstract method();
+//  ^^^^^^^^^^^^^^^^^^ abstract method
 }
 
 {

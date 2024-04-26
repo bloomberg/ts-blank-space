@@ -61,6 +61,7 @@ const {
     ClassExpression,
     ExpressionWithTypeArguments,
     PropertyDeclaration,
+    IndexSignature,
     NonNullExpression,
     AsExpression,
     SatisfiesExpression,
@@ -136,6 +137,7 @@ function visitor(node) {
             visitFunctionLikeDeclaration(n); return;
         case EnumDeclaration:
         case ModuleDeclaration: visitEnumOrModule(n); return;
+        case IndexSignature: blankNode(n); return;
     }
 
     node.forEachChild(visitor);
@@ -190,6 +192,7 @@ function visitClassLike(node) {
             blankExact(node);
             return;
         }
+        visitModifiers(node.modifiers);
     }
 
     // ... <T>
@@ -271,7 +274,7 @@ function visitModifiers(modifiers) {
  */
 function visitPropertyDeclaration(node) {
     if (node.modifiers) {
-        if (modifiersContainsDeclare(node.modifiers)) {
+        if (modifiersContainsAbstractOrDeclare(node.modifiers)) {
             blankExact(node);
             return;
         }
@@ -415,6 +418,19 @@ function modifiersContainsDeclare(modifiers) {
     for (let i = 0; i < modifiers.length; i++) {
         const modifier = modifiers[i];
         if (modifier.kind === DeclareKeyword) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @param {ArrayLike<ts.ModifierLike>} modifiers
+ */
+function modifiersContainsAbstractOrDeclare(modifiers) {
+    for (let i = 0; i < modifiers.length; i++) {
+        const modifier = modifiers[i];
+        if (modifier.kind === AbstractKeyword || modifier.kind === DeclareKeyword) {
             return true;
         }
     }
