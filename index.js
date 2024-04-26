@@ -86,6 +86,7 @@ const {
     CommaToken,
     GreaterThanToken,
     LessThanToken,
+    CloseParenToken,
     ImplementsKeyword,
     ExtendsKeyword,
     NewExpression,
@@ -353,9 +354,28 @@ function visitFunctionLikeDeclaration(node) {
         p.type && blankTypeNode(p.type);
         p.initializer && visitor(p.initializer);
     }
-    node.type && blankTypeNode(node.type);
+
+    const returnType = node.type;
+    if (returnType) {
+        if (node.kind !== ArrowFunction || !spansLines(node.parameters.end, node.equalsGreaterThanToken.pos)) {
+            blankTypeNode(returnType);
+        } else {
+            // danger! new line between parameters and `=>`
+            const paramEnd = getClosingParenthesisPos(node.parameters);
+            str.blankButStartWithArrow(paramEnd, node.equalsGreaterThanToken.end);
+        }
+    }
 
     visitor(node.body);
+}
+
+/**
+ * @param {number} a
+ * @param {number} b
+ * @returns {boolean}
+ */
+function spansLines(a, b) {
+    return ast.getLineEndOfPosition(a) !== ast.getLineEndOfPosition(b);
 }
 
 /**
@@ -447,6 +467,11 @@ function getGreaterThanToken() {
     while (scanner.scan() !== GreaterThanToken);
     return scanner.getTokenEnd();
 }
+/** ) */
+function getClosingParen() {
+    while (scanner.scan() !== CloseParenToken);
+    return scanner.getTokenEnd();
+}
 
 /** @param {ts.Node} n  */
 function blankNode(n) {
@@ -488,6 +513,25 @@ function blankGenerics(node, arr) {
         getGreaterThanToken
     );
     str.blank(start, end);
+}
+
+/**
+ * @param {ts.NodeArray<ts.ParameterDeclaration>} node
+ * @returns {number}
+ */
+function getClosingParenthesisPos(node) {
+    if (node.length === 0) {
+        return scanner.scanRange(
+            node.pos,
+            Math.pow(2, 21),
+            getClosingParen,
+        );
+    }
+    return scanner.scanRange(
+        node[node.length -1].end,
+        Math.pow(2, 21),
+        getClosingParen,
+    );
 }
 
 /**

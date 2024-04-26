@@ -135,3 +135,40 @@ void 0;
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare function`
 
 void 0;
+
+// `=>` spanning line cases:
+{
+    ()
+    :any =>
+    1
+};
+{
+    ():
+    any =>
+    1
+};
+{
+    (
+    )
+    :any =>
+    1
+};
+{
+    (
+    ):(
+    |any
+    )=>
+    1
+};
+{
+    (
+    ):
+    NonNullable<any
+    >=>
+    1
+};
+{
+    (a, b, c: D = [] as any/*comment-1*/)/*comment-2*/:
+    any =>
+    1
+};
