@@ -2,16 +2,21 @@
 // Distributed under the terms of the Apache 2.0 license.
 // @ts-check
 
+let lastEnd = 0;
+const max = Math.max;
+
 /**
  * @param {string} input
  * @param {number} start
- * @param {number} end
+ * @param {number} minEnd
  * @returns {string}
  */
-function getSpace(input, start, end) {
+function getSpace(input, start, minEnd) {
+    lastEnd = 0;
     let span = 0;
     let out = "";
-    for (let i = start; i < end; i++) {
+    let i = start;
+    for (; i < minEnd; i++) {
         switch (input.codePointAt(i)) {
             case 10 /* \n */:
                 span = 0;
@@ -25,6 +30,24 @@ function getSpace(input, start, end) {
                 span += 1;
         }
     }
+    trimTrailingSpace: for (; i < input.length; i++) {
+        switch (input.codePointAt(i)) {
+            case 10 /* \n */:
+                span = 0;
+                out += "\n";
+                break;
+            case 13 /* \r */:
+                span = 0;
+                out += "\r";
+                break;
+            case 32 /* <space> */:
+                span += 1;
+                break;
+            default:
+                break trimTrailingSpace;
+        }
+    }
+    lastEnd = i;
     for (let i = 0; i < span; i++) {
         out += " ";
     }
@@ -85,6 +108,7 @@ export default class BlankString {
         extra = "";
 
         out += getSpace(input, previousStart, previousEnd);
+        previousEnd = max(previousEnd, lastEnd);
 
         if (ranges.length === 2) {
             return out + input.slice(previousEnd);
@@ -99,12 +123,13 @@ export default class BlankString {
                 extra = "=>";
             }
 
+            rangeStart = max(rangeStart, previousEnd);
             out += input.slice(previousEnd, rangeStart);
             out += extra;
             extra = "";
             out += getSpace(input, rangeStart, rangeEnd);
             previousStart = rangeStart;
-            previousEnd = rangeEnd;
+            previousEnd = max(previousEnd, lastEnd);
         }
 
         return out + input.slice(previousEnd);
