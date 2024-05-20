@@ -6,9 +6,29 @@
  * @param {string} input
  * @param {number} start
  * @param {number} end
+ * @returns {string}
  */
 function getSpace(input, start, end) {
-    return input.slice(start, end).replace(/[^\t\r\n]/g, " ");
+    let span = 0;
+    let out = "";
+    for (let i = start; i < end; i++) {
+        switch (input.codePointAt(i)) {
+            case 10 /* \n */:
+                span = 0;
+                out += "\n";
+                break;
+            case 13 /* \r */:
+                span = 0;
+                out += "\r";
+                break;
+            default:
+                span += 1;
+        }
+    }
+    for (let i = 0; i < span; i++) {
+        out += " ";
+    }
+    return out;
 }
 
 /** Like magic-string but with only one feature */
