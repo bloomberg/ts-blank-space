@@ -15,9 +15,11 @@ function getSpace(input, start, minEnd) {
     lastEnd = 0;
     let span = 0;
     let out = "";
+
     let i = start;
     for (; i < minEnd; i++) {
-        switch (input.codePointAt(i)) {
+        let charCode = /** @type {number} */(input.charCodeAt(i));
+        switch (charCode) {
             case 10 /* \n */:
                 span = 0;
                 out += "\n";
@@ -28,10 +30,16 @@ function getSpace(input, start, minEnd) {
                 break;
             default:
                 span += 1;
+                if ((charCode & 0xF800) == 0xD800) {
+                    // Surrogate pair
+                    i++;
+                    span += 1;
+                }
         }
     }
+
     trimTrailingSpace: for (; i < input.length; i++) {
-        switch (input.codePointAt(i)) {
+        switch (input.charCodeAt(i)) {
             case 10 /* \n */:
                 span = 0;
                 out += "\n";

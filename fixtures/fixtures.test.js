@@ -89,3 +89,12 @@ it("handles `=>` on new line", (t) => {
     const evaluatedCode = (new Function(`return ${jsOutput}`))();
     assert.deepEqual(evaluatedCode, [[1]], "evaluated JavaScript matches the semantics of the original TypeScript");
 });
+
+it("handles blanking surrogate pairs", () => {
+    const onError = mock.fn();
+    const tsInput = `function f(): "\ud83d\udca5" {}`;
+    const jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    assert.equal(jsOutput, "function f()       {}");
+    assert.equal(jsOutput.length, tsInput.length);
+});
