@@ -4,6 +4,9 @@ let x /**/: number/**/ = 1!;
 [] as [] satisfies [];
 // ^^^^^^^^^^^^^^^^^^
 
+ (<string>"test");
+//^^^^^^^^
+
 class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
 //          ^^^^^                      ^^^     ^^^^^^^^^^^^^^
     readonly field/**/: string/**/ = "";

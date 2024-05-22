@@ -91,6 +91,7 @@ const {
     ExtendsKeyword,
     NewExpression,
     CallExpression,
+    TypeAssertionExpression,
 } = ts.SyntaxKind;
 
 /**
@@ -139,6 +140,7 @@ function visitor(node) {
         case EnumDeclaration:
         case ModuleDeclaration: visitEnumOrModule(n); return;
         case IndexSignature: blankNode(n); return;
+        case TypeAssertionExpression: visitLegacyTypeAssertion(n); return;
     }
 
     node.forEachChild(visitor);
@@ -306,6 +308,15 @@ function visitNonNullExpression(node) {
 function visitTypeAssertion(node) {
     visitor(node.expression);
     str.blank(node.expression.end, node.end);
+}
+
+/**
+ * `<type>v`
+ * @param {ts.TypeAssertion} node
+ */
+function visitLegacyTypeAssertion(node) {
+    str.blank(node.getFullStart(), node.expression.getStart(ast));
+    visitor(node.expression);
 }
 
 /**
