@@ -1,6 +1,6 @@
 # ts-blank-space
 
-TS goes in:
+TypeScript goes in:
 
 ```typescript
 class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
@@ -17,7 +17,7 @@ class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
 }
 ```
 
-Blank Space comes out:
+JavaScript + space comes out:
 
 ```javascript
 class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
@@ -36,8 +36,23 @@ class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
 
 ## API
 
+### String to String
+
+```typescript
+export default function tsBlankSpace(
+    ts: string,
+    onError?: (node) => void
+): string;
+```
+
 ```javascript
 import tsBlankSpace from "ts-blank-space";
 
 console.log(tsBlankSpace(`let x: string;`));
+// "let x        ;"
 ```
+
+## Where are my SourceMaps?
+
+Because all the JavaScript in the output is located at the same line and column as the original
+there is no mapping information that is lost during the transform.
