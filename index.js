@@ -32,12 +32,25 @@ let onError;
  * @returns {string}
  */
 export default function tsBlankSpace(input, onErrorArg) {
+    return blankSourceFile(
+        ts.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, ts.ScriptKind.TS),
+        onErrorArg
+    );
+}
+
+/**
+ * @param {ts.SourceFile} source
+ * @param {typeof onError} [onErrorArg]
+ * @returns {string}
+ */
+export function blankSourceFile(source, onErrorArg) {
     try {
+        const input = source.getFullText(source);
         str = new BlankString(input);
         onError = onErrorArg;
 
         scanner.setText(input);
-        ast = ts.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, ts.ScriptKind.TS);
+        ast = source;
 
         ast.forEachChild(visitTop);
 

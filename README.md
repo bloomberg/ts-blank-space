@@ -52,6 +52,23 @@ console.log(tsBlankSpace(`let x: string;`));
 // "let x        ;"
 ```
 
+### Bring your own AST
+
+```typescript
+export function blankSourceFile(
+    ts: TS.SourceFile,
+    onError?: (node) => void
+): string
+```
+
+```javascript
+import ts from "typescript";
+import { blankSourceFile } from "ts-blank-space";
+
+const sf = ts.createSourceFile(...);
+console.log(blankSourceFile(sf));
+```
+
 ## Where are my SourceMaps?
 
 Because all the JavaScript in the output is located at the same line and column as the original
