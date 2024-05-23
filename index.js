@@ -92,6 +92,7 @@ const {
     NewExpression,
     CallExpression,
     TypeAssertionExpression,
+    ReturnStatement,
 } = ts.SyntaxKind;
 
 /**
@@ -124,6 +125,7 @@ function visitor(node) {
         case InterfaceDeclaration: blankNode(n); return;
         case ClassDeclaration:
         case ClassExpression: visitClassLike(n); return;
+        case ReturnStatement: visitReturn(n); return;
         case ExpressionWithTypeArguments: visitExpressionWithTypeArguments(n); return;
         case PropertyDeclaration: visitPropertyDeclaration(n); return;
         case NonNullExpression: visitNonNullExpression(n); return;
@@ -153,6 +155,20 @@ function visitor(node) {
 function visitVariableStatement(node) {
     if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
         blankExact(node);
+        return;
+    }
+    node.forEachChild(visitor);
+}
+
+/**
+ * `return ...`
+ * @param {ts.ReturnStatement} node
+ */
+function visitReturn(node) {
+    const exp = node.expression;
+    if (exp && exp.kind === TypeAssertionExpression) {
+        onError && onError(node.expression);
+        visitor(/** @type {ts.TypeAssertion}*/(exp).expression);
         return;
     }
     node.forEachChild(visitor);
