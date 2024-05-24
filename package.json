@@ -1,5 +1,6 @@
 {
   "name": "ts-blank-space",
+  "version": "0.0.1",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -15,5 +16,10 @@
     "fixture": "node ./fixtures/_run.js",
     "fixture:watch": "node --watch-path ./fixtures/a.ts --watch-path ./index.js ./fixtures/_run.js",
     "test": "node --test"
-  }
+  },
+  "files": [
+    "!fixtures",
+    "!perf",
+    "*.js"
+  ]
 }
