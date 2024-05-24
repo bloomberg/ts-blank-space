@@ -489,8 +489,8 @@ function modifiersContainsDeclare(modifiers) {
  */
 function modifiersContainsAbstractOrDeclare(modifiers) {
     for (let i = 0; i < modifiers.length; i++) {
-        const modifier = modifiers[i];
-        if (modifier.kind === AbstractKeyword || modifier.kind === DeclareKeyword) {
+        const modifierKind = modifiers[i].kind;
+        if (modifierKind === AbstractKeyword || modifierKind === DeclareKeyword) {
             return true;
         }
     }
