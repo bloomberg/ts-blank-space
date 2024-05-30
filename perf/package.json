@@ -5,6 +5,7 @@
   },
   "scripts": {
     "this": "node ./this.js ./checker.txt 100",
-    "sucrase": "node ./sucrase.js ./checker.txt 100"
+    "sucrase": "node ./sucrase.js ./checker.txt 100",
+    "ts": "node ./ts.js ./checker.txt 100"
   }
 }
