@@ -80,3 +80,14 @@ it("errors on legacy type assertions for function returns", () => {
         }
     `);
 });
+
+it("errors on export assignment", () => {
+    const onError = mock.fn();
+    const out = tsBlankSpace(`
+        export = 1;
+    `, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    assert.equal(out, `
+        export = 1;
+    `);
+});

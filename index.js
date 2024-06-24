@@ -87,6 +87,7 @@ const {
     SetAccessor,
     ImportDeclaration,
     ExportDeclaration,
+    ExportAssignment,
     EnumDeclaration,
     ModuleDeclaration,
     PrivateKeyword,
@@ -117,6 +118,7 @@ function visitTop(node) {
     switch (node.kind) {
         case ImportDeclaration: visitImportDeclaration(n); return;
         case ExportDeclaration: visitExportDeclaration(n); return;
+        case ExportAssignment: onError && onError(node); return;
     }
 
     visitor(node);
