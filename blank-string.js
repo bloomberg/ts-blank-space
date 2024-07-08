@@ -5,6 +5,9 @@
 let lastEnd = 0;
 const max = Math.max;
 
+const FLAG_ARROW = 1;
+const FLAG_COMMA = 2;
+
 /**
  * @param {string} input
  * @param {number} start
@@ -82,7 +85,16 @@ export default class BlankString {
      * @returns {void}
      */
     blankButStartWithArrow(start, end) {
-        this.#ranges.push(-start, end);
+        this.#ranges.push(FLAG_ARROW, start, end);
+    }
+
+    /**
+     * @param {number} start
+     * @param {number} end
+     * @returns {void}
+     */
+    blankButStartWithCommaOperator(start, end) {
+        this.#ranges.push(FLAG_COMMA, start, end);
     }
 
     /**
@@ -91,7 +103,7 @@ export default class BlankString {
      * @returns {void}
      */
     blank(start, end) {
-        this.#ranges.push(start, end);
+        this.#ranges.push(0, start, end);
     }
 
     /**
@@ -104,12 +116,17 @@ export default class BlankString {
             return input;
         }
 
-        let previousStart = ranges[0];
-        let previousEnd = ranges[1];
+        let flags = ranges[0];
+        let previousStart = ranges[1];
+        let previousEnd = ranges[2];
         let extra = "";
-        if (shouldInsertArrow(previousStart)) {
-            previousStart = -previousStart;
-            extra = "=>";
+        const extraArrow = "=>";
+        const extraComma = " 0,";
+        if (flags & FLAG_ARROW) {
+            extra = extraArrow;
+        }
+        else if (flags & FLAG_COMMA) {
+            extra = extraComma;
         }
         let out = input.slice(0, previousStart);
         out += extra;
@@ -118,17 +135,20 @@ export default class BlankString {
         out += getSpace(input, previousStart, previousEnd);
         previousEnd = max(previousEnd, lastEnd);
 
-        if (ranges.length === 2) {
+        if (ranges.length === 3) {
             return out + input.slice(previousEnd);
         }
 
-        for (let i = 2; i < ranges.length; i += 2) {
-            let rangeStart = ranges[i];
-            const rangeEnd = ranges[i+1];
+        for (let i = 3; i < ranges.length; i += 3) {
+            flags = ranges[i];
+            let rangeStart = ranges[i+1];
+            const rangeEnd = ranges[i+2];
 
-            if (shouldInsertArrow(rangeStart)) {
-                rangeStart = -rangeStart;
-                extra = "=>";
+            if (flags & FLAG_ARROW) {
+                extra = extraArrow;
+            }
+            else if (flags & FLAG_COMMA) {
+                extra = extraComma;
             }
 
             rangeStart = max(rangeStart, previousEnd);
@@ -142,14 +162,4 @@ export default class BlankString {
 
         return out + input.slice(previousEnd);
     }
-}
-
-/**
- * @param {number} start
- * @returns {boolean}
- */
-function shouldInsertArrow(start) {
-    // If the negative bit is set, then we also need to insert `=>`
-    // (we can ignore -0)
-    return start < 0;
 }

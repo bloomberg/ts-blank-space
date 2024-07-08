@@ -61,26 +61,6 @@ it("allows declared namespace value", () => {
     assert.equal(onError.mock.callCount(), 0);
 });
 
-it("errors on legacy type assertions for function returns", () => {
-    // This is not supported because blanking out the type can result in
-    // semantically different JS.
-    // If `return` is followed by a newline then that means: `return;`
-    const onError = mock.fn();
-    const out = tsBlankSpace(`
-        function foo() {
-            return <string>
-                "string on separate line";
-        }
-    `, onError);
-    assert.equal(onError.mock.callCount(), 1);
-    assert.equal(out, `
-        function foo() {
-            return <string>
-                "string on separate line";
-        }
-    `);
-});
-
 it("errors on export assignment", () => {
     const onError = mock.fn();
     const out = tsBlankSpace(`

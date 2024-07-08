@@ -175,3 +175,14 @@ void 0;
 
     1
 };
+
+function assertion() {
+    return/*comment-1*/        /*comment-2*/"I am string";
+//                     ^^^^^^^^
+}
+
+function assertion2() {
+    return 0,
+
+     "I am on a new line";
+}

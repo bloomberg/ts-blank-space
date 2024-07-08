@@ -86,7 +86,9 @@ The benefits of this library are:
 
 ## Does it really just blank out all the type annotations?
 
-There is one case where it does more than replace the TypeScript syntax with blank space.
+There are two cases where it does more than replace the TypeScript syntax with blank space.
+
+### Arrow function return types that introduce a new line
 
 If the annotation marking the return type of an arrow function introduces a new line before the `=>`
 then only replacing it with blank space would be incorrect. So in addition to removing the type annotation, the `=>` is moved up.
@@ -107,6 +109,31 @@ let f = () =>
      [""];
 ```
 
+### Type assertions in a `return` position that introduce a new line
+
+Before TypeScript added `val as Type`, assertions were written as `<Type>val`.
+This _legacy_ style of writing a type assertion presents a hazard when erasing
+type annotation if used in a `return` position. `ts-blank-space` solves this
+by using the [comma operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comma_operator) to preserve the correct semantics.
+
+Example input:
+
+```typescript
+function f() {
+    return <string>
+        "string on a new line";
+}
+```
+
+becomes:
+
+```javascript
+function f() {
+    return 0,
+        "string on a new line";
+}
+```
+
 ## Unsupported
 
 Some parts of TypeScript are not supported because they can't be erased in place due to having
@@ -114,10 +141,8 @@ runtime semantics.
 
 - `enum` (unless `declare enum`)
 - `namespace` (unless `declare namespace`)
+- `module` (unless `declare module`)
 - parameter properties in class constructors: `constructor(public x) {}`
-- `return <Type>value`
-  - Type assertions are not allowed as a return statement incase they introduce a new line.
-  - use `return value as Type` instead.
 - `useDefineAsClassFields: false`
 - `verbatimModuleSyntax: false`
 

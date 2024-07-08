@@ -98,3 +98,22 @@ it("handles blanking surrogate pairs", () => {
     assert.equal(jsOutput, "function f()       {}");
     assert.equal(jsOutput.length, tsInput.length);
 });
+
+it("handles legacy type assertions in return statements", () => {
+    const onError = mock.fn();
+    const tsInput = `function f() {
+        return<
+          string>
+            "on a new line";
+    }`;
+    const jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    const expectedOutput = `function f() {
+        return 0,
+
+            "on a new line";
+    }`;
+    assert.equal(jsOutput, expectedOutput);
+    const code = new Function(`return ${jsOutput}`)();
+    assert.equal(code(), "on a new line");
+});

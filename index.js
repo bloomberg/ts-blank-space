@@ -181,12 +181,37 @@ function visitVariableStatement(node) {
  */
 function visitReturn(node) {
     const exp = node.expression;
-    if (exp && exp.kind === TypeAssertionExpression) {
-        onError && onError(node.expression);
-        visitor(/** @type {ts.TypeAssertion}*/(exp).expression);
+    if (!exp) {
         return;
     }
-    node.forEachChild(visitor);
+    if (exp.kind !== TypeAssertionExpression) {
+        visitor(exp);
+        return;
+    }
+    visitTypeAssertionInReturn(/** @type {ts.TypeAssertion}*/(exp));
+}
+
+/**
+ * @param {ts.TypeAssertion} node
+ */
+function visitTypeAssertionInReturn(node) {
+    const start = scanner.scanRange(
+        node.getStart(ast),
+        node.type.pos,
+        getLessThanToken
+    );
+    const end = scanner.scanRange(
+        node.type.end,
+        node.end,
+        getGreaterThanToken
+    );
+    if (spansLines(start, node.expression.getStart(ast))) {
+        // Special case, purely blanking assertion could change semantics
+        str.blankButStartWithCommaOperator(start, end);
+    } else {
+        str.blank(start, end);
+    }
+    visitor(node.expression);
 }
 
 /**
