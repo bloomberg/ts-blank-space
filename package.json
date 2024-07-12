@@ -1,13 +1,13 @@
 {
   "name": "ts-blank-space",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
     ".": "./index.js"
   },
   "dependencies": {
-    "typescript": "^5.3.2"
+    "typescript": "5.0.2 - 5.5.x"
   },
   "devDependencies": {
     "@types/node": "^20.9.4"
