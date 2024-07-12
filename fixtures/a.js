@@ -186,3 +186,9 @@ function assertion2() {
 
      "I am on a new line";
 }
+
+function assertion3() {
+    return 0,
+
+     "I am on a new line";
+}

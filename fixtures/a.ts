@@ -186,3 +186,9 @@ function assertion2() {
         string
     >"I am on a new line";
 }
+
+function assertion3() {
+    return</*comment-inside-tag*/
+        string
+    >"I am on a new line";
+}
