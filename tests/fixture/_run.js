@@ -1,6 +1,6 @@
 // @ts-check
 import * as fs from "node:fs";
-import tsBlankSpace from "../index.js";
+import tsBlankSpace from "../../index.js";
 
 const inputPath = new URL("./a.ts", import.meta.url);
 const outputPath = new URL("./a.js", import.meta.url);

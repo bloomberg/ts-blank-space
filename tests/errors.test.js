@@ -16,14 +16,6 @@ it("errors on enums", () => {
     `);
 });
 
-it("allows ambient enum", () => {
-    const onError = mock.fn();
-    tsBlankSpace(`
-       declare enum E1 {}
-    `, onError);
-    assert.equal(onError.mock.callCount(), 0);
-});
-
 it("errors on parameter properties", () => {
     const onError = mock.fn();
     const out = tsBlankSpace(`
@@ -52,14 +44,6 @@ it("errors on namespace value", () => {
     `);
 });
 
-it("allows declared namespace value", () => {
-    const onError = mock.fn();
-    tsBlankSpace(`
-        declare namespace N {}
-        declare module M {}
-    `, onError);
-    assert.equal(onError.mock.callCount(), 0);
-});
 
 it("errors on export assignment", () => {
     const onError = mock.fn();

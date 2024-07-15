@@ -6,8 +6,8 @@ import tsBlankSpace from '../index.js';
 import ts from "typescript";
 
 it("matches fixture", () => {
-    const inputPath = new URL("./a.ts", import.meta.url);
-    const fixturePath = new URL("./a.js", import.meta.url);
+    const inputPath = new URL("./fixture/a.ts", import.meta.url);
+    const fixturePath = new URL("./fixture/a.js", import.meta.url);
 
     const input = fs.readFileSync(inputPath, "utf-8");
     const expectedOutput = fs.readFileSync(fixturePath, "utf-8");
@@ -129,4 +129,25 @@ it("handles default export", () => {
     const jsOutput = tsBlankSpace(tsInput, onError);
     assert.equal(onError.mock.callCount(), 0, "there should be no errors");
     assert.equal(jsOutput, tsInput);
+});
+
+it("allows ambient enum", () => {
+    const onError = mock.fn();
+    const jsOutput = tsBlankSpace(`declare enum E1 {}\n`, onError);
+    assert.equal(onError.mock.callCount(), 0);
+    assert.equal(jsOutput, "\n");
+});
+
+it("allows declared namespace value", () => {
+    const onError = mock.fn();
+    const jsOutput = tsBlankSpace(`declare namespace N {}\n`, onError);
+    assert.equal(onError.mock.callCount(), 0);
+    assert.equal(jsOutput, "\n");
+});
+
+it("allows declared module value", () => {
+    const onError = mock.fn();
+    const jsOutput = tsBlankSpace(`declare module M {}\n`, onError);
+    assert.equal(onError.mock.callCount(), 0);
+    assert.equal(jsOutput, "\n");
 });
