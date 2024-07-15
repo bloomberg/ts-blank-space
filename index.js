@@ -9,14 +9,14 @@ import BlankString from "./blank-string.js";
  */
 const languageOptions = {
     languageVersion: ts.ScriptTarget.ESNext,
-    jsDocParsingMode: ts.JSDocParsingMode.ParseNone,
+    jsDocParsingMode: ts.JSDocParsingMode?.ParseNone,
     impliedNodeFormat: ts.ModuleKind.ESNext,
 };
 
 // State is hoisted to module scope so we can avoid making so many closures
 
 const scanner = ts.createScanner(ts.ScriptTarget.ESNext, /*skipTrivia: */true, ts.LanguageVariant.Standard);
-scanner.setJSDocParsingMode(ts.JSDocParsingMode.ParseNone);
+scanner.setJSDocParsingMode?.(ts.JSDocParsingMode.ParseNone);
 
 let str = new BlankString("");
 
