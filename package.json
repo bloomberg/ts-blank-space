@@ -6,6 +6,7 @@
   "exports": {
     ".": "./index.js"
   },
+  "types": "./types/index.d.ts",
   "dependencies": {
     "typescript": "5.0.2 - 5.5.x"
   },
@@ -13,13 +14,16 @@
     "@types/node": "^20.9.4"
   },
   "scripts": {
+    "gen-types": "tsc -p jsconfig.json",
     "update-fixture": "node ./tests/fixture/_run.js",
     "update-fixture:watch": "node --watch-path ./tests/fixture/a.ts --watch-path ./index.js ./tests/fixture/_run.js",
-    "test": "node --test"
+    "test": "node --test",
+    "prepublish": "npm run gen-types"
   },
   "files": [
     "!tests",
     "!perf",
+    "types/index.d.ts",
     "*.js"
   ]
 }

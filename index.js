@@ -27,9 +27,9 @@ let ast;
 let onError;
 
 /**
- * @param {string} input
- * @param {typeof onError} [onErrorArg]
- * @returns {string}
+ * @param {string} input string containing TypeScript
+ * @param {typeof onError} [onErrorArg] callback when unsupported syntax is encountered
+ * @returns {string} containing JavaScript
  */
 export default function tsBlankSpace(input, onErrorArg) {
     return blankSourceFile(
@@ -39,9 +39,9 @@ export default function tsBlankSpace(input, onErrorArg) {
 }
 
 /**
- * @param {ts.SourceFile} source
- * @param {typeof onError} [onErrorArg]
- * @returns {string}
+ * @param {ts.SourceFile} source containing TypeScript's AST
+ * @param {typeof onError} [onErrorArg] callback when unsupported syntax is encountered
+ * @returns {string} containing JavaScript
  */
 export function blankSourceFile(source, onErrorArg) {
     try {

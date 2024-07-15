@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "target": "es2020",
+        "module": "nodeNext",
+        "noEmit": false,
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "outDir": "./types"
+    },
+    "files": ["./index.js"]
+}
