@@ -65,8 +65,8 @@ export function blankSourceFile(
 import ts from "typescript";
 import { blankSourceFile } from "ts-blank-space";
 
-const sf = ts.createSourceFile(...);
-console.log(blankSourceFile(sf));
+const ast = ts.createSourceFile(...);
+console.log(blankSourceFile(ast));
 ```
 
 ## Where are my SourceMaps?
@@ -86,7 +86,7 @@ The benefits of this library are:
 
 ## Does it really just blank out all the type annotations?
 
-There are two cases where it does more than replace the TypeScript syntax with blank space.
+There are two cases, described here, where it does more than replace the TypeScript syntax with blank space.
 
 ### Arrow function return types that introduce a new line
 
@@ -143,8 +143,15 @@ runtime semantics.
 - `namespace` (unless `declare namespace`)
 - `module` (unless `declare module`)
 - parameter properties in class constructors: `constructor(public x) {}`
-- `useDefineAsClassFields: false`
-- `verbatimModuleSyntax: false`
+
+## Recommend `tsconfig.json` compiler settings
+
+```json
+{
+    "useDefineAsClassFields": true,
+    "verbatimModuleSyntax": true
+}
+```
 
 ## TSX/JSX
 
