@@ -142,13 +142,21 @@ runtime semantics.
 - `enum` (unless `declare enum`)
 - `namespace` (unless `declare namespace`)
 - `module` (unless `declare module`)
-- parameter properties in class constructors: `constructor(public x) {}`
+- `import lib = ...`, `export = ...` (TypeScript style CommonJS)
+- `constructor(public x) {}` (parameter properties in class constructors)
+
+When any of the above are encountered `ts-blank-space` will call the optional `onError` callback and continue.
+Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
 
 ## Recommend `tsconfig.json` compiler settings
 
-```json
+```jsonc
 {
+    // Because class fields are preserved as written which corresponds
+    // to 'define' semantics in the ECMAScript specification
     "useDefineAsClassFields": true,
+    // Because imports and exports are preserved as written, only removing the
+    // parts which are explicitly annotated with the `type` keyword
     "verbatimModuleSyntax": true
 }
 ```
@@ -156,3 +164,6 @@ runtime semantics.
 ## TSX/JSX
 
 JSX is not transformed, it will be preserved in the output.
+
+By default `ts-blank-space` will parse the file assuming `.ts`. If the original file contains JSX syntax
+then the parsing should be done manually. There is a TSX example in [`valid.test.js`](./tests/valid.test.js).
