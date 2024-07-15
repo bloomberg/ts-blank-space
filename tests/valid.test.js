@@ -2,7 +2,7 @@
 import {it, mock} from 'node:test';
 import assert from 'node:assert';
 import * as fs from "node:fs";
-import tsBlankSpace from '../index.js';
+import tsBlankSpace, { blankSourceFile } from '../index.js';
 import ts from "typescript";
 
 it("matches fixture", () => {
@@ -150,4 +150,19 @@ it("allows declared module value", () => {
     const jsOutput = tsBlankSpace(`declare module M {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
     assert.equal(jsOutput, "\n");
+});
+
+it("TSX is preserved in the output", () => {
+    const onError = mock.fn();
+    const tsInput = `const elm = <div>{x as string}</div>;\n`;
+    const tsSource = ts.createSourceFile(
+        "input.tsx",
+        tsInput,
+        ts.ScriptTarget.ESNext,
+        false,
+        ts.ScriptKind.TSX
+    );
+    const jsxOutput = blankSourceFile(tsSource, onError);
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    assert.equal(jsxOutput, "const elm = <div>{x          }</div>;\n");
 });
