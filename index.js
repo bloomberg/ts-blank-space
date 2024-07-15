@@ -118,7 +118,7 @@ function visitTop(node) {
     switch (node.kind) {
         case ImportDeclaration: visitImportDeclaration(n); return;
         case ExportDeclaration: visitExportDeclaration(n); return;
-        case ExportAssignment: onError && onError(node); return;
+        case ExportAssignment: visitExportAssignment(n); return;
     }
 
     visitor(node);
@@ -484,6 +484,19 @@ function visitExportDeclaration(node) {
             e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
         }
     }
+}
+
+/**
+ * `export default ...`
+ * @param {ts.ExportAssignment} node
+ */
+function visitExportAssignment(node) {
+    if (node.isExportEquals) {
+        // `export = ...`
+        onError && onError(node);
+        return;
+    }
+    visitor(node.expression);
 }
 
 /**

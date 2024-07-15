@@ -117,3 +117,16 @@ it("handles legacy type assertions in return statements", () => {
     const code = new Function(`return ${jsOutput}`)();
     assert.equal(code(), "on a new line");
 });
+
+it("handles default export", () => {
+    // TypeScript uses an `ExportAssignment` node for both
+    // `export default ...` and `export =`.
+    // The former is supported, the latter is an error.
+    const onError = mock.fn();
+    const tsInput = `
+        export default/**/1/**/;
+    `;
+    const jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    assert.equal(jsOutput, tsInput);
+});
