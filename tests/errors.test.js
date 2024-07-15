@@ -45,7 +45,7 @@ it("errors on namespace value", () => {
 });
 
 
-it("errors on export assignment", () => {
+it("errors on CJS export assignment syntax", () => {
     const onError = mock.fn();
     const out = tsBlankSpace(`
         export = 1;
@@ -53,5 +53,16 @@ it("errors on export assignment", () => {
     assert.equal(onError.mock.callCount(), 1);
     assert.equal(out, `
         export = 1;
+    `);
+});
+
+it("errors on CJS import syntax", () => {
+    const onError = mock.fn();
+    const out = tsBlankSpace(`
+        import lib = require("");
+    `, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    assert.equal(out, `
+        import lib = require("");
     `);
 });

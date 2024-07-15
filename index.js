@@ -86,6 +86,7 @@ const {
     GetAccessor,
     SetAccessor,
     ImportDeclaration,
+    ImportEqualsDeclaration,
     ExportDeclaration,
     ExportAssignment,
     EnumDeclaration,
@@ -119,6 +120,7 @@ function visitTop(node) {
         case ImportDeclaration: visitImportDeclaration(n); return;
         case ExportDeclaration: visitExportDeclaration(n); return;
         case ExportAssignment: visitExportAssignment(n); return;
+        case ImportEqualsDeclaration: onError && onError(n); return;
     }
 
     visitor(node);
