@@ -1,6 +1,9 @@
 {
   "type": "module",
   "dependencies": {
+    "@swc/core": "^1.7.0-nightly-20240715.2",
+    "@swc/wasm": "^1.7.0-nightly-20240715.2",
+    "@swc/wasm-typescript": "^1.7.0-nightly-20240715.2",
     "sucrase": "^3.34.0"
   },
   "scripts": {
