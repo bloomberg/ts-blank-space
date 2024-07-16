@@ -283,8 +283,8 @@ function visitClassLike(node) {
  * @param {ts.ExpressionWithTypeArguments} node
  */
 function visitExpressionWithTypeArguments(node) {
+    visitor(node.expression);
     if (node.typeArguments) {
-        visitor(node.expression);
         blankGenerics(node, node.typeArguments);
     }
 }

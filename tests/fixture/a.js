@@ -36,6 +36,12 @@ class D extends C      {
 //  ^^^^^^^^                ^^^^^
 }
 
+class E extends (function() {}       ) {
+//                             ^^^^^^
+    d = C        ;
+//       ^^^^^^^^
+}
+
             class A {
 // ^^^^^^^^
     

@@ -36,6 +36,12 @@ class D extends C<any> {
 //  ^^^^^^^^                ^^^^^
 }
 
+class E extends (function() {} as any) {
+//                             ^^^^^^
+    d = C<string>;
+//       ^^^^^^^^
+}
+
    abstract class A {
 // ^^^^^^^^
     abstract a;
