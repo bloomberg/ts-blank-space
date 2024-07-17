@@ -237,6 +237,8 @@ function visitCallOrNewExpression(node) {
  * @param {ts.VariableDeclaration} node
  */
 function visitVariableDeclaration(node) {
+    visitor(node.name);
+
     // let x!
     node.exclamationToken && blankExact(node.exclamationToken);
 
@@ -425,6 +427,7 @@ function visitFunctionLikeDeclaration(node) {
                 }
             }
         }
+        visitor(p.name);
         p.questionToken && blankExact(p.questionToken);
         p.type && blankTypeNode(p.type);
         p.initializer && visitor(p.initializer);

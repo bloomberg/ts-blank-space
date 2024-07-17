@@ -1,0 +1,28 @@
+
+type Box<T> = any;
+declare const FOO: { [x: string]: <T>(...args: any[]) => any };
+
+const {
+    [(FOO as Box<any>).a]: a,
+    [(FOO as Box<any>).b]: b,
+    [(FOO as Box<any>).c]: c,
+} = {} as any;
+
+const {
+    data: {
+        d,
+        e,
+        f,
+    } = {} as Box<any>,
+}: Box<any> = FOO || {};
+
+(function({
+    name,
+    regex,
+    uuidType = String as Box<any>,
+}: Box<any>) {
+});
+
+let g: Box<any>,
+    h!: Box<any>,
+    i: Box<any>;
