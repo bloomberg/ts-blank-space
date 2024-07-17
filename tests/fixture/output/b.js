@@ -49,3 +49,14 @@ let g          ,
 
 ((value         ) =>0|| { value }.value);
 //                   <A>{ value }.value);
+
+(function f0(
+    
+    //       ^- trailing comma
+) {});
+
+(function f1(
+    
+    //       ^- trailing comma
+    arg1
+) {});

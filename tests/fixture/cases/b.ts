@@ -49,3 +49,14 @@ let g: Box<any>,
 
 ((value: boolean) => <A>{ value }.value);
 //                   <A>{ value }.value);
+
+(function f0(
+    this: any,
+    //       ^- trailing comma
+) {});
+
+(function f1(
+    this: any,
+    //       ^- trailing comma
+    arg1: any
+) {});

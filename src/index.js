@@ -415,8 +415,7 @@ function visitFunctionLikeDeclaration(node) {
     for (let i = 0; i < node.parameters.length; i++) {
         const p = node.parameters[i];
         if (i === 0 && p.name.getText(ast) === "this") {
-            const commaAdjust = node.parameters.length > 1 ? 1 : 0;
-            str.blank(p.getStart(ast), p.end + commaAdjust);
+            blankExactAndOptionalTrailingComma(p);
             continue;
         }
         if (p.modifiers) {
