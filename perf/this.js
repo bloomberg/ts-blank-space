@@ -1,6 +1,6 @@
 // @ts-check
 import * as fs from "node:fs";
-import blankSpace from "../index.js"
+import blankSpace from "../src/index.js"
 
 function assert(v) {
     if (!v) throw new Error();
