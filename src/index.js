@@ -237,7 +237,13 @@ function visitCallOrNewExpression(node) {
  * @param {ts.VariableDeclaration} node
  */
 function visitVariableDeclaration(node) {
+    // let x!
+    node.exclamationToken && blankExact(node.exclamationToken);
+
+    // let x: T
     node.type && blankTypeNode(node.type);
+
+    // let x = v
     if (node.initializer) {
         visitor(node.initializer);
     }

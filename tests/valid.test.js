@@ -129,3 +129,12 @@ it("TSX is preserved in the output", () => {
     assert.equal(onError.mock.callCount(), 0, "there should be no errors");
     assert.equal(jsxOutput, "const elm = <div>{x          }</div>;\n");
 });
+
+// Easy to miss this case as it's only a single character
+it("handles variable definite assignment assertions", () => {
+    const onError = mock.fn();
+    const tsInput = `let x: any, y! : string, z: any;\n`;
+    const jsxOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    assert.equal(jsxOutput, "let x     , y          , z     ;\n");
+});
