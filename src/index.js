@@ -381,8 +381,9 @@ function visitTypeAssertion(node) {
  * @param {ts.TypeAssertion} node
  */
 function visitLegacyTypeAssertion(node) {
-    str.blank(node.getFullStart(), node.expression.getStart(ast));
-    visitor(node.expression);
+    const exp = node.expression;
+    str.blank(node.getFullStart(), exp.getStart(ast));
+    visitor(exp);
 }
 
 /**
@@ -395,6 +396,7 @@ function visitFunctionLikeDeclaration(node) {
         blankExact(node);
         return;
     }
+
     if (node.modifiers) {
         if (modifiersContainsDeclare(node.modifiers)) {
             blankExact(node);
@@ -437,8 +439,9 @@ function visitFunctionLikeDeclaration(node) {
     }
 
     const returnType = node.type;
+    const isArrow = node.kind === ArrowFunction;
     if (returnType) {
-        if (node.kind !== ArrowFunction || !spansLines(node.parameters.end, node.equalsGreaterThanToken.pos)) {
+        if (!isArrow || !spansLines(node.parameters.end, node.equalsGreaterThanToken.pos)) {
             blankTypeNode(returnType);
         } else {
             // danger! new line between parameters and `=>`
@@ -447,7 +450,23 @@ function visitFunctionLikeDeclaration(node) {
         }
     }
 
-    visitor(node.body);
+    const body = node.body;
+    if (isArrow && body.kind === TypeAssertionExpression) {
+        visitTypeAssertionArrowBody(/** @type {ts.TypeAssertion} */(body));
+        return;
+    }
+
+    visitor(body);
+}
+
+/**
+ * () => <T>exp
+ * @param {ts.TypeAssertion} n
+ */
+function visitTypeAssertionArrowBody(n) {
+    const exp = n.expression;
+    str.blankButReplaceStartWithZeroOR(n.getFullStart(), exp.getStart(ast));
+    visitor(exp);
 }
 
 /**

@@ -7,6 +7,7 @@ const max = Math.max;
 
 const FLAG_ARROW = 1;
 const FLAG_COMMA = 2;
+const FLAG_REPLACE_WITH_ZERO_OR = 4;
 
 /**
  * @param {string} input
@@ -102,6 +103,15 @@ export default class BlankString {
      * @param {number} end
      * @returns {void}
      */
+    blankButReplaceStartWithZeroOR(start, end) {
+        this.#ranges.push(FLAG_REPLACE_WITH_ZERO_OR, start, end);
+    }
+
+    /**
+     * @param {number} start
+     * @param {number} end
+     * @returns {void}
+     */
     blank(start, end) {
         this.#ranges.push(0, start, end);
     }
@@ -122,18 +132,25 @@ export default class BlankString {
         let extra = "";
         const extraArrow = "=>";
         const extraComma = " 0,";
+        const extraZeroOR = "0||";
+        let startOffset = 0;
         if (flags & FLAG_ARROW) {
             extra = extraArrow;
         }
         else if (flags & FLAG_COMMA) {
             extra = extraComma;
         }
+        else if (flags & FLAG_REPLACE_WITH_ZERO_OR) {
+            startOffset = extraZeroOR.length;
+            extra = extraZeroOR;
+        }
         let out = input.slice(0, previousStart);
         out += extra;
         extra = "";
 
-        out += getSpace(input, previousStart, previousEnd);
+        out += getSpace(input, previousStart + startOffset, previousEnd);
         previousEnd = max(previousEnd, lastEnd);
+        startOffset = 0;
 
         if (ranges.length === 3) {
             return out + input.slice(previousEnd);
@@ -150,13 +167,18 @@ export default class BlankString {
             else if (flags & FLAG_COMMA) {
                 extra = extraComma;
             }
+            else if (flags & FLAG_REPLACE_WITH_ZERO_OR) {
+                extra = extraZeroOR;
+                startOffset = extraZeroOR.length;
+            }
 
             rangeStart = max(rangeStart, previousEnd);
             out += input.slice(previousEnd, rangeStart);
             out += extra;
             extra = "";
-            out += getSpace(input, rangeStart, rangeEnd);
-            previousStart = rangeStart;
+            out += getSpace(input, rangeStart + startOffset, rangeEnd);
+            previousStart = rangeStart + startOffset;
+            startOffset = 0;
             previousEnd = max(previousEnd, lastEnd);
         }
 

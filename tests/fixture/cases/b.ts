@@ -1,4 +1,5 @@
 
+type A = any;
 type Box<T> = any;
 //^^^^^^^^^^^^^^^^
 declare const FOO: { [x: string]: <T>(...args: any[]) => any };
@@ -41,4 +42,10 @@ let g: Box<any>,
 (class {
     optionalMethod?(v: any) {}
 //                ^
-})
+});
+
+((value: boolean) => <const>{ value });
+//                   <const>{ value })
+
+((value: boolean) => <A>{ value }.value);
+//                   <A>{ value }.value);
