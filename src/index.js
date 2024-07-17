@@ -407,6 +407,9 @@ function visitFunctionLikeDeclaration(node) {
         blankGenerics(node, node.typeParameters);
     }
 
+    // method?
+    node.questionToken && blankExact(node.questionToken);
+
     for (let i = 0; i < node.parameters.length; i++) {
         const p = node.parameters[i];
         if (i === 0 && p.name.getText(ast) === "this") {
