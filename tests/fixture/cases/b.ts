@@ -1,4 +1,3 @@
-
 type A = any;
 type Box<T> = any;
 //^^^^^^^^^^^^^^^^
@@ -60,3 +59,12 @@ let g: Box<any>,
     //       ^- trailing comma
     arg1: any
 ) {});
+
+({
+    method() {
+        return [FOO.cell/**/</*<*/boolean/*>*/>()]
+//                          ^^^^^^^^^^^^^^^^^^^
+            .map/**/</*<*/any/*>*/>(() => {})
+//                  ^^^^^^^^^^^^^^^
+    }
+});

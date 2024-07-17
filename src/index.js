@@ -65,6 +65,7 @@ export function blankSourceFile(source, onErrorArg) {
 }
 
 const {
+    EndOfFileToken,
     Identifier,
     VariableDeclaration,
     VariableStatement,
@@ -197,12 +198,12 @@ function visitReturn(node) {
  * @param {ts.TypeAssertion} node
  */
 function visitTypeAssertionInReturn(node) {
-    const start = scanner.scanRange(
+    const start = scanRange(
         node.getStart(ast),
         node.type.pos,
         getLessThanToken
     );
-    const end = scanner.scanRange(
+    const end = scanRange(
         node.type.end,
         node.end,
         getGreaterThanToken
@@ -569,20 +570,56 @@ function modifiersContainsAbstractOrDeclare(modifiers) {
     return false;
 }
 
+/**
+ * @template T
+ * @param {number} start
+ * @param {number} end
+ * @param {() => T} callback
+ * @returns {T}
+ */
+function scanRange(start, end, callback) {
+    return scanner.scanRange(
+        start,
+        end - start,
+        callback
+    );
+}
+
+/**
+ * @param {ts.SyntaxKind} token
+ * @param {boolean} end
+ * @returns {number}
+ */
+function posOfToken(token, end) {
+    let first = true;
+    let start = 0;
+    while (true) {
+        const next = scanner.scan();
+        if (first) {
+            start = scanner.getTokenStart();
+        }
+        first = false;
+        if (next === token) break;
+        if (next === EndOfFileToken) {
+            // We should always find the token we are looking for
+            // if we don't, return the start of where we started searching from
+            start;
+        }
+    }
+    return end ? scanner.getTokenEnd() : scanner.getTokenStart();
+}
+
 /** < */
 function getLessThanToken() {
-    while (scanner.scan() !== LessThanToken);
-    return scanner.getTokenStart();
+    return posOfToken(LessThanToken, /* end: */false);
 }
 /** > */
 function getGreaterThanToken() {
-    while (scanner.scan() !== GreaterThanToken);
-    return scanner.getTokenEnd();
+    return posOfToken(GreaterThanToken, /* end: */true);
 }
 /** ) */
 function getClosingParen() {
-    while (scanner.scan() !== CloseParenToken);
-    return scanner.getTokenEnd();
+    return posOfToken(CloseParenToken, /* end: */true);
 }
 
 /** @param {ts.Node} n  */
@@ -614,13 +651,13 @@ function blankExactAndOptionalTrailingComma(n) {
  * @param {ts.NodeArray} arr
  */
 function blankGenerics(node, arr) {
-    const start = scanner.scanRange(
-        node.getStart(ast),
+    const start = scanRange(
+        arr.pos - 1,
         arr[0].getFullStart(),
         getLessThanToken
     );
-    const end = scanner.scanRange(
-        arr[arr.length-1].getEnd(),
+    const end = scanRange(
+        arr.end,
         node.end,
         getGreaterThanToken
     );
@@ -633,15 +670,15 @@ function blankGenerics(node, arr) {
  */
 function getClosingParenthesisPos(node) {
     if (node.length === 0) {
-        return scanner.scanRange(
+        return scanRange(
             node.pos,
-            Math.pow(2, 21),
+            ast.end,
             getClosingParen,
         );
     }
-    return scanner.scanRange(
+    return scanRange(
         node[node.length -1].end,
-        Math.pow(2, 21),
+        ast.end,
         getClosingParen,
     );
 }

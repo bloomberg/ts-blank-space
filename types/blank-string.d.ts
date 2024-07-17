@@ -21,6 +21,12 @@ export default class BlankString {
      * @param {number} end
      * @returns {void}
      */
+    blankButReplaceStartWithZeroOR(start: number, end: number): void;
+    /**
+     * @param {number} start
+     * @param {number} end
+     * @returns {void}
+     */
     blank(start: number, end: number): void;
     /**
      * @returns {string}
