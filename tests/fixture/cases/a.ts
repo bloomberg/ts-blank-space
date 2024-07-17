@@ -88,26 +88,6 @@ void 0;
 type J = I;
 // ^^^^^^^^ type alias
 
-/**/import type T from "node:assert";
-//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `import type`
-
-/**/export type { I };
-//  ^^^^^^^^^^^^^^^^^^ `export type`
-
-/**/export type * from "node:buffer";
-//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `export type *`
-
-import {type AssertPredicate/**/, deepEqual} from "node:assert";
-//      ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-export {
-    C,
-    type T,
-//  ^^^^^^
-}
-
-/**/export type T2 = 1;
-//  ^^^^^^^^^^^^^^^^^^^
 
 function foo<T>(p: any = (): any => 1): any {
 //          ^^^  ^^^^^     ^^^^^      ^^^^^

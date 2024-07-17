@@ -5,7 +5,7 @@
   "type": "module",
   "exports": {
     "./package.json": "./package.json",
-    ".": "./index.js"
+    ".": "./src/index.js"
   },
   "types": "./types/index.d.ts",
   "dependencies": {
@@ -17,7 +17,7 @@
   "scripts": {
     "gen-types": "tsc -p jsconfig.json",
     "update-fixture": "node ./tests/fixture/_run.js",
-    "update-fixture:watch": "node --watch-path ./tests/fixture/a.ts --watch-path ./index.js ./tests/fixture/_run.js",
+    "update-fixture:watch": "node --watch-path ./src --watch-path ./tests/fixture/cases ./tests/fixture/_run.js",
     "test": "node --test",
     "prepublish": "npm run gen-types"
   },
@@ -25,6 +25,6 @@
     "!tests",
     "!perf",
     "types/index.d.ts",
-    "*.js"
+    "src/*.js"
   ]
 }

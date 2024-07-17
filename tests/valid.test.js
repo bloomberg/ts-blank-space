@@ -2,57 +2,20 @@
 import {it, mock} from 'node:test';
 import assert from 'node:assert';
 import * as fs from "node:fs";
-import tsBlankSpace, { blankSourceFile } from '../index.js';
+import { join } from "node:path";
 import ts from "typescript";
+import { casesDir, outputForInput, testFixture } from "./fixture/helpers.js";
+import tsBlankSpace, { blankSourceFile } from '../src/index.js';
 
-it("matches fixture", () => {
-    const inputPath = new URL("./fixture/a.ts", import.meta.url);
-    const fixturePath = new URL("./fixture/a.js", import.meta.url);
-
-    const input = fs.readFileSync(inputPath, "utf-8");
-    const expectedOutput = fs.readFileSync(fixturePath, "utf-8");
-
-    const onError = mock.fn();
-    const latestOutput = tsBlankSpace(input, onError);
-
-    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
-    const latestLines = latestOutput.split("\n");
-    const expectedLines = expectedOutput.split("\n");
-    assert.equal(
-        latestLines.length,
-        expectedLines.length,
-        "output line count should match input line - (`npm run fixture` to update)"
-    );
-    for (let i = 0; i < expectedLines.length; i++) {
-        assert.equal(latestLines[i], expectedLines[i], `line ${i + 1} should match (\`npm run fixture\` to update)`);
+for (const filename of fs.readdirSync(casesDir)) {
+    if (!filename.endsWith(".ts")) {
+        continue;
     }
-    assert.deepStrictEqual(latestLines.length, expectedLines.length, "should be the same number of lines (`npm run fixture` to update)");
-
-    assertIdentifiersAreAligned(expectedOutput, input);
-});
-
-/**
- * @param {string} jsString
- * @param {string} tsString
- */
-function assertIdentifiersAreAligned(jsString, tsString) {
-    const tsSource = ts.createSourceFile("input.ts", tsString, ts.ScriptTarget.ESNext, false, ts.ScriptKind.TS);
-    const jsSource = ts.createSourceFile("output.js", jsString, ts.ScriptTarget.ESNext, false, ts.ScriptKind.JS);
-
-    let sawIdentifiers = false;
-    jsSource.forEachChild(function visit(n) {
-        if (n.kind === ts.SyntaxKind.Identifier) {
-            sawIdentifiers = true;
-            const id = n.getText(jsSource);
-            const {line, character} = jsSource.getLineAndCharacterOfPosition(n.getStart(jsSource));
-            const inputIndex = tsSource.getPositionOfLineAndCharacter(line, character);
-            if (!tsString.startsWith(id, inputIndex)) {
-                throw new Error(`Expected to see '${id}' at position ${line}:${character} but saw '${tsString.slice(inputIndex, inputIndex + id.length)}'`);
-            }
-        }
-        n.forEachChild(visit);
+    it(`fixture: ${filename}`, () => {
+        const input = join(casesDir, filename);
+        const output = outputForInput(input);
+        testFixture(input, output);
     });
-    assert(sawIdentifiers);
 }
 
 it("handles `=>` on new line", (t) => {

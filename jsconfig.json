@@ -3,10 +3,11 @@
         "allowJs": true,
         "target": "es2020",
         "module": "nodeNext",
+        "moduleDetection": "force",
         "noEmit": false,
         "declaration": true,
         "emitDeclarationOnly": true,
         "outDir": "./types"
     },
-    "files": ["./index.js"]
+    "files": ["./src/index.js"]
 }
