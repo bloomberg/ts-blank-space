@@ -3,6 +3,7 @@
   "version": "0.0.6",
   "license": "Apache-2.0",
   "type": "module",
+  "main": "./src/index.js",
   "exports": {
     "./package.json": "./package.json",
     ".": "./src/index.js"
