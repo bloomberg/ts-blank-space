@@ -134,7 +134,19 @@ it("TSX is preserved in the output", () => {
 it("handles variable definite assignment assertions", () => {
     const onError = mock.fn();
     const tsInput = `let x: any, y! : string, z: any;\n`;
-    const jsxOutput = tsBlankSpace(tsInput, onError);
+    const jsOutput = tsBlankSpace(tsInput, onError);
     assert.equal(onError.mock.callCount(), 0, "there should be no errors");
-    assert.equal(jsxOutput, "let x     , y          , z     ;\n");
+    assert.equal(jsOutput, "let x     , y          , z     ;\n");
+});
+
+it("handles prefix type assertion as arrow body", () => {
+    const onError = mock.fn();
+    const tsInput = `let f = () => <any>{p:1}, g = 2;\n`;
+    const jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    assert.equal(jsOutput, "let f = () =>0||   {p:1}, g = 2;\n");
+    const output = new Function(`${jsOutput} return { f, g }`)();
+    assert.equal(typeof output.f, "function");
+    assert.deepEqual(output.f(), { p:1 });
+    assert.equal(output.g, 2);
 });
