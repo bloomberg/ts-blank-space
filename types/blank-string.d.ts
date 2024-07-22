@@ -4,6 +4,10 @@ export default class BlankString {
      * @param {string} input
      */
     constructor(input: string);
+    /** @type {string} */
+    __input: string;
+    /** @type {number[]} */
+    __ranges: number[];
     /**
      * @param {number} start
      * @param {number} end
@@ -32,5 +36,4 @@ export default class BlankString {
      * @returns {string}
      */
     toString(): string;
-    #private;
 }

@@ -68,16 +68,14 @@ function getSpace(input, start, minEnd) {
 
 /** Like magic-string but with only one feature */
 export default class BlankString {
-    /** @type {string} */
-    #input;
-    /** @type {number[]} */
-    #ranges = [];
-
     /**
      * @param {string} input
      */
     constructor(input) {
-        this.#input = input;
+        /** @type {string} */
+        this.__input = input;
+        /** @type {number[]} */
+        this.__ranges = [];
     }
 
     /**
@@ -86,7 +84,7 @@ export default class BlankString {
      * @returns {void}
      */
     blankButStartWithArrow(start, end) {
-        this.#ranges.push(FLAG_ARROW, start, end);
+        this.__ranges.push(FLAG_ARROW, start, end);
     }
 
     /**
@@ -95,7 +93,7 @@ export default class BlankString {
      * @returns {void}
      */
     blankButStartWithCommaOperator(start, end) {
-        this.#ranges.push(FLAG_COMMA, start, end);
+        this.__ranges.push(FLAG_COMMA, start, end);
     }
 
     /**
@@ -104,7 +102,7 @@ export default class BlankString {
      * @returns {void}
      */
     blankButReplaceStartWithZeroOR(start, end) {
-        this.#ranges.push(FLAG_REPLACE_WITH_ZERO_OR, start, end);
+        this.__ranges.push(FLAG_REPLACE_WITH_ZERO_OR, start, end);
     }
 
     /**
@@ -113,15 +111,15 @@ export default class BlankString {
      * @returns {void}
      */
     blank(start, end) {
-        this.#ranges.push(0, start, end);
+        this.__ranges.push(0, start, end);
     }
 
     /**
      * @returns {string}
      */
     toString() {
-        const ranges = this.#ranges;
-        const input = this.#input;
+        const ranges = this.__ranges;
+        const input = this.__input;
         if (ranges.length === 0) {
             return input;
         }

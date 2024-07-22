@@ -8,6 +8,9 @@
     "./package.json": "./package.json",
     ".": "./src/index.js"
   },
+  "engines": {
+      "node": ">=10.13"
+  },
   "types": "./types/index.d.ts",
   "dependencies": {
     "typescript": "5.1.6 - 5.5.x"
