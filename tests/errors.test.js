@@ -66,3 +66,11 @@ it("errors on CJS import syntax", () => {
         import lib = require("");
     `);
 });
+
+it("errors on prefix type assertion as arrow body within binary expressions", () => {
+    const onError = mock.fn();
+    const tsInput = `(()=><any>{p:null}.p ?? 1);`;
+    let jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    assert.equal(jsOutput, `(()=><any>{p:null}.p ?? 1);`);
+});

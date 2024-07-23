@@ -29,6 +29,9 @@ let ast;
 /** @type {undefined | ((n: ts.Node) => void)} */
 let onError;
 
+/** @type {number | undefined} */
+let problematicTypeAssertionPos = undefined;
+
 /**
  * @param {string} input string containing TypeScript
  * @param {typeof onError} [onErrorArg] callback when unsupported syntax is encountered
@@ -64,6 +67,7 @@ export function blankSourceFile(source, onErrorArg) {
         onError = undefined;
         ast = /** @type {any} */(undefined);
         str = /** @type {any} */(undefined);
+        problematicTypeAssertionPos = undefined;
     }
 }
 
@@ -112,7 +116,10 @@ const {
     CallExpression,
     TypeAssertionExpression,
     ReturnStatement,
+    OpenBraceToken
 } = ts.SyntaxKind;
+
+const JSXLang = ts.LanguageVariant.JSX;
 
 /**
  * @param {ts.Node} node
@@ -385,6 +392,12 @@ function visitTypeAssertion(node) {
  * @param {ts.TypeAssertion} node
  */
 function visitLegacyTypeAssertion(node) {
+    if (node.pos === problematicTypeAssertionPos) {
+        problematicTypeAssertionPos = undefined;
+        onError && onError(node);
+        visitor(node.expression);
+        return;
+    }
     const exp = node.expression;
     str.blank(node.getFullStart(), exp.getStart(ast));
     visitor(exp);
@@ -454,9 +467,14 @@ function visitFunctionLikeDeclaration(node) {
     }
 
     const body = node.body;
-    if (isArrow && body.kind === TypeAssertionExpression) {
-        visitTypeAssertionArrowBody(/** @type {ts.TypeAssertion} */(body));
-        return;
+
+    // Search for `=> <Type>val` assertions
+    if (isArrow && ast.languageVariant !== JSXLang && lookaheadMatch(body.pos, LessThanToken)) {
+        if (body.kind === TypeAssertionExpression) {
+            visitTypeAssertionArrowBody(/** @type {ts.TypeAssertion} */(body));
+            return;
+        }
+        problematicTypeAssertionPos = body.pos;
     }
 
     visitor(body);
@@ -468,7 +486,12 @@ function visitFunctionLikeDeclaration(node) {
  */
 function visitTypeAssertionArrowBody(n) {
     const exp = n.expression;
-    str.blankButReplaceStartWithZeroOR(n.getFullStart(), exp.getStart(ast));
+    if (lookaheadMatch(exp.pos, OpenBraceToken)) {
+        // => <T>{
+        str.blankButReplaceStartWithZeroOR(n.getFullStart(), exp.getStart(ast));
+    } else {
+        str.blank(n.getFullStart(), exp.getStart(ast));
+    }
     visitor(exp);
 }
 
@@ -646,6 +669,15 @@ function blankExactAndOptionalTrailingComma(n) {
     scanner.resetTokenState(n.end);
     const trailingComma = scanner.scan() === CommaToken;
     str.blank(n.getStart(ast), trailingComma ? scanner.getTokenEnd() : n.end);
+}
+
+/**
+ * @param {number} pos
+ * @param {ts.SyntaxKind} token
+ */
+function lookaheadMatch(pos, token) {
+    scanner.resetTokenState(pos);
+    return scanner.scan() === token;
 }
 
 /**

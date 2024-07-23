@@ -109,12 +109,16 @@ let f = () =>
      [""];
 ```
 
-### Type assertions in a `return` position that introduce a new line
+### Prefix style type assertions in a return position
 
-Before TypeScript added `val as Type`, assertions were written as `<Type>val`.
-This _legacy_ style of writing a type assertion presents a hazard when erasing
-type annotation if used in a `return` position. `ts-blank-space` solves this
-by using the [comma operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comma_operator) to preserve the correct semantics.
+Before TypeScript added `val as Type` in [TypeScript 1.6 (2015)](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-1-6.html#jsx-support), assertions were always written as `<Type>val`.
+
+This angle bracket `<` style is not compatible with parsing JSX, and being a prefix
+has a larger impact on the parser. Specifically for `ts-blank-space` there are situations
+where erasing it could change the semantics of the remaining JavaScript.
+
+The first situation is when the type assertions follows a `return` and is followed by a newline.
+`ts-blank-space` solves this by using the [comma operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comma_operator) to preserve the correct semantics.
 
 Example input:
 
@@ -134,6 +138,27 @@ function f() {
 }
 ```
 
+The second situation is when the type assertions is at the start of an arrow `=>` function body and is followed
+by an object literal. `() => <Type>{}`. A different approach is needed here, and the assertion is replaced with `0||`.
+
+Example input:
+
+```typescript
+const f = () => <MyType>{};
+```
+
+becomes:
+
+```javascript
+const f = () => 0||     {};
+```
+
+However this approach will not work for more complex arrow function bodies. When these
+arise `ts-blank-space` will leave the assertion in place and call the optional `onError` callback.
+See [`./tests/errors`](./tests/errors.test.js).
+
+If possible it is advised to switch to using `(exp as T)` over `(<T>exp)` to avoid these cases.
+
 ## Unsupported
 
 Some parts of TypeScript are not supported because they can't be erased in place due to having
@@ -144,6 +169,7 @@ runtime semantics.
 - `module` (unless `declare module`)
 - `import lib = ...`, `export = ...` (TypeScript style CommonJS)
 - `constructor(public x) {}` (parameter properties in class constructors)
+- Some prefix style `<Type>` assertions (see [above](#legacy-type-assertions-in-a-return-position))
 
 When any of the above are encountered `ts-blank-space` will call the optional `onError` callback and continue.
 Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
