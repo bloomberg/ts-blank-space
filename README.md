@@ -86,7 +86,27 @@ The benefits of this library are:
 
 ## Does it really just blank out all the type annotations?
 
-There are two cases, described here, where it does more than replace the TypeScript syntax with blank space.
+There are three cases, described here, where it does more than replace the TypeScript syntax with blank space.
+
+### ASI (automatic semicolon insertion)
+
+To guard against [ASI](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion) issues in the output `ts-blank-space` will add `;` to the end of statements that have omitted it.
+
+Example input:
+
+```typescript
+statementWithNoSemiColon
+type Erased = true
+("not calling above statement")
+```
+
+becomes:
+
+```javascript
+statementWithNoSemiColon;
+
+("not calling above statement");
+```
 
 ### Arrow function return types that introduce a new line
 

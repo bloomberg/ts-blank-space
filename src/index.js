@@ -116,7 +116,9 @@ const {
     CallExpression,
     TypeAssertionExpression,
     ReturnStatement,
-    OpenBraceToken
+    OpenBraceToken,
+    ExpressionStatement,
+    SemicolonToken
 } = ts.SyntaxKind;
 
 const JSXLang = ts.LanguageVariant.JSX;
@@ -145,6 +147,7 @@ function visitor(node) {
     const n = /** @type {any} */(node);
     switch (node.kind) {
         case Identifier: return;
+        case ExpressionStatement: visitExpressionStatement(n); return;
         case VariableDeclaration: visitVariableDeclaration(n); return;
         case VariableStatement: visitVariableStatement(n); return;
         case CallExpression:
@@ -174,6 +177,16 @@ function visitor(node) {
     }
 
     node.forEachChild(visitor);
+}
+
+/**
+ * @param {ts.ExpressionStatement} node
+ */
+function visitExpressionStatement(node) {
+    visitor(node.expression);
+    if (!lookaheadMatch(node.end - 1, SemicolonToken)) {
+        str.insertSemiColon(node.end);
+    }
 }
 
 /**

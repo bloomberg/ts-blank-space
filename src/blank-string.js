@@ -8,6 +8,7 @@ const max = Math.max;
 const FLAG_ARROW = 1;
 const FLAG_COMMA = 2;
 const FLAG_REPLACE_WITH_ZERO_OR = 4;
+const FLAG_SEMI = 8;
 
 /**
  * @param {string} input
@@ -106,6 +107,13 @@ export default class BlankString {
     }
 
     /**
+     * @param {number} pos
+     */
+    insertSemiColon(pos) {
+        this.__ranges.push(FLAG_SEMI, pos, pos);
+    }
+
+    /**
      * @param {number} start
      * @param {number} end
      * @returns {void}
@@ -131,6 +139,7 @@ export default class BlankString {
         const extraArrow = "=>";
         const extraComma = " 0,";
         const extraZeroOR = "0||";
+        const extraSemi = ";";
         let startOffset = 0;
         if (flags & FLAG_ARROW) {
             extra = extraArrow;
@@ -141,6 +150,9 @@ export default class BlankString {
         else if (flags & FLAG_REPLACE_WITH_ZERO_OR) {
             startOffset = extraZeroOR.length;
             extra = extraZeroOR;
+        }
+        else if (flags & FLAG_SEMI) {
+            extra = extraSemi;
         }
         let out = input.slice(0, previousStart);
         out += extra;
@@ -168,6 +180,8 @@ export default class BlankString {
             else if (flags & FLAG_REPLACE_WITH_ZERO_OR) {
                 extra = extraZeroOR;
                 startOffset = extraZeroOR.length;
+            } else if (flags & FLAG_SEMI) {
+                extra = extraSemi;
             }
 
             rangeStart = max(rangeStart, previousEnd);
