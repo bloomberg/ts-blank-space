@@ -72,8 +72,8 @@ it("handles legacy type assertions in return statements", () => {
     const jsOutput = tsBlankSpace(tsInput, onError);
     assert.equal(onError.mock.callCount(), 0, "there should be no errors");
     const expectedOutput = `function f() {
-        return 0,
-
+        return 0,${" "}
+${"                 "}
             "on a new line";
     }`;
     assert.equal(jsOutput, expectedOutput);
@@ -98,21 +98,21 @@ it("allows ambient enum", () => {
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(`declare enum E1 {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, "\n");
+    assert.equal(jsOutput, "                  \n");
 });
 
 it("allows declared namespace value", () => {
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(`declare namespace N {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, "\n");
+    assert.equal(jsOutput, "                      \n");
 });
 
 it("allows declared module value", () => {
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(`declare module M {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, "\n");
+    assert.equal(jsOutput, "                   \n");
 });
 
 it("TSX is preserved in the output", () => {

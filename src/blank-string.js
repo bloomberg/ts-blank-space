@@ -2,7 +2,6 @@
 // Distributed under the terms of the Apache 2.0 license.
 // @ts-check
 
-let lastEnd = 0;
 const max = Math.max;
 
 const FLAG_ARROW = 1;
@@ -13,57 +12,31 @@ const FLAG_SEMI = 8;
 /**
  * @param {string} input
  * @param {number} start
- * @param {number} minEnd
+ * @param {number} end
  * @returns {string}
  */
-function getSpace(input, start, minEnd) {
-    lastEnd = 0;
-    let span = 0;
+function getSpace(input, start, end) {
     let out = "";
 
-    let i = start;
-    for (; i < minEnd; i++) {
+    for (let i = start; i < end; i++) {
         let charCode = /** @type {number} */(input.charCodeAt(i));
         switch (charCode) {
             case 10 /* \n */:
-                span = 0;
                 out += "\n";
                 break;
             case 13 /* \r */:
-                span = 0;
                 out += "\r";
                 break;
             default:
-                span += 1;
+                out += " ";
                 if ((charCode & 0xF800) == 0xD800) {
                     // Surrogate pair
+                    out += " ";
                     i++;
-                    span += 1;
                 }
         }
     }
 
-    trimTrailingSpace: for (; i < input.length; i++) {
-        switch (input.charCodeAt(i)) {
-            case 10 /* \n */:
-                span = 0;
-                out += "\n";
-                break;
-            case 13 /* \r */:
-                span = 0;
-                out += "\r";
-                break;
-            case 32 /* <space> */:
-                span += 1;
-                break;
-            default:
-                break trimTrailingSpace;
-        }
-    }
-    lastEnd = i;
-    for (let i = 0; i < span; i++) {
-        out += " ";
-    }
     return out;
 }
 
@@ -159,7 +132,6 @@ export default class BlankString {
         extra = "";
 
         out += getSpace(input, previousStart + startOffset, previousEnd);
-        previousEnd = max(previousEnd, lastEnd);
         startOffset = 0;
 
         if (ranges.length === 3) {
@@ -188,10 +160,10 @@ export default class BlankString {
             out += input.slice(previousEnd, rangeStart);
             out += extra;
             extra = "";
-            out += getSpace(input, rangeStart + startOffset, rangeEnd);
             previousStart = rangeStart + startOffset;
+            previousEnd = rangeEnd;
             startOffset = 0;
-            previousEnd = max(previousEnd, lastEnd);
+            out += getSpace(input, previousStart, previousEnd);
         }
 
         return out + input.slice(previousEnd);
