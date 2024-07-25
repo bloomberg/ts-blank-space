@@ -129,17 +129,20 @@ void 0;
 {
     ()
     :any =>
+//  :any =>
     1
 };
 {
     ():
     any =>
+//  any =>
     1
 };
 {
     (
     )
     :any =>
+//  :any =>
     1
 };
 {
@@ -147,6 +150,7 @@ void 0;
     ):(
     |any
     )=>
+//  )=>
     1
 };
 {
@@ -154,11 +158,14 @@ void 0;
     ):
     NonNullable<any
     >=>
+//  >=>
     1
 };
 {
+//» (a, b, c: D = [] as any/*comment-1*/)/*comment-2*/:
     (a, b, c: D = [] as any/*comment-1*/)/*comment-2*/:
     any =>
+//« any =>
     1
 };
 

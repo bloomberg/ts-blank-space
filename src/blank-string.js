@@ -4,7 +4,7 @@
 
 const max = Math.max;
 
-const FLAG_ARROW = 1;
+const FLAG_REPLACE_WITH_CLOSE_PAREN = 1;
 const FLAG_COMMA = 2;
 const FLAG_REPLACE_WITH_ZERO_OR = 4;
 const FLAG_SEMI = 8;
@@ -57,8 +57,9 @@ export default class BlankString {
      * @param {number} end
      * @returns {void}
      */
-    blankButStartWithArrow(start, end) {
-        this.__ranges.push(FLAG_ARROW, start, end);
+    blankButEndWithCloseParen(start, end) {
+        this.__ranges.push(0, start, end - 1);
+        this.__ranges.push(FLAG_REPLACE_WITH_CLOSE_PAREN, end - 1, end);
     }
 
     /**
@@ -109,13 +110,12 @@ export default class BlankString {
         let previousStart = ranges[1];
         let previousEnd = ranges[2];
         let extra = "";
-        const extraArrow = "=>";
         const extraComma = " 0,";
         const extraZeroOR = "0||";
-        const extraSemi = ";";
         let startOffset = 0;
-        if (flags & FLAG_ARROW) {
-            extra = extraArrow;
+        if (flags & FLAG_REPLACE_WITH_CLOSE_PAREN) {
+            startOffset = 1;
+            extra = ")";
         }
         else if (flags & FLAG_COMMA) {
             extra = extraComma;
@@ -125,7 +125,7 @@ export default class BlankString {
             extra = extraZeroOR;
         }
         else if (flags & FLAG_SEMI) {
-            extra = extraSemi;
+            extra = ";";
         }
         let out = input.slice(0, previousStart);
         out += extra;
@@ -143,8 +143,9 @@ export default class BlankString {
             let rangeStart = ranges[i+1];
             const rangeEnd = ranges[i+2];
 
-            if (flags & FLAG_ARROW) {
-                extra = extraArrow;
+            if (flags & FLAG_REPLACE_WITH_CLOSE_PAREN) {
+                extra = ")";
+                startOffset = 1;
             }
             else if (flags & FLAG_COMMA) {
                 extra = extraComma;
@@ -153,7 +154,7 @@ export default class BlankString {
                 extra = extraZeroOR;
                 startOffset = extraZeroOR.length;
             } else if (flags & FLAG_SEMI) {
-                extra = extraSemi;
+                extra = ";";
             }
 
             rangeStart = max(rangeStart, previousEnd);

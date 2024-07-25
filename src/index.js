@@ -475,7 +475,7 @@ function visitFunctionLikeDeclaration(node) {
         } else {
             // danger! new line between parameters and `=>`
             const paramEnd = getClosingParenthesisPos(node.parameters);
-            str.blankButStartWithArrow(paramEnd, node.equalsGreaterThanToken.end);
+            str.blankButEndWithCloseParen(paramEnd - 1, returnType.getEnd());
         }
     }
 

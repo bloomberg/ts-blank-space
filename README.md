@@ -111,22 +111,23 @@ statementWithNoSemiColon;
 ### Arrow function return types that introduce a new line
 
 If the annotation marking the return type of an arrow function introduces a new line before the `=>`
-then only replacing it with blank space would be incorrect. So in addition to removing the type annotation, the `=>` is moved up.
+then only replacing it with blank space would be incorrect.
+So in addition to removing the type annotation, the `)` is moved down to the end of the type annotation.
 
 Example input:
 
 ```typescript
-let f = (): Array<
+let f = (a: string, b: string): Array<
    string
-> => [""];
+> => [a, b];
 ```
 
 becomes:
 
 ```javascript
-let f = () =>
+let f = (a        , b
 
-     [""];
+) => [a, b];
 ```
 
 ### Prefix style type assertions in a return position
