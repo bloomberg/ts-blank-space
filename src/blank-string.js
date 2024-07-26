@@ -91,22 +91,18 @@ export default class BlankString {
         let flags = ranges[0];
         let previousStart = ranges[1];
         let previousEnd = ranges[2];
-        let extra = "";
-        let startOffset = 0;
+        let out = input.slice(0, previousStart);
+
         if (flags & FLAG_REPLACE_WITH_CLOSE_PAREN) {
-            extra = ")";
-            startOffset = 1;
+            out += ")";
+            previousStart += 1;
         }
         else if (flags & FLAG_REPLACE_WITH_SEMI) {
-            extra = ";";
-            startOffset = 1;
+            out += ";";
+            previousStart += 1;
         }
-        let out = input.slice(0, previousStart);
-        out += extra;
-        extra = "";
 
-        out += getSpace(input, previousStart + startOffset, previousEnd);
-        startOffset = 0;
+        out += getSpace(input, previousStart, previousEnd);
 
         if (ranges.length === 3) {
             return out + input.slice(previousEnd);
@@ -117,22 +113,20 @@ export default class BlankString {
             let rangeStart = ranges[i+1];
             const rangeEnd = ranges[i+2];
 
-            if (flags & FLAG_REPLACE_WITH_CLOSE_PAREN) {
-                extra = ")";
-                startOffset = 1;
-            }
-            else if (flags & FLAG_REPLACE_WITH_SEMI) {
-                extra = ";";
-                startOffset = 1;
-            }
-
             rangeStart = max(rangeStart, previousEnd);
             out += input.slice(previousEnd, rangeStart);
-            out += extra;
-            extra = "";
-            previousStart = rangeStart + startOffset;
+
+            if (flags & FLAG_REPLACE_WITH_CLOSE_PAREN) {
+                out += ")";
+                rangeStart += 1;
+            }
+            else if (flags & FLAG_REPLACE_WITH_SEMI) {
+                out += ";";
+                rangeStart += 1;
+            }
+
+            previousStart = rangeStart;
             previousEnd = rangeEnd;
-            startOffset = 0;
             out += getSpace(input, previousStart, previousEnd);
         }
 
