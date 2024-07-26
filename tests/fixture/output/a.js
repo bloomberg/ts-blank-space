@@ -78,13 +78,13 @@ class E extends (function() {}       ) {
 //                     ^^^^^
 }
 
-           
+/** @doc */
               
 // ^^^^^^^^^^^ interface
 
 void 0;
 
-           
+/** @doc */
            
 // ^^^^^^^^ type alias
 
@@ -95,17 +95,17 @@ function foo   (p      = ()      => 1)      {
 //           ^^^^^^
 }
 
-                      
+/**/                  
 //  ^^^^^^^^^^^^^^^^^^ `declare enum`
 
 void 0;
 
-                          
+/**/                      
 //  ^^^^^^^^^^^^^^^^^^^^^^ `declare namespace`
 
 void 0;
 
-                       
+/**/                   
 //  ^^^^^^^^^^^^^^^^^^^ `declare module`
 
 void 0;

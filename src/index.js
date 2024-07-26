@@ -577,7 +577,7 @@ function visitExportAssignment(node) {
  */
 function visitEnumOrModule(node) {
     if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
-        str.blank(node.getFullStart(), node.end);
+        str.blank(node.getStart(ast), node.end);
     } else {
         onError && onError(node);
     }
@@ -663,7 +663,7 @@ function getClosingParen() {
 
 /** @param {ts.Node} n  */
 function blankNode(n) {
-    str.blank(n.getFullStart(), n.end);
+    str.blank(n.getStart(ast), n.end);
 }
 
 /** @param {ts.TypeNode} n  */
