@@ -43,15 +43,6 @@ let g          ,
 //                ^
 });
 
-((value         ) =>0||            { value });
-//                  /**/<const>/**/{ value })
-
-((value         ) =>0||        { value }.value);
-//                  /**/<A>/**/{ value }.value);
-
-((value         ) =>/**/   /**/() =>    () =>0|| {});
-//                  /**/<A>/**/() => <A>() => <A>{});
-
 (function f0(
               
     //       ^- trailing comma

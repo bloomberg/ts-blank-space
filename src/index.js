@@ -196,37 +196,9 @@ function visitVariableStatement(node) {
  */
 function visitReturn(node) {
     const exp = node.expression;
-    if (!exp) {
-        return;
-    }
-    if (exp.kind !== TypeAssertionExpression) {
+    if (exp) {
         visitor(exp);
-        return;
     }
-    visitTypeAssertionInReturn(/** @type {ts.TypeAssertion}*/(exp));
-}
-
-/**
- * @param {ts.TypeAssertion} node
- */
-function visitTypeAssertionInReturn(node) {
-    const start = scanRange(
-        node.getStart(ast),
-        node.type.pos,
-        getLessThanToken
-    );
-    const end = scanRange(
-        node.type.end,
-        node.end,
-        getGreaterThanToken
-    );
-    if (spansLines(start, node.expression.getStart(ast))) {
-        // Special case, purely blanking assertion could change semantics
-        str.blankButStartWithCommaOperator(start, end);
-    } else {
-        str.blank(start, end);
-    }
-    visitor(node.expression);
 }
 
 /**
@@ -394,15 +366,8 @@ function visitTypeAssertion(node) {
  * @param {ts.TypeAssertion} node
  */
 function visitLegacyTypeAssertion(node) {
-    if (node.pos === problematicTypeAssertionPos) {
-        problematicTypeAssertionPos = undefined;
-        onError && onError(node);
-        visitor(node.expression);
-        return;
-    }
-    const exp = node.expression;
-    str.blank(node.getFullStart(), exp.getStart(ast));
-    visitor(exp);
+    onError && onError(node);
+    visitor(node.expression);
 }
 
 /**
@@ -468,33 +433,7 @@ function visitFunctionLikeDeclaration(node) {
         }
     }
 
-    const body = node.body;
-
-    // Search for `=> <Type>val` assertions
-    if (isArrow && ast.languageVariant !== JSXLang && lookaheadMatch(body.pos, LessThanToken)) {
-        if (body.kind === TypeAssertionExpression) {
-            visitTypeAssertionArrowBody(/** @type {ts.TypeAssertion} */(body));
-            return;
-        }
-        problematicTypeAssertionPos = body.pos;
-    }
-
-    visitor(body);
-}
-
-/**
- * () => <T>exp
- * @param {ts.TypeAssertion} n
- */
-function visitTypeAssertionArrowBody(n) {
-    const exp = n.expression;
-    if (lookaheadMatch(exp.pos, OpenBraceToken)) {
-        // => <T>{
-        str.blankButReplaceStartWithZeroOR(n.getFullStart(), exp.getStart(ast));
-    } else {
-        str.blank(n.getFullStart(), exp.getStart(ast));
-    }
-    visitor(exp);
+    visitor(node.body);
 }
 
 /**

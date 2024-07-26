@@ -43,15 +43,6 @@ let g: Box<any>,
 //                ^
 });
 
-((value: boolean) =>/**/<const>/**/{ value });
-//                  /**/<const>/**/{ value })
-
-((value: boolean) =>/**/<A>/**/{ value }.value);
-//                  /**/<A>/**/{ value }.value);
-
-((value: boolean) =>/**/<A>/**/() => <A>() => <A>{});
-//                  /**/<A>/**/() => <A>() => <A>{});
-
 (function f0(
     this: any,
     //       ^- trailing comma

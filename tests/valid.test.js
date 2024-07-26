@@ -62,25 +62,6 @@ it("handles blanking surrogate pairs", () => {
     assert.equal(jsOutput.length, tsInput.length);
 });
 
-it("handles legacy type assertions in return statements", () => {
-    const onError = mock.fn();
-    const tsInput = `function f() {
-        return<
-          string>
-            "on a new line";
-    }`;
-    const jsOutput = tsBlankSpace(tsInput, onError);
-    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
-    const expectedOutput = `function f() {
-        return 0,${" "}
-${"                 "}
-            "on a new line";
-    }`;
-    assert.equal(jsOutput, expectedOutput);
-    const code = new Function(`return ${jsOutput}`)();
-    assert.equal(code(), "on a new line");
-});
-
 it("handles default export", () => {
     // TypeScript uses an `ExportAssignment` node for both
     // `export default ...` and `export =`.
@@ -137,16 +118,4 @@ it("handles variable definite assignment assertions", () => {
     const jsOutput = tsBlankSpace(tsInput, onError);
     assert.equal(onError.mock.callCount(), 0, "there should be no errors");
     assert.equal(jsOutput, "let x     , y          , z     ;\n");
-});
-
-it("handles prefix type assertion as arrow body", () => {
-    const onError = mock.fn();
-    const tsInput = `let f = () => <any>{p:1}, g = 2;\n`;
-    const jsOutput = tsBlankSpace(tsInput, onError);
-    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
-    assert.equal(jsOutput, "let f = () =>0||   {p:1}, g = 2;\n");
-    const output = new Function(`${jsOutput} return { f, g }`)();
-    assert.equal(typeof output.f, "function");
-    assert.deepEqual(output.f(), { p:1 });
-    assert.equal(output.g, 2);
 });

@@ -4,9 +4,6 @@ let x /**/        /**/ = 1 ;
 []                   ;
 // ^^^^^^^^^^^^^^^^^^
 
- (        "test");
-//^^^^^^^^
-
 class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
 //          ^^^^^                      ^^^     ^^^^^^^^^^^^^^
              field/**/        /**/ = "";
@@ -168,20 +165,3 @@ void 0;
 //« any =>
     1
 };
-
-function assertion() {
-    return/*comment-1*/        /*comment-2*/"I am string";
-//                     ^^^^^^^^
-}
-
-function assertion2() {
-    return 0, 
-              
-     "I am on a new line";
-}
-
-function assertion3() {
-    return 0,                       
-              
-     "I am on a new line";
-}
