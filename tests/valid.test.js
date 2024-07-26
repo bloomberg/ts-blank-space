@@ -98,21 +98,21 @@ it("allows ambient enum", () => {
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(`declare enum E1 {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, "                  \n");
+    assert.equal(jsOutput, ";                 \n");
 });
 
 it("allows declared namespace value", () => {
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(`declare namespace N {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, "                      \n");
+    assert.equal(jsOutput, ";                     \n");
 });
 
 it("allows declared module value", () => {
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(`declare module M {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, "                   \n");
+    assert.equal(jsOutput, ";                  \n");
 });
 
 it("TSX is preserved in the output", () => {

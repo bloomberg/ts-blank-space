@@ -13,3 +13,27 @@ function bar<T>() {
     <T>;
     (1);
 }
+
+foo
+interface I {}
+(1);
+
+foo
+declare enum E {}
+(1);
+
+foo
+declare namespace N {}
+(1);
+
+foo
+declare class C {}
+(1);
+
+foo
+declare let x: number;
+(1);
+
+foo
+declare function f()
+(1);

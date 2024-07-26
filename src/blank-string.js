@@ -7,7 +7,7 @@ const max = Math.max;
 const FLAG_REPLACE_WITH_CLOSE_PAREN = 1;
 const FLAG_COMMA = 2;
 const FLAG_REPLACE_WITH_ZERO_OR = 4;
-const FLAG_SEMI = 8;
+const FLAG_REPLACE_WITH_SEMI = 8;
 
 /**
  * @param {string} input
@@ -81,10 +81,12 @@ export default class BlankString {
     }
 
     /**
-     * @param {number} pos
+     * @param {number} start
+     * @param {number} end
      */
-    insertSemiColon(pos) {
-        this.__ranges.push(FLAG_SEMI, pos, pos);
+    blankButStartWithSemi(start, end) {
+        this.__ranges.push(FLAG_REPLACE_WITH_SEMI, start, start+1);
+        this.__ranges.push(0, start+1, end);
     }
 
     /**
@@ -124,7 +126,8 @@ export default class BlankString {
             startOffset = extraZeroOR.length;
             extra = extraZeroOR;
         }
-        else if (flags & FLAG_SEMI) {
+        else if (flags & FLAG_REPLACE_WITH_SEMI) {
+            startOffset = 1;
             extra = ";";
         }
         let out = input.slice(0, previousStart);
@@ -153,7 +156,8 @@ export default class BlankString {
             else if (flags & FLAG_REPLACE_WITH_ZERO_OR) {
                 extra = extraZeroOR;
                 startOffset = extraZeroOR.length;
-            } else if (flags & FLAG_SEMI) {
+            } else if (flags & FLAG_REPLACE_WITH_SEMI) {
+                startOffset = 1;
                 extra = ";";
             }
 

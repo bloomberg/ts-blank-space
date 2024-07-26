@@ -14,7 +14,7 @@ class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
     static accessor f1;
             f2/**/ /**/        /*︎*/;
 //  ^^^^^^^       ^    ^^^^^^^^
-                    
+    ;               
 //  ^^^^^^^^^^^^^^^^ declared property
 
            method/**/   /*︎*/(/*︎*/        /**/ a  /*︎*/        /**/)/*︎*/      /*︎*/ {
@@ -44,7 +44,7 @@ class E extends (function() {}       ) {
 
             class A {
 // ^^^^^^^^
-               
+    ;          
 //  ^^^^^^^^^^^ abstract property
     b;
                       
@@ -79,13 +79,13 @@ class E extends (function() {}       ) {
 }
 
 /** @doc */
-              
+;             
 // ^^^^^^^^^^^ interface
 
 void 0;
 
 /** @doc */
-           
+;          
 // ^^^^^^^^ type alias
 
 
@@ -95,32 +95,32 @@ function foo   (p      = ()      => 1)      {
 //           ^^^^^^
 }
 
-/**/                  
+/**/;                 
 //  ^^^^^^^^^^^^^^^^^^ `declare enum`
 
 void 0;
 
-/**/                      
+/**/;                     
 //  ^^^^^^^^^^^^^^^^^^^^^^ `declare namespace`
 
 void 0;
 
-/**/                   
+/**/;                  
 //  ^^^^^^^^^^^^^^^^^^^ `declare module`
 
 void 0;
 
-/**/              
+/**/;             
 //  ^^^^^^^^^^^^^^ `declare let`
 
 void 0;
 
-/**/                              
+/**/;                             
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare class`
 
 void 0;
 
-/**/                                          
+/**/;                                         
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare function`
 
 void 0;
@@ -130,20 +130,20 @@ void 0;
     ( 
        ) =>
 //  :any =>
-    1;
+    1
 };
 {
     (  
       ) =>
 //  any =>
-    1;
+    1
 };
 {
     (
      
        ) =>
 //  :any =>
-    1;
+    1
 };
 {
     (
@@ -151,7 +151,7 @@ void 0;
         
     )=>
 //  )=>
-    1;
+    1
 };
 {
     (
@@ -159,14 +159,14 @@ void 0;
                    
     )=>
 //  >=>
-    1;
+    1
 };
 {
 //» (a, b, c: D = [] as any/*comment-1*/)/*comment-2*/:
     (a, b, c    = []       /*comment-1*/               
       ) =>
 //« any =>
-    1;
+    1
 };
 
 function assertion() {

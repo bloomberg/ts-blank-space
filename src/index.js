@@ -118,7 +118,6 @@ const {
     ReturnStatement,
     OpenBraceToken,
     ExpressionStatement,
-    SemicolonToken
 } = ts.SyntaxKind;
 
 const JSXLang = ts.LanguageVariant.JSX;
@@ -147,13 +146,13 @@ function visitor(node) {
     const n = /** @type {any} */(node);
     switch (node.kind) {
         case Identifier: return;
-        case ExpressionStatement: visitExpressionStatement(n); return;
+        case ExpressionStatement: break;
         case VariableDeclaration: visitVariableDeclaration(n); return;
         case VariableStatement: visitVariableStatement(n); return;
         case CallExpression:
         case NewExpression: visitCallOrNewExpression(n); return;
         case TypeAliasDeclaration:
-        case InterfaceDeclaration: blankNode(n); return;
+        case InterfaceDeclaration: blankStatement(n); return;
         case ClassDeclaration:
         case ClassExpression: visitClassLike(n); return;
         case ReturnStatement: visitReturn(n); return;
@@ -172,21 +171,11 @@ function visitor(node) {
             visitFunctionLikeDeclaration(n); return;
         case EnumDeclaration:
         case ModuleDeclaration: visitEnumOrModule(n); return;
-        case IndexSignature: blankNode(n); return;
+        case IndexSignature: blankExact(n); return;
         case TypeAssertionExpression: visitLegacyTypeAssertion(n); return;
     }
 
     node.forEachChild(visitor);
-}
-
-/**
- * @param {ts.ExpressionStatement} node
- */
-function visitExpressionStatement(node) {
-    visitor(node.expression);
-    if (!lookaheadMatch(node.end - 1, SemicolonToken)) {
-        str.insertSemiColon(node.end);
-    }
 }
 
 /**
@@ -195,7 +184,7 @@ function visitExpressionStatement(node) {
  */
 function visitVariableStatement(node) {
     if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
-        blankExact(node);
+        blankStatement(node);
         return;
     }
     node.forEachChild(visitor);
@@ -282,7 +271,7 @@ function visitVariableDeclaration(node) {
 function visitClassLike(node) {
     if (node.modifiers) {
         if (modifiersContainsDeclare(node.modifiers)) {
-            blankExact(node);
+            blankStatement(node);
             return;
         }
         visitModifiers(node.modifiers);
@@ -368,7 +357,7 @@ function visitModifiers(modifiers) {
 function visitPropertyDeclaration(node) {
     if (node.modifiers) {
         if (modifiersContainsAbstractOrDeclare(node.modifiers)) {
-            blankExact(node);
+            blankStatement(node);
             return;
         }
         visitModifiers(node.modifiers);
@@ -422,16 +411,16 @@ function visitLegacyTypeAssertion(node) {
  */
 function visitFunctionLikeDeclaration(node) {
     if (!node.body) {
-        // overload
+        if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
+            blankStatement(node);
+            return;
+        }
+        // else: overload
         blankExact(node);
         return;
     }
 
     if (node.modifiers) {
-        if (modifiersContainsDeclare(node.modifiers)) {
-            blankExact(node);
-            return;
-        }
         visitModifiers(node.modifiers);
     }
 
@@ -524,7 +513,7 @@ function spansLines(a, b) {
 function visitImportDeclaration(node) {
     if (node.importClause) {
         if (node.importClause.isTypeOnly) {
-            blankExact(node);
+            blankStatement(node);
             return;
         }
         const {namedBindings} = node.importClause;
@@ -544,7 +533,7 @@ function visitImportDeclaration(node) {
  */
 function visitExportDeclaration(node) {
     if (node.isTypeOnly) {
-        blankExact(node);
+        blankStatement(node);
         return;
     }
 
@@ -577,7 +566,7 @@ function visitExportAssignment(node) {
  */
 function visitEnumOrModule(node) {
     if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
-        str.blank(node.getStart(ast), node.end);
+        blankStatement(node);
     } else {
         onError && onError(node);
     }
@@ -661,11 +650,6 @@ function getClosingParen() {
     return posOfToken(CloseParenToken, /* end: */true);
 }
 
-/** @param {ts.Node} n  */
-function blankNode(n) {
-    str.blank(n.getStart(ast), n.end);
-}
-
 /** @param {ts.TypeNode} n  */
 function blankTypeNode(n) {
     // -1 for `:`
@@ -675,6 +659,11 @@ function blankTypeNode(n) {
 /** @param {ts.Node} n  */
 function blankExact(n) {
     str.blank(n.getStart(ast), n.end);
+}
+
+/** @param {ts.Node} n  */
+function blankStatement(n) {
+    str.blankButStartWithSemi(n.getStart(ast), n.end);
 }
 
 /** @param {ts.Node} n  */

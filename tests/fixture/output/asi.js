@@ -1,11 +1,11 @@
 function foo() {}
 
-foo;
-           
+foo
+;          
 (1);
 
-foo;
-           
+foo
+;          
 ``;
 
 function bar   () {
@@ -13,3 +13,27 @@ function bar   () {
        ;
     (1);
 }
+
+foo
+;             
+(1);
+
+foo
+;                
+(1);
+
+foo
+;                     
+(1);
+
+foo
+;                 
+(1);
+
+foo
+;                     
+(1);
+
+foo
+;                   
+(1);
