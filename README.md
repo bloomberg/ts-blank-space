@@ -71,7 +71,7 @@ console.log(blankSourceFile(ast));
 
 ## Where are my SourceMaps?
 
-Because all the JavaScript in the output is located at the same line and column as the original
+Because all the JavaScript in the output is located at the same line, column, and byte-offset as the original
 there is no mapping information that is lost during the transform.
 
 ## Why?
@@ -81,7 +81,8 @@ The benefits of this library are:
 - It is fast (for a pure JavaScript transform). See the `./perf` folder
   - No new JavaScript needs to be emitted from an AST, it re-uses slices of the existing source string
   - This is particularly true if other parts of your program are already generating the TypeScript SourceFile object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
-- It is small (less than 900 LOC), by doing so little the code should be easy to understand and maintain
+- It is small (less than 900 LOC)
+  - By doing so little the code should be easy to understand and maintain
 - No need for additional SourceMap processing. See ["where are my SourceMaps?"](#where-are-my-sourcemaps)
 
 ## Does it really just blank out all the type annotations?
@@ -112,6 +113,7 @@ statementWithNoSemiColon
 
 If the annotation marking the return type of an arrow function introduces a new line before the `=>`
 then only replacing it with blank space would be incorrect.
+
 So in addition to removing the type annotation, the `)` is moved down to the end of the type annotation.
 
 Example input:
@@ -133,16 +135,9 @@ let f = (a        , b
 ## Unsupported
 
 Some parts of TypeScript are not supported because they can't be erased in place due to having
-runtime semantics.
+runtime semantics. See [unsupported_syntax.md](./docs/unsupported_syntax.md).
 
-- `enum` (unless `declare enum`)
-- `namespace` (unless `declare namespace`)
-- `module` (unless `declare module`)
-- `import lib = ...`, `export = ...` (TypeScript style CommonJS)
-- `constructor(public x) {}` (parameter properties in class constructors)
-- `<Type>val` (code will need to use `val as Type` instead)
-
-When any of the above are encountered `ts-blank-space` will call the optional `onError` callback and continue.
+When unsupported syntax is encountered `ts-blank-space` will call the optional `onError` callback and continue.
 Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
 
 ## Recommend `tsconfig.json` compiler settings
@@ -160,7 +155,7 @@ Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
 
 ## TSX/JSX
 
-JSX is not transformed, it will be preserved in the output.
+`.tsx` input will be `.jsx` output because the JSX parts are not transformed, and instead preserved in the output. A second tool will be required to transform the JSX.
 
 By default `ts-blank-space` will parse the file assuming `.ts`. If the original file contains JSX syntax
-then the parsing should be done manually. There is a TSX example in [`valid.test.js`](./tests/valid.test.js).
+then the [parsing should be done manually](#bring-your-own-ast). There is a TSX example in [`valid.test.js`](./tests/valid.test.js).
