@@ -119,3 +119,21 @@ it("handles variable definite assignment assertions", () => {
     assert.equal(onError.mock.callCount(), 0, "there should be no errors");
     assert.equal(jsOutput, "let x     , y          , z     ;\n");
 });
+
+// Taken from TypeScript's compiler tests because there used to be a bug
+// in ts-blank-space where this caused it to hit an infinite loop
+it("'parseGenericArrowRatherThanLeftShift'", () => {
+    // `foo<<` can get scanned as `[foo,<<]` tokens instead of `[foo,<,<]`
+    const tsInput = `
+        function foo<T>(_x: T) {}
+        const b = foo<<T>(x: T) => number>(() => 1);
+    `;
+    const expectedOutput = `
+        function foo   (_x   ) {}
+        const b = foo                     (() => 1);
+    `;
+    const onError = mock.fn();
+    const jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    assert.equal(jsOutput, expectedOutput);
+});

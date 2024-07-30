@@ -116,7 +116,6 @@ const {
     CallExpression,
     TypeAssertionExpression,
     ReturnStatement,
-    OpenBraceToken,
     ExpressionStatement,
 } = ts.SyntaxKind;
 
@@ -570,7 +569,7 @@ function posOfToken(token, end) {
         if (next === EndOfFileToken) {
             // We should always find the token we are looking for
             // if we don't, return the start of where we started searching from
-            start;
+            return start;
         }
     }
     return end ? scanner.getTokenEnd() : scanner.getTokenStart();
@@ -610,15 +609,6 @@ function blankExactAndOptionalTrailingComma(n) {
     scanner.resetTokenState(n.end);
     const trailingComma = scanner.scan() === CommaToken;
     str.blank(n.getStart(ast), trailingComma ? scanner.getTokenEnd() : n.end);
-}
-
-/**
- * @param {number} pos
- * @param {ts.SyntaxKind} token
- */
-function lookaheadMatch(pos, token) {
-    scanner.resetTokenState(pos);
-    return scanner.scan() === token;
 }
 
 /**
