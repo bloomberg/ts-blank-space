@@ -61,10 +61,16 @@ function assertIdentifiersAreAligned(jsString, tsString) {
         if (n.kind === ts.SyntaxKind.Identifier) {
             sawIdentifiers = true;
             const id = n.getText(jsSource);
-            const {line, character} = jsSource.getLineAndCharacterOfPosition(n.getStart(jsSource));
+            const pos = n.getStart(jsSource);
+            const {line, character} = jsSource.getLineAndCharacterOfPosition(pos);
             const inputIndex = tsSource.getPositionOfLineAndCharacter(line, character);
             if (!tsString.startsWith(id, inputIndex)) {
+                // SourceMaps are line:column based so these must not change
                 throw new Error(`Expected to see '${id}' at position ${line}:${character} but saw '${tsString.slice(inputIndex, inputIndex + id.length)}'`);
+            }
+            if (!tsString.startsWith(id, pos)) {
+                // Other tools, such as V8 code coverage, give the positions as byte offsets, so these also cannot change
+                throw new Error(`Expected to see '${id}' at offset ${pos} but saw '${tsString.slice(inputIndex, inputIndex + id.length)}'`);
             }
         }
         n.forEachChild(visit);
