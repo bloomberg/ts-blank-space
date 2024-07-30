@@ -117,6 +117,7 @@ const {
     TypeAssertionExpression,
     ReturnStatement,
     ExpressionStatement,
+    TaggedTemplateExpression,
 } = ts.SyntaxKind;
 
 const JSXLang = ts.LanguageVariant.JSX;
@@ -171,6 +172,7 @@ function visitor(node) {
         case EnumDeclaration:
         case ModuleDeclaration: visitEnumOrModule(n); return;
         case IndexSignature: blankExact(n); return;
+        case TaggedTemplateExpression: visitTaggedTemplate(n); return;
         case TypeAssertionExpression: visitLegacyTypeAssertion(n); return;
     }
 
@@ -214,6 +216,18 @@ function visitCallOrNewExpression(node) {
             visitor(node.arguments[i]);
         }
     }
+}
+
+/**
+ * foo<T>`tagged template`
+ * @param {ts.TaggedTemplateExpression} node
+ */
+function visitTaggedTemplate(node) {
+    visitor(node.tag);
+    if (node.typeArguments) {
+        blankGenerics(node, node.typeArguments);
+    }
+    visitor(node.template);
 }
 
 /**
@@ -386,6 +400,10 @@ function visitFunctionLikeDeclaration(node) {
 
     if (node.modifiers) {
         visitModifiers(node.modifiers);
+    }
+
+    if (node.name) {
+        visitor(node.name);
     }
 
     if (node.typeParameters && node.typeParameters.length) {

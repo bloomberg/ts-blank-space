@@ -62,3 +62,21 @@ let g: Box<any>,
 //                  ^^^^^^^^^^^^^^^
     }
 });
+
+{
+    function foo<T>(a: T) : T {
+//              <T>  : T  : T
+        return a;
+    }
+
+    class A {
+        [foo<string>("")]<T>(a: T) {
+//          <string>     <T>  : T
+        }
+    }
+};
+
+{
+    (<T>(...args: any[]) => {})<any>`tagged ${"template" as any}`;
+//   <T>        : any[]        <any>                     as any
+}

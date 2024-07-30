@@ -62,3 +62,21 @@ let g          ,
 //                  ^^^^^^^^^^^^^^^
     }
 });
+
+{
+    function foo   (a   )     {
+//              <T>  : T  : T
+        return a;
+    }
+
+    class A {
+        [foo        ("")]   (a   ) {
+//          <string>     <T>  : T
+        }
+    }
+};
+
+{
+    (   (...args       ) => {})     `tagged ${"template"       }`;
+//   <T>        : any[]        <any>                     as any
+}
