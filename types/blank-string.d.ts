@@ -13,19 +13,12 @@ export default class BlankString {
      * @param {number} end
      * @returns {void}
      */
-    blankButStartWithArrow(start: number, end: number): void;
+    blankButEndWithCloseParen(start: number, end: number): void;
     /**
      * @param {number} start
      * @param {number} end
-     * @returns {void}
      */
-    blankButStartWithCommaOperator(start: number, end: number): void;
-    /**
-     * @param {number} start
-     * @param {number} end
-     * @returns {void}
-     */
-    blankButReplaceStartWithZeroOR(start: number, end: number): void;
+    blankButStartWithSemi(start: number, end: number): void;
     /**
      * @param {number} start
      * @param {number} end
