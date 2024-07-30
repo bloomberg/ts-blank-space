@@ -1,0 +1,13 @@
+{
+    "name": "ts-blank-space-testing",
+    "private": true,
+    "type": "module",
+    "dependencies": {
+        "@babel/parser": "^7.24.8",
+        "prettier": "^3.3.3",
+        "terser": "^5.31.3"
+    },
+    "scripts": {
+        "test": "node --test ecosystem.test.js"
+    }
+}

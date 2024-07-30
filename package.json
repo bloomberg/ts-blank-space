@@ -22,7 +22,7 @@
     "gen-types": "tsc -p jsconfig.json",
     "update-fixture": "node ./tests/fixture/_run.js",
     "update-fixture:watch": "node --watch-path ./src --watch-path ./tests/fixture/cases ./tests/fixture/_run.js",
-    "test": "node --test",
+    "test": "node --test ./tests/*.test.js ./tests/ecosystem/ecosystem.test.js",
     "prepack": "npm run gen-types"
   },
   "files": [
