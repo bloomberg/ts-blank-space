@@ -73,10 +73,21 @@ let g          ,
         [foo        ("")]   (a   ) {
 //          <string>     <T>  : T
         }
+
+        // @ts-expect-error: computed property names must have simple type
+        [("A" + "B")        ] =  1;
+//                   as "AB"
     }
 };
 
 {
     (   (...args       ) => {})     `tagged ${"template"       }`;
 //   <T>        : any[]        <any>                     as any
-}
+};
+
+{
+    const obj = {
+        [("A" + "B")        ]: null
+//                   as "AB"
+    };
+};

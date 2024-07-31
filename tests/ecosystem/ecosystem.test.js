@@ -26,6 +26,9 @@ for (const filename of fs.readdirSync(typescriptCompilerCasesDir, {
     if (!filename.endsWith(".ts")) {
         continue;
     }
+    if (filename.endsWith(".d.ts")) {
+        continue;
+    }
     await it(`same emit for: ${filename}`, async (t) => {
         if (skipList.has(filename)) {
             t.skip("explicit skip");
@@ -44,13 +47,18 @@ for (const filename of fs.readdirSync(typescriptCompilerCasesDir, {
  */
 async function sameEmit(inputPath, skip) {
     const source = fs.readFileSync(inputPath, "utf-8");
+    if (source.match(/\/\/ ?@filename/i)) {
+        skip("multi-file");
+        return;
+    }
 
     try {
         babel.parse(source, {
+            sourceType: "module",
             plugins: ["typescript"]
         });
-    } catch {
-        skip("Babel errored");
+    } catch (err) {
+        skip("Babel errored: " + err.message);
         return;
     }
 
@@ -66,7 +74,7 @@ async function sameEmit(inputPath, skip) {
         }
     });
     if (tsOut.diagnostics?.length) {
-        skip("TS errored");
+        skip("TS errored: " + tsOut.diagnostics[0].messageText);
         return;
     }
     let nope = false;
@@ -74,18 +82,18 @@ async function sameEmit(inputPath, skip) {
         nope = true;
     });
     if (nope) {
-        skip("TSBS errored");
+        skip("TSBS unsupported node");
         return;
     }
 
-    let tsOut2, blankOut2;
+    let tsOut2;
     try {
         tsOut2 = (await normalizeJS(tsOut.outputText)).split("\n").filter(line => line !== "export {};");
-        blankOut2 = (await normalizeJS(blankOut)).split("\n");
     } catch {
-        skip("output doesn't parse");
+        skip("ts output doesn't parse");
         return;
     }
+    const blankOut2 = (await normalizeJS(blankOut)).split("\n").filter(line => line !== "export {};");
 
     assert.deepStrictEqual(blankOut2, tsOut2);
 }

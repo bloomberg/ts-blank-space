@@ -73,10 +73,21 @@ let g: Box<any>,
         [foo<string>("")]<T>(a: T) {
 //          <string>     <T>  : T
         }
+
+        // @ts-expect-error: computed property names must have simple type
+        [("A" + "B") as "AB"] =  1;
+//                   as "AB"
     }
 };
 
 {
     (<T>(...args: any[]) => {})<any>`tagged ${"template" as any}`;
 //   <T>        : any[]        <any>                     as any
-}
+};
+
+{
+    const obj = {
+        [("A" + "B") as "AB"]: null
+//                   as "AB"
+    };
+};

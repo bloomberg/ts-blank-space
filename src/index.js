@@ -351,6 +351,8 @@ function visitPropertyDeclaration(node) {
     node.questionToken && blankExact(node.questionToken);
     node.type && blankTypeNode(node.type);
 
+    visitor(node.name);
+
     if (node.initializer) {
         visitor(node.initializer);
     }
