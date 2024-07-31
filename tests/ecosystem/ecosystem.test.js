@@ -1,5 +1,5 @@
 // @ts-check
-import { it } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert';
 import * as fs from "node:fs";
 import { join } from "node:path";
@@ -19,22 +19,33 @@ const skipList = new Set([
     "binderBinaryExpressionStressJs.ts"
 ]);
 
+/**
+ * @param {string} filename
+ */
+function validFileName(filename) {
+    if (!filename.endsWith(".ts")) {
+        return false;
+    }
+    if (filename.endsWith(".d.ts")) {
+        return false;
+    }
+    return true;
+}
+
 for (const filename of fs.readdirSync(typescriptCompilerCasesDir, {
     recursive: false,
     encoding: "utf8"
 })) {
-    if (!filename.endsWith(".ts")) {
+    if (!validFileName(filename)) {
         continue;
     }
-    if (filename.endsWith(".d.ts")) {
-        continue;
-    }
-    await it(`same emit for: ${filename}`, async (t) => {
+    await test(`same emit for: ${filename}`, async (t) => {
         if (skipList.has(filename)) {
             t.skip("explicit skip");
             return;
         }
-        await sameEmit(join(typescriptCompilerCasesDir, filename), (msg) => t.skip(msg));
+        const path = join(typescriptCompilerCasesDir, filename);
+        await sameEmit(fs.readFileSync(path, "utf-8"), t);
     });
     if (i++ % 100 === 0) {
         await new Promise(r => setTimeout(r));
@@ -42,13 +53,28 @@ for (const filename of fs.readdirSync(typescriptCompilerCasesDir, {
 }
 
 /**
- * @param {string} inputPath
- * @param {(msg: string) => void} skip
+ * @param {string} source
+ * @param {import("node:test").TestContext} t
  */
-async function sameEmit(inputPath, skip) {
-    const source = fs.readFileSync(inputPath, "utf-8");
-    if (source.match(/\/\/ ?@filename/i)) {
-        skip("multi-file");
+async function sameEmit(source, t, multipart = false) {
+    if (!multipart && source.match(/\/\/ ?@filename:/i)) {
+        const parts = source.split(/(?=\/\/ ?@filename:)/gi).filter(v => v.trim());
+        for (const section of parts) {
+            const match = section.match(/@filename:(.+)/);
+            if (!match) continue;
+            const filename = match[/* capture-group: */1];
+            if (!validFileName(filename)) {
+                continue;
+            }
+            await t.test(`multipart: ${filename}`, async (t) => {
+                await sameEmit(section, t, /* multipart: */ true);
+            });
+        }
+        return;
+    }
+
+    if (source.includes("`")) {
+        t.skip("template strings not supported by tests yet");
         return;
     }
 
@@ -58,7 +84,7 @@ async function sameEmit(inputPath, skip) {
             plugins: ["typescript"]
         });
     } catch (err) {
-        skip("Babel errored: " + err.message);
+        t.skip("Babel errored: " + err.message);
         return;
     }
 
@@ -74,7 +100,7 @@ async function sameEmit(inputPath, skip) {
         }
     });
     if (tsOut.diagnostics?.length) {
-        skip("TS errored: " + tsOut.diagnostics[0].messageText);
+        t.skip("TS errored: " + tsOut.diagnostics[0].messageText);
         return;
     }
     let nope = false;
@@ -82,41 +108,44 @@ async function sameEmit(inputPath, skip) {
         nope = true;
     });
     if (nope) {
-        skip("TSBS unsupported node");
+        t.skip("TSBS unsupported node");
         return;
     }
 
-    let tsOut2;
+    const blankOut2 = tidyLines(await normalizeJS(blankOut));
+    const tsOut2 = tidyLines(await normalizeJS(tsOut.outputText));
+
     try {
-        tsOut2 = (await normalizeJS(tsOut.outputText)).split("\n").filter(line => line !== "export {};");
-    } catch {
-        skip("ts output doesn't parse");
-        return;
+        assert.deepStrictEqual(blankOut2, tsOut2);
+    } catch (err) {
+        t.diagnostic(blankOut2.join("\n"));
+        t.diagnostic(tsOut2.join("\n"));
+        throw err;
     }
-    const blankOut2 = (await normalizeJS(blankOut)).split("\n").filter(line => line !== "export {};");
+}
 
-    assert.deepStrictEqual(blankOut2, tsOut2);
+function tidyLines(input) {
+    return input.split("\n").filter(line => line !== "export {};").map(line => line.trim()).filter(line => line);
 }
 
 /**
  * @param {string} input
  */
 async function normalizeJS(input) {
-    const output = (await terser.minify(input, {
-        // Only squeeze out the air
-        mangle: false,
+    const minified = terser.minify_sync(input, {
         compress: false,
+        mangle: false,
+        module: true,
         format: {
             ecma: 2020,
+            comments: false,
             keep_numbers: true,
-            comments: false
-        },
-        sourceMap: false,
-    })).code || "";
+        }
+    }).code || "";
 
     // Put standardized air back in
-    return await prettier.format(output, {
-        parser: "acorn",
+    return await prettier.format(minified, {
+        parser: "typescript",
         printWidth: 120,
     });
 }
