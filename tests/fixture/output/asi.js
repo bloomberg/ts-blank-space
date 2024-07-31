@@ -1,4 +1,4 @@
-function foo() {}
+const foo = "";
 
 foo
 ;          
@@ -7,6 +7,10 @@ foo
 foo
 ;          
 ``;
+
+foo
+;          
+`${123}`;
 
 function bar   () {
     bar//
@@ -37,3 +41,9 @@ foo
 foo
 ;                   
 (1);
+
+function f3()       {
+    if (true)
+        ;             
+        console.log('f3'); // <- not part of the if
+}

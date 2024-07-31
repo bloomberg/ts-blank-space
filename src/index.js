@@ -4,6 +4,11 @@
 import ts from "typescript";
 import BlankString from "./blank-string.js";
 
+const BLANK = ""; // blank
+const JS = null; // javascript
+
+/** @typedef {"" | null} NodeContents */
+
 /**
  * @type {ts.CreateSourceFileOptions}
  */
@@ -29,8 +34,7 @@ let ast;
 /** @type {undefined | ((n: ts.Node) => void)} */
 let onError;
 
-/** @type {number | undefined} */
-let problematicTypeAssertionPos = undefined;
+let seenJS = false;
 
 /**
  * @param {string} input string containing TypeScript
@@ -67,7 +71,7 @@ export function blankSourceFile(source, onErrorArg) {
         onError = undefined;
         ast = /** @type {any} */(undefined);
         str = /** @type {any} */(undefined);
-        problematicTypeAssertionPos = undefined;
+        seenJS = false;
     }
 }
 
@@ -118,49 +122,70 @@ const {
     ReturnStatement,
     ExpressionStatement,
     TaggedTemplateExpression,
+    Block,
 } = ts.SyntaxKind;
 
-const JSXLang = ts.LanguageVariant.JSX;
 
 /**
  * @param {ts.Node} node
  * @returns {void}
  */
 function visitTop(node) {
-    const n = /** @type {any} */(node);
-    switch (node.kind) {
-        case ImportDeclaration: visitImportDeclaration(n); return;
-        case ExportDeclaration: visitExportDeclaration(n); return;
-        case ExportAssignment: visitExportAssignment(n); return;
-        case ImportEqualsDeclaration: onError && onError(n); return;
+    if (innerVisitTop(node) === JS) {
+        seenJS = true;
     }
-
-    visitor(node);
 }
 
 /**
  * @param {ts.Node} node
- * @returns {void}
+ * @returns {NodeContents}
  */
-function visitor(node) {
+function innerVisitTop(node) {
     const n = /** @type {any} */(node);
     switch (node.kind) {
-        case Identifier: return;
+        case ImportDeclaration: return visitImportDeclaration(n);
+        case ExportDeclaration: return visitExportDeclaration(n);
+        case ExportAssignment: return visitExportAssignment(n);
+        case ImportEqualsDeclaration: onError && onError(n); return JS;
+    }
+    return visitor(node);
+}
+
+/**
+ * @param {ts.Node} node
+ * @returns {NodeContents}
+ */
+function visitor(node) {
+    const r = innerVisitor(node);
+    if (r === JS) {
+        seenJS = true;
+    }
+    return r;
+}
+
+/**
+ * @param {ts.Node} node
+ * @returns {NodeContents}
+ */
+function innerVisitor(node) {
+    const n = /** @type {any} */(node);
+    switch (node.kind) {
+        case Identifier: return JS;
         case ExpressionStatement: break;
-        case VariableDeclaration: visitVariableDeclaration(n); return;
-        case VariableStatement: visitVariableStatement(n); return;
+        case VariableDeclaration: return visitVariableDeclaration(n);
+        case VariableStatement: return visitVariableStatement(n);
         case CallExpression:
-        case NewExpression: visitCallOrNewExpression(n); return;
+        case NewExpression: return visitCallOrNewExpression(n);
         case TypeAliasDeclaration:
-        case InterfaceDeclaration: blankStatement(n); return;
+        case InterfaceDeclaration: blankStatement(n); return BLANK;
         case ClassDeclaration:
-        case ClassExpression: visitClassLike(n); return;
-        case ReturnStatement: visitReturn(n); return;
-        case ExpressionWithTypeArguments: visitExpressionWithTypeArguments(n); return;
-        case PropertyDeclaration: visitPropertyDeclaration(n); return;
-        case NonNullExpression: visitNonNullExpression(n); return;
+        case ClassExpression: return visitClassLike(n);
+        case ReturnStatement: return visitReturn(n);
+        case ExpressionWithTypeArguments: return visitExpressionWithTypeArguments(n);
+        case PropertyDeclaration: return visitPropertyDeclaration(n);
+        case NonNullExpression: return visitNonNullExpression(n);
         case SatisfiesExpression:
-        case AsExpression: visitTypeAssertion(n); return;
+        case AsExpression: return visitTypeAssertion(n);
         case ArrowFunction:
         case FunctionDeclaration:
         case MethodDeclaration:
@@ -168,43 +193,48 @@ function visitor(node) {
         case FunctionExpression:
         case GetAccessor:
         case SetAccessor:
-            visitFunctionLikeDeclaration(n); return;
+            return visitFunctionLikeDeclaration(n);
         case EnumDeclaration:
-        case ModuleDeclaration: visitEnumOrModule(n); return;
-        case IndexSignature: blankExact(n); return;
-        case TaggedTemplateExpression: visitTaggedTemplate(n); return;
-        case TypeAssertionExpression: visitLegacyTypeAssertion(n); return;
+        case ModuleDeclaration: return visitEnumOrModule(n);
+        case IndexSignature: blankExact(n); return BLANK;
+        case TaggedTemplateExpression: return visitTaggedTemplate(n);
+        case TypeAssertionExpression: return visitLegacyTypeAssertion(n);
     }
 
-    node.forEachChild(visitor);
+    return node.forEachChild(visitor) || JS;
 }
 
 /**
  * `let x : T` (outer)
  * @param {ts.VariableStatement} node
+ * @returns {NodeContents}
  */
 function visitVariableStatement(node) {
     if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
         blankStatement(node);
-        return;
+        return BLANK;
     }
     node.forEachChild(visitor);
+    return JS;
 }
 
 /**
  * `return ...`
  * @param {ts.ReturnStatement} node
+ * @returns {NodeContents}
  */
 function visitReturn(node) {
     const exp = node.expression;
     if (exp) {
         visitor(exp);
     }
+    return JS;
 }
 
 /**
  * `new Set<string>()` | `foo<string>()`
  * @param {ts.NewExpression | ts.CallExpression} node
+ * @returns {NodeContents}
  */
 function visitCallOrNewExpression(node) {
     visitor(node.expression);
@@ -216,11 +246,13 @@ function visitCallOrNewExpression(node) {
             visitor(node.arguments[i]);
         }
     }
+    return JS;
 }
 
 /**
  * foo<T>`tagged template`
  * @param {ts.TaggedTemplateExpression} node
+ * @returns {NodeContents}
  */
 function visitTaggedTemplate(node) {
     visitor(node.tag);
@@ -228,11 +260,13 @@ function visitTaggedTemplate(node) {
         blankGenerics(node, node.typeArguments);
     }
     visitor(node.template);
+    return JS;
 }
 
 /**
  * `let x : T = v` (inner)
  * @param {ts.VariableDeclaration} node
+ * @returns {NodeContents}
  */
 function visitVariableDeclaration(node) {
     visitor(node.name);
@@ -247,17 +281,19 @@ function visitVariableDeclaration(node) {
     if (node.initializer) {
         visitor(node.initializer);
     }
+    return JS;
 }
 
 /**
  * `class ...`
  * @param {ts.ClassLikeDeclaration} node
+ * @returns {NodeContents}
  */
 function visitClassLike(node) {
     if (node.modifiers) {
         if (modifiersContainsDeclare(node.modifiers)) {
             blankStatement(node);
-            return;
+            return BLANK;
         }
         visitModifiers(node.modifiers);
     }
@@ -282,21 +318,25 @@ function visitClassLike(node) {
         }
     }
     node.members.forEach(visitor);
+    return JS;
 }
 
 /**
  * Exp<T>
  * @param {ts.ExpressionWithTypeArguments} node
+ * @returns {NodeContents}
  */
 function visitExpressionWithTypeArguments(node) {
     visitor(node.expression);
     if (node.typeArguments) {
         blankGenerics(node, node.typeArguments);
     }
+    return JS;
 }
 
 /**
  * @param {ArrayLike<ts.ModifierLike>} modifiers
+ * @returns {void}
  */
 function visitModifiers(modifiers) {
     for (let i = 0; i < modifiers.length; i++) {
@@ -338,12 +378,13 @@ function visitModifiers(modifiers) {
 /**
  * prop: T
  * @param {ts.PropertyDeclaration} node
+ * @returns {NodeContents}
  */
 function visitPropertyDeclaration(node) {
     if (node.modifiers) {
         if (modifiersContainsAbstractOrDeclare(node.modifiers)) {
             blankStatement(node);
-            return;
+            return BLANK;
         }
         visitModifiers(node.modifiers);
     }
@@ -356,48 +397,55 @@ function visitPropertyDeclaration(node) {
     if (node.initializer) {
         visitor(node.initializer);
     }
+    return JS;
 }
 
 /**
  * `expr!`
  * @param {ts.NonNullExpression} node
+ * @returns {NodeContents}
  */
 function visitNonNullExpression(node) {
     visitor(node.expression);
-    str.blank(node.end - 1, node.end)
+    str.blank(node.end - 1, node.end);
+    return JS;
 }
 
 /**
  * `exp satisfies T, exp as T`
  * @param {ts.SatisfiesExpression | ts.AsExpression} node
+ * @returns {NodeContents}
  */
 function visitTypeAssertion(node) {
-    visitor(node.expression);
+    const r = visitor(node.expression);
     str.blank(node.expression.end, node.end);
+    return r;
 }
 
 /**
  * `<type>v`
  * @param {ts.TypeAssertion} node
+ * @returns {NodeContents}
  */
 function visitLegacyTypeAssertion(node) {
     onError && onError(node);
-    visitor(node.expression);
+    return visitor(node.expression);
 }
 
 /**
  * `function<T>(p: T): T {}`
  * @param {ts.FunctionLikeDeclaration} node
+ * @returns {NodeContents}
  */
 function visitFunctionLikeDeclaration(node) {
     if (!node.body) {
         if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
             blankStatement(node);
-            return;
+            return BLANK;
         }
         // else: overload
         blankExact(node);
-        return;
+        return BLANK;
     }
 
     if (node.modifiers) {
@@ -452,7 +500,21 @@ function visitFunctionLikeDeclaration(node) {
         }
     }
 
-    visitor(node.body);
+    const body = node.body;
+    if (body.kind === Block) {
+        const statements = /** @type {ts.Block} */(body).statements;
+        const cache = seenJS;
+        seenJS = false;
+        for (let i = 0; i < statements.length; i++) {
+            if (visitor(statements[i]) === JS) {
+                seenJS = true;
+            }
+        }
+        seenJS = cache;
+    } else {
+        visitor(node.body);
+    }
+    return JS;
 }
 
 /**
@@ -467,12 +529,13 @@ function spansLines(a, b) {
 /**
  * `import ...`
  * @param {ts.ImportDeclaration} node
+ * @returns {NodeContents}
  */
 function visitImportDeclaration(node) {
     if (node.importClause) {
         if (node.importClause.isTypeOnly) {
             blankStatement(node);
-            return;
+            return BLANK;
         }
         const {namedBindings} = node.importClause;
         if (namedBindings && ts.isNamedImports(namedBindings)) {
@@ -483,16 +546,18 @@ function visitImportDeclaration(node) {
             }
         }
     }
+    return JS;
 }
 
 /**
  * `export ...`
  * @param {ts.ExportDeclaration} node
+ * @returns {NodeContents}
  */
 function visitExportDeclaration(node) {
     if (node.isTypeOnly) {
         blankStatement(node);
-        return;
+        return BLANK;
     }
 
     const {exportClause} = node;
@@ -503,35 +568,41 @@ function visitExportDeclaration(node) {
             e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
         }
     }
+    return JS;
 }
 
 /**
  * `export default ...`
  * @param {ts.ExportAssignment} node
+ * @returns {NodeContents}
  */
 function visitExportAssignment(node) {
     if (node.isExportEquals) {
         // `export = ...`
         onError && onError(node);
-        return;
+        return JS;
     }
     visitor(node.expression);
+    return JS;
 }
 
 /**
  * @param {ts.EnumDeclaration | ts.ModuleDeclaration} node
- * @returns {void}
+ * @returns {NodeContents}
  */
 function visitEnumOrModule(node) {
     if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
         blankStatement(node);
+        return BLANK;
     } else {
         onError && onError(node);
+        return JS;
     }
 }
 
 /**
  * @param {ArrayLike<ts.ModifierLike>} modifiers
+ * @returns {boolean}
  */
 function modifiersContainsDeclare(modifiers) {
     for (let i = 0; i < modifiers.length; i++) {
@@ -545,6 +616,7 @@ function modifiersContainsDeclare(modifiers) {
 
 /**
  * @param {ArrayLike<ts.ModifierLike>} modifiers
+ * @returns {boolean}
  */
 function modifiersContainsAbstractOrDeclare(modifiers) {
     for (let i = 0; i < modifiers.length; i++) {
@@ -621,7 +693,11 @@ function blankExact(n) {
 
 /** @param {ts.Node} n  */
 function blankStatement(n) {
-    str.blankButStartWithSemi(n.getStart(ast), n.end);
+    if (seenJS) {
+        str.blankButStartWithSemi(n.getStart(ast), n.end);
+    } else {
+        str.blank(n.getStart(ast), n.end);
+    }
 }
 
 /** @param {ts.Node} n  */
@@ -634,7 +710,7 @@ function blankExactAndOptionalTrailingComma(n) {
 /**
  * `<T1, T2>`
  * @param {ts.Node} node
- * @param {ts.NodeArray} arr
+ * @param {ts.NodeArray<ts.Node>} arr
  */
 function blankGenerics(node, arr) {
     const start = scanRange(

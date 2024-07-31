@@ -63,6 +63,7 @@ export default class BlankString {
     /**
      * @param {number} start
      * @param {number} end
+     * @returns {void}
      */
     blankButStartWithSemi(start, end) {
         this.__ranges.push(FLAG_REPLACE_WITH_SEMI, start, start+1);
@@ -93,11 +94,11 @@ export default class BlankString {
         let previousEnd = ranges[2];
         let out = input.slice(0, previousStart);
 
-        if (flags & FLAG_REPLACE_WITH_CLOSE_PAREN) {
+        if (flags === FLAG_REPLACE_WITH_CLOSE_PAREN) {
             out += ")";
             previousStart += 1;
         }
-        else if (flags & FLAG_REPLACE_WITH_SEMI) {
+        else if (flags === FLAG_REPLACE_WITH_SEMI) {
             out += ";";
             previousStart += 1;
         }
@@ -116,11 +117,11 @@ export default class BlankString {
             rangeStart = max(rangeStart, previousEnd);
             out += input.slice(previousEnd, rangeStart);
 
-            if (flags & FLAG_REPLACE_WITH_CLOSE_PAREN) {
+            if (flags === FLAG_REPLACE_WITH_CLOSE_PAREN) {
                 out += ")";
                 rangeStart += 1;
             }
-            else if (flags & FLAG_REPLACE_WITH_SEMI) {
+            else if (flags === FLAG_REPLACE_WITH_SEMI) {
                 out += ";";
                 rangeStart += 1;
             }

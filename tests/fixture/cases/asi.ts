@@ -1,4 +1,4 @@
-function foo() {}
+const foo = "";
 
 foo
 type x = 1;
@@ -7,6 +7,10 @@ type x = 1;
 foo
 type y = 1;
 ``;
+
+foo
+type z = 1;
+`${123}`;
 
 function bar<T>() {
     bar//
@@ -37,3 +41,9 @@ declare let x: number;
 foo
 declare function f()
 (1);
+
+function f3(): void {
+    if (true)
+        type foo = [];
+        console.log('f3'); // <- not part of the if
+}

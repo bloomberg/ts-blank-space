@@ -79,21 +79,21 @@ it("allows ambient enum", () => {
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(`declare enum E1 {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, ";                 \n");
+    assert.equal(jsOutput, "                  \n");
 });
 
 it("allows declared namespace value", () => {
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(`declare namespace N {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, ";                     \n");
+    assert.equal(jsOutput, "                      \n");
 });
 
 it("allows declared module value", () => {
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(`declare module M {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, ";                  \n");
+    assert.equal(jsOutput, "                   \n");
 });
 
 it("TSX is preserved in the output", () => {
@@ -131,6 +131,44 @@ it("'parseGenericArrowRatherThanLeftShift'", () => {
     const expectedOutput = `
         function foo   (_x   ) {}
         const b = foo                     (() => 1);
+    `;
+    const onError = mock.fn();
+    const jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    assert.equal(jsOutput, expectedOutput);
+});
+
+it("Preserves strict directive after a type declaration", () => {
+    const tsInput = `
+interface I {}
+"use strict"
+export {}
+    `;
+    const expectedOutput = `
+${"              "}
+"use strict"
+export {}
+    `;
+    const onError = mock.fn();
+    const jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    assert.equal(jsOutput, expectedOutput);
+});
+
+it("Preserves nested strict directive after a type declaration", () => {
+    const tsInput = `
+    function foo() {
+        interface I {}
+        "use strict"
+        return 1;
+    }
+    `;
+    const expectedOutput = `
+    function foo() {
+${"                      "}
+        "use strict"
+        return 1;
+    }
     `;
     const onError = mock.fn();
     const jsOutput = tsBlankSpace(tsInput, onError);
