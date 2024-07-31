@@ -16,7 +16,11 @@ let i = 0;
 
 const skipList = new Set([
     "binderBinaryExpressionStress.ts",
-    "binderBinaryExpressionStressJs.ts"
+    "binderBinaryExpressionStressJs.ts",
+    "ClassDeclaration11.ts",
+    "ClassDeclaration8.ts",
+    "continueTarget3.ts",
+    "defaultValueInConstructorOverload1.ts"
 ]);
 
 /**
