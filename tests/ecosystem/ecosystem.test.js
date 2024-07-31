@@ -77,11 +77,6 @@ async function sameEmit(source, t, multipart = false) {
         return;
     }
 
-    if (source.includes("`")) {
-        t.skip("template strings not supported by tests yet");
-        return;
-    }
-
     try {
         babel.parse(source, {
             sourceType: "module",
