@@ -82,7 +82,8 @@ The benefits of this library are:
   - No new JavaScript needs to be emitted from an AST, it re-uses slices of the existing source string
   - This is particularly true if other parts of your program are already generating the TypeScript SourceFile object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
 - It is small (less than 900 LOC)
-  - By doing so little the code should be easy to understand and maintain
+  - By doing so little the code should be relatively easy to maintain
+  - The hard part, of parsing the source, is delegated to TypeScript.
 - No need for additional SourceMap processing. See ["where are my SourceMaps?"](#where-are-my-sourcemaps)
 
 ## Does it really just blank out all the type annotations?

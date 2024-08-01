@@ -20,7 +20,7 @@ const skipList = new Set([
     "ClassDeclaration11.ts",
     "ClassDeclaration8.ts",
     "continueTarget3.ts",
-    "defaultValueInConstructorOverload1.ts"
+    "defaultValueInConstructorOverload1.ts" // https://github.com/microsoft/TypeScript/issues/59484
 ]);
 
 /**
