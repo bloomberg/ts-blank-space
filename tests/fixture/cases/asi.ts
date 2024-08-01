@@ -47,3 +47,15 @@ function f3(): void {
         type foo = [];
         console.log('f3'); // <- not part of the if
 }
+
+// https://github.com/nodejs/amaro/issues/24#issuecomment-2260548354
+foo as string/*trailing*/
+(1);
+foo satisfies string/*trailing*/
+(1);
+foo satisfies string/*trailing*/
+[0];
+
+// No ASI:
+foo satisfies string/*trailing*/
++ "";

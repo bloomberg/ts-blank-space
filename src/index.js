@@ -26,6 +26,7 @@ if (ts.JSDocParsingMode) {
     scanner.setJSDocParsingMode(ts.JSDocParsingMode.ParseNone);
 }
 
+let src = "";
 let str = new BlankString("");
 
 /** @type {ts.SourceFile} */
@@ -35,6 +36,7 @@ let ast;
 let onError;
 
 let seenJS = false;
+let missingSemiPos = 0;
 
 /**
  * @param {string} input string containing TypeScript
@@ -56,6 +58,7 @@ export default function tsBlankSpace(input, onErrorArg) {
 export function blankSourceFile(source, onErrorArg) {
     try {
         const input = source.getFullText(source);
+        src = input;
         str = new BlankString(input);
         onError = onErrorArg;
 
@@ -66,12 +69,14 @@ export function blankSourceFile(source, onErrorArg) {
 
         return str.toString();
     } finally {
-        // cleanup. Release memory.
+        // Cleanup. Release memory. Reset state.
         scanner.setText("");
         onError = undefined;
         ast = /** @type {any} */(undefined);
         str = /** @type {any} */(undefined);
+        src = "";
         seenJS = false;
+        missingSemiPos = 0;
     }
 }
 
@@ -171,7 +176,7 @@ function innerVisitor(node) {
     const n = /** @type {any} */(node);
     switch (node.kind) {
         case Identifier: return JS;
-        case ExpressionStatement: break;
+        case ExpressionStatement: return visitExpressionStatement(n);
         case VariableDeclaration: return visitVariableDeclaration(n);
         case VariableStatement: return visitVariableStatement(n);
         case CallExpression:
@@ -202,6 +207,17 @@ function innerVisitor(node) {
     }
 
     return node.forEachChild(visitor) || JS;
+}
+
+/**
+ * @param {ts.ExpressionStatement} node
+ * @returns {NodeContents}
+ */
+function visitExpressionStatement(node) {
+    if (src.charCodeAt(node.end) !== 59 /* ; */) {
+        missingSemiPos = node.end;
+    }
+    return visitor(node.expression);
 }
 
 /**
@@ -418,7 +434,11 @@ function visitNonNullExpression(node) {
  */
 function visitTypeAssertion(node) {
     const r = visitor(node.expression);
-    str.blank(node.expression.end, node.end);
+    if (node.end === missingSemiPos) {
+        str.blankButStartWithSemi(node.expression.end, node.end);
+    } else {
+        str.blank(node.expression.end, node.end);
+    }
     return r;
 }
 
