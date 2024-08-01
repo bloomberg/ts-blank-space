@@ -1,7 +1,7 @@
 // @ts-check
 import * as fs from "node:fs";
 import { join } from "node:path";
-import tsBlankSpace from "../../src/index.js";
+import tsBlankSpace from "../../out/index.js";
 import { casesDir, outputForInput } from "./helpers.js";
 
 for (const file of fs.readdirSync(casesDir)) {

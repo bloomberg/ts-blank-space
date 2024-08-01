@@ -3,15 +3,15 @@
   "version": "0.1.1",
   "license": "Apache-2.0",
   "type": "module",
-  "main": "./src/index.js",
+  "main": "./out/index.js",
   "exports": {
     "./package.json": "./package.json",
-    ".": "./src/index.js"
+    ".": "./out/index.js"
   },
   "engines": {
       "node": ">=10.13"
   },
-  "types": "./types/index.d.ts",
+  "types": "./out/index.d.ts",
   "dependencies": {
     "typescript": "5.1.6 - 5.5.x"
   },
@@ -20,16 +20,17 @@
   },
   "scripts": {
     "build": "node ./scripts/build.js",
-    "gen-types": "tsc -p jsconfig.json",
+    "gen-types": "tsc -p ./src/tsconfig.json",
     "update-fixture": "node ./tests/fixture/_run.js",
-    "update-fixture:watch": "node --watch-path ./src --watch-path ./tests/fixture/cases ./tests/fixture/_run.js",
+    "update-fixture:watch": "node --watch-path ./tests/fixture/cases ./tests/fixture/_run.js",
+    "pretest": "npm run build",
     "test": "node --test ./tests/*.test.js ./tests/ecosystem/ecosystem.test.js",
-    "prepack": "npm run gen-types"
+    "prepack": "npm run gen-types;npm run build;"
   },
   "files": [
     "!tests",
     "!perf",
-    "types/index.d.ts",
-    "src/*.js"
+    "out/*.js",
+    "out/*.d.ts"
   ]
 }

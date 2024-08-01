@@ -4,7 +4,7 @@ import assert from "node:assert";
 import { mock } from "node:test";
 import * as ts from "typescript";
 import { join, relative, resolve } from "node:path";
-import tsBlankSpace from "../../src/index.js";
+import tsBlankSpace from "../../out/index.js";
 
 const __dirname = import.meta.dirname;
 

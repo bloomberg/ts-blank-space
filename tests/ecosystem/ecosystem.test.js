@@ -4,7 +4,7 @@ import assert from 'node:assert';
 import * as fs from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
-import tsBlankSpace from '../../src/index.js';
+import tsBlankSpace from '../../out/index.js';
 import * as prettier from "prettier";
 import * as terser from "terser";
 import * as babel from "@babel/parser";

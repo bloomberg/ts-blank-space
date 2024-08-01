@@ -1,17 +1,10 @@
 // Copyright 2023 Bloomberg Finance L.P.
 // Distributed under the terms of the Apache 2.0 license.
-// @ts-check
 const max = Math.max;
 const FLAG_REPLACE_WITH_CLOSE_PAREN = 1;
 const FLAG_REPLACE_WITH_SEMI = 2;
 
-/**
- * @param {string} input
- * @param {number} start
- * @param {number} end
- * @returns {string}
- */
-function getSpace(input, start, end) {
+function getSpace(input: string, start: number, end: number): string {
     let out = "";
 
     for (let i = start; i < end; i++) {
@@ -38,49 +31,28 @@ function getSpace(input, start, end) {
 
 /** Like magic-string but with only one feature */
 export default class BlankString {
-    /**
-     * @param {string} input
-     */
-    constructor(input) {
-        /** @type {string} */
+    declare __input: string;
+    declare __ranges: number[];
+    constructor(input: string) {
         this.__input = input;
-        /** @type {number[]} */
         this.__ranges = [];
     }
 
-    /**
-     * @param {number} start
-     * @param {number} end
-     * @returns {void}
-     */
-    blankButEndWithCloseParen(start, end) {
+    blankButEndWithCloseParen(start: number, end: number): void {
         this.__ranges.push(0, start, end - 1);
         this.__ranges.push(FLAG_REPLACE_WITH_CLOSE_PAREN, end - 1, end);
     }
 
-    /**
-     * @param {number} start
-     * @param {number} end
-     * @returns {void}
-     */
-    blankButStartWithSemi(start, end) {
+    blankButStartWithSemi(start: number, end: number): void {
         this.__ranges.push(FLAG_REPLACE_WITH_SEMI, start, start+1);
         this.__ranges.push(0, start+1, end);
     }
 
-    /**
-     * @param {number} start
-     * @param {number} end
-     * @returns {void}
-     */
-    blank(start, end) {
+    blank(start: number, end: number): void {
         this.__ranges.push(0, start, end);
     }
 
-    /**
-     * @returns {string}
-     */
-    toString() {
+    toString(): string {
         const ranges = this.__ranges;
         const input = this.__input;
         if (ranges.length === 0) {
