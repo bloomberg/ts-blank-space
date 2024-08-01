@@ -92,7 +92,7 @@ There are two cases, described here, where it does more than replace the TypeScr
 
 ### ASI (automatic semicolon insertion)
 
-To guard against [ASI](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion) issues in the output `ts-blank-space` will add `;` to the end of statements that have omitted it.
+To guard against [ASI](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion) issues in the output `ts-blank-space` will add `;` to the end of type-only statements.
 
 Example input:
 
@@ -156,7 +156,13 @@ Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
 
 ## TSX/JSX
 
-`.tsx` input will be `.jsx` output because the JSX parts are not transformed, and instead preserved in the output. A second tool will be required to transform the JSX.
+`.tsx` input will be `.jsx` output because the JSX parts are not transformed, and instead preserved in the output.
 
 By default `ts-blank-space` will parse the file assuming `.ts`. If the original file contains JSX syntax
 then the [parsing should be done manually](#bring-your-own-ast). There is a TSX example in [`valid.test.js`](./tests/valid.test.js).
+
+### Ensuring ESM output
+
+TypeScript may add an `export {};` if all `import`s and `export`s were removed (because they were `import/export type`).
+
+Because `ts-blank-space` only removes code this is not performed. To force the output to always have an ESM syntactic marker you can manually append `"export {};"`;

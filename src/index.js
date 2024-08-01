@@ -8,7 +8,6 @@ const BLANK = ""; // blank
 const JS = null; // javascript
 
 /** @typedef {"" | null} NodeContents */
-
 /**
  * @type {ts.CreateSourceFileOptions}
  */
@@ -28,13 +27,10 @@ if (ts.JSDocParsingMode) {
 
 let src = "";
 let str = new BlankString("");
-
 /** @type {ts.SourceFile} */
 let ast;
-
 /** @type {undefined | ((n: ts.Node) => void)} */
 let onError;
-
 let seenJS = false;
 let missingSemiPos = 0;
 
@@ -61,7 +57,6 @@ export function blankSourceFile(source, onErrorArg) {
         src = input;
         str = new BlankString(input);
         onError = onErrorArg;
-
         scanner.setText(input);
         ast = source;
 

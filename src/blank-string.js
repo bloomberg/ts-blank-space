@@ -1,9 +1,7 @@
 // Copyright 2023 Bloomberg Finance L.P.
 // Distributed under the terms of the Apache 2.0 license.
 // @ts-check
-
 const max = Math.max;
-
 const FLAG_REPLACE_WITH_CLOSE_PAREN = 1;
 const FLAG_REPLACE_WITH_SEMI = 2;
 
