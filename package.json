@@ -19,6 +19,7 @@
     "@types/node": "^20.9.4"
   },
   "scripts": {
+    "build": "node ./scripts/build.js",
     "gen-types": "tsc -p jsconfig.json",
     "update-fixture": "node ./tests/fixture/_run.js",
     "update-fixture:watch": "node --watch-path ./src --watch-path ./tests/fixture/cases ./tests/fixture/_run.js",
