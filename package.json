@@ -20,9 +20,10 @@
   },
   "scripts": {
     "build": "node ./scripts/build.js",
+    "build:watch": "node --watch-path ./src ./scripts/build.js",
     "gen-types": "tsc -p ./src/tsconfig.json",
-    "update-fixture": "node ./tests/fixture/_run.js",
-    "update-fixture:watch": "node --watch-path ./tests/fixture/cases ./tests/fixture/_run.js",
+    "fixtures": "node ./tests/fixture/_run.js",
+    "fixtures:watch": "node --watch-path ./tests/fixture/cases --watch-path ./out ./tests/fixture/_run.js",
     "pretest": "npm run build",
     "test": "node --test ./tests/*.test.js ./tests/ecosystem/ecosystem.test.js",
     "prepack": "npm run gen-types;npm run build;"
