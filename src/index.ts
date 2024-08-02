@@ -1,6 +1,7 @@
 // Copyright 2023 Bloomberg Finance L.P.
 // Distributed under the terms of the Apache 2.0 license.
-import ts from "typescript";
+import type * as ts from "typescript";
+import tslib from "typescript";
 import BlankString from "./blank-string.js";
 
 const BLANK = ""; // blank
@@ -9,17 +10,17 @@ type NodeContents = "" | null;
 type ErrorCb = ((n: ts.Node) => void);
 
 const languageOptions: ts.CreateSourceFileOptions = {
-    languageVersion: ts.ScriptTarget.ESNext,
-    impliedNodeFormat: ts.ModuleKind.ESNext,
+    languageVersion: tslib.ScriptTarget.ESNext,
+    impliedNodeFormat: tslib.ModuleKind.ESNext,
 };
 
 // State is hoisted to module scope so we can avoid making so many closures
 
-const scanner = ts.createScanner(ts.ScriptTarget.ESNext, /*skipTrivia: */true, ts.LanguageVariant.Standard);
-if (ts.JSDocParsingMode) {
+const scanner = tslib.createScanner(tslib.ScriptTarget.ESNext, /*skipTrivia: */true, tslib.LanguageVariant.Standard);
+if (tslib.JSDocParsingMode) {
     // TypeScript >= 5.3
-    languageOptions.jsDocParsingMode = ts.JSDocParsingMode.ParseNone;
-    scanner.setJSDocParsingMode(ts.JSDocParsingMode.ParseNone);
+    languageOptions.jsDocParsingMode = tslib.JSDocParsingMode.ParseNone;
+    scanner.setJSDocParsingMode(tslib.JSDocParsingMode.ParseNone);
 }
 
 let src = "";
@@ -36,7 +37,7 @@ let missingSemiPos = 0;
  */
 export default function tsBlankSpace(input: string, onErrorArg?: ErrorCb): string {
     return blankSourceFile(
-        ts.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, ts.ScriptKind.TS),
+        tslib.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, tslib.ScriptKind.TS),
         onErrorArg
     );
 }
@@ -118,8 +119,7 @@ const {
     ExpressionStatement,
     TaggedTemplateExpression,
     Block,
-} = ts.SyntaxKind;
-
+} = tslib.SyntaxKind;
 
 function visitTop(node: ts.Node): void {
     if (innerVisitTop(node) === JS) {
@@ -327,15 +327,15 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
         if (trueAsFalse) continue;
 
         switch (modifier.kind) {
-            case ts.SyntaxKind.ConstKeyword:
-            case ts.SyntaxKind.DefaultKeyword:
-            case ts.SyntaxKind.ExportKeyword:
-            case ts.SyntaxKind.InKeyword:
-            case ts.SyntaxKind.StaticKeyword:
-            case ts.SyntaxKind.AccessorKeyword:
-            case ts.SyntaxKind.AsyncKeyword:
-            case ts.SyntaxKind.OutKeyword:
-            case ts.SyntaxKind.Decorator:
+            case tslib.SyntaxKind.ConstKeyword:
+            case tslib.SyntaxKind.DefaultKeyword:
+            case tslib.SyntaxKind.ExportKeyword:
+            case tslib.SyntaxKind.InKeyword:
+            case tslib.SyntaxKind.StaticKeyword:
+            case tslib.SyntaxKind.AccessorKeyword:
+            case tslib.SyntaxKind.AsyncKeyword:
+            case tslib.SyntaxKind.OutKeyword:
+            case tslib.SyntaxKind.Decorator:
                 continue;
             default:
                 never(modifier);
@@ -493,7 +493,7 @@ function visitImportDeclaration(node: ts.ImportDeclaration): NodeContents {
             return BLANK;
         }
         const {namedBindings} = node.importClause;
-        if (namedBindings && ts.isNamedImports(namedBindings)) {
+        if (namedBindings && tslib.isNamedImports(namedBindings)) {
             const elements = namedBindings.elements;
             for (let i = 0; i < elements.length; i++) {
                 const e = elements[i];
@@ -514,7 +514,7 @@ function visitExportDeclaration(node: ts.ExportDeclaration): NodeContents {
     }
 
     const {exportClause} = node;
-    if (exportClause && ts.isNamedExports(exportClause)) {
+    if (exportClause && tslib.isNamedExports(exportClause)) {
         const elements = exportClause.elements;
         for (let i = 0; i < elements.length; i++) {
             const e = elements[i];

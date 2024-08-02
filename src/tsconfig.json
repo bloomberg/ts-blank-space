@@ -6,7 +6,7 @@
         "moduleDetection": "force",
         "declaration": true,
         "emitDeclarationOnly": true,
-        "outDir": "../out"
+        "declarationDir": "../out"
     },
     "files": ["./index.ts"]
 }

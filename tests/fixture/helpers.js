@@ -2,7 +2,7 @@
 import * as fs from "node:fs";
 import assert from "node:assert";
 import { mock } from "node:test";
-import * as ts from "typescript";
+import ts from "typescript";
 import { join, relative, resolve } from "node:path";
 import tsBlankSpace from "../../out/index.js";
 
