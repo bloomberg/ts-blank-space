@@ -1,6 +1,5 @@
 // Copyright 2023 Bloomberg Finance L.P.
 // Distributed under the terms of the Apache 2.0 license.
-const max = Math.max;
 const FLAG_REPLACE_WITH_CLOSE_PAREN = 1;
 const FLAG_REPLACE_WITH_SEMI = 2;
 
@@ -25,7 +24,6 @@ function getSpace(input: string, start: number, end: number): string {
                 }
         }
     }
-
     return out;
 }
 
@@ -44,8 +42,7 @@ export default class BlankString {
     }
 
     blankButStartWithSemi(start: number, end: number): void {
-        this.__ranges.push(FLAG_REPLACE_WITH_SEMI, start, start+1);
-        this.__ranges.push(0, start+1, end);
+        this.__ranges.push(FLAG_REPLACE_WITH_SEMI, start, end);
     }
 
     blank(start: number, end: number): void {
@@ -79,6 +76,7 @@ export default class BlankString {
             return out + input.slice(previousEnd);
         }
 
+        const max = Math.max;
         for (let i = 3; i < ranges.length; i += 3) {
             flags = ranges[i];
             let rangeStart = ranges[i+1];

@@ -115,7 +115,6 @@ const {
     NewExpression,
     CallExpression,
     TypeAssertionExpression,
-    ReturnStatement,
     ExpressionStatement,
     TaggedTemplateExpression,
     Block,
@@ -159,7 +158,6 @@ function innerVisitor(node: ts.Node): NodeContents {
         case InterfaceDeclaration: blankStatement(n); return BLANK;
         case ClassDeclaration:
         case ClassExpression: return visitClassLike(n);
-        case ReturnStatement: return visitReturn(n);
         case ExpressionWithTypeArguments: return visitExpressionWithTypeArguments(n);
         case PropertyDeclaration: return visitPropertyDeclaration(n);
         case NonNullExpression: return visitNonNullExpression(n);
@@ -199,17 +197,6 @@ function visitVariableStatement(node: ts.VariableStatement): NodeContents {
         return BLANK;
     }
     node.forEachChild(visitor);
-    return JS;
-}
-
-/**
- * `return ...`
- */
-function visitReturn(node: ts.ReturnStatement): NodeContents {
-    const exp = node.expression;
-    if (exp) {
-        visitor(exp);
-    }
     return JS;
 }
 
