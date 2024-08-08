@@ -118,6 +118,7 @@ const {
     ExpressionStatement,
     TaggedTemplateExpression,
     Block,
+    Decorator,
 } = tslib.SyntaxKind;
 
 function visitTop(node: ts.Node): void {
@@ -306,6 +307,9 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
             case ReadonlyKeyword:
                 blankExact(modifier);
                 continue;
+            case Decorator:
+                visitor(modifier);
+                continue;
         }
 
         // at runtime skip the remaining checks
@@ -322,7 +326,6 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
             case tslib.SyntaxKind.AccessorKeyword:
             case tslib.SyntaxKind.AsyncKeyword:
             case tslib.SyntaxKind.OutKeyword:
-            case tslib.SyntaxKind.Decorator:
                 continue;
             default:
                 never(modifier);

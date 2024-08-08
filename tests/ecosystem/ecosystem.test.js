@@ -7,6 +7,7 @@ import ts from "typescript";
 import tsBlankSpace from '../../out/index.js';
 import * as prettier from "prettier";
 import * as terser from "terser";
+import * as esbuild from "esbuild";
 import * as babel from "@babel/parser";
 
 const __dirname = import.meta.dirname;
@@ -80,7 +81,7 @@ async function sameEmit(source, t, multipart = false) {
     try {
         babel.parse(source, {
             sourceType: "module",
-            plugins: ["typescript"]
+            plugins: ["typescript", "decorators"]
         });
     } catch (err) {
         t.skip("Babel errored: " + err.message);
@@ -131,16 +132,26 @@ function tidyLines(input) {
  * @param {string} input
  */
 async function normalizeJS(input) {
-    const minified = terser.minify_sync(input, {
-        compress: false,
-        mangle: false,
-        module: true,
-        format: {
-            ecma: 2020,
-            comments: false,
-            keep_numbers: true,
-        }
-    }).code || "";
+    let minified;
+
+    try {
+        minified = terser.minify_sync(input, {
+            compress: false,
+            mangle: false,
+            module: true,
+            format: {
+                ecma: 2020,
+                comments: false,
+                keep_numbers: true,
+            }
+        }).code || "";
+    } catch {
+        minified = (await esbuild.transform(input, {
+            legalComments: "none",
+            minifyWhitespace: true,
+            keepNames: true
+        })).code;
+    }
 
     // Put standardized air back in
     return await prettier.format(minified, {
