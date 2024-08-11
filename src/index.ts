@@ -4,9 +4,11 @@ import type * as ts from "typescript";
 import tslib from "typescript";
 import BlankString from "./blank-string.js";
 
-const BLANK = ""; // blank
-const JS = null; // javascript
-type NodeContents = "" | null;
+// These values must be 'falsey' to not stop TypeScript's walk
+const VISIT_BLANKED = "";
+const VISITED_JS = null;
+
+type VisitResult = typeof VISIT_BLANKED | typeof VISITED_JS;
 type ErrorCb = ((n: ts.Node) => void);
 
 const languageOptions: ts.CreateSourceFileOptions = {
@@ -122,41 +124,41 @@ const {
 } = tslib.SyntaxKind;
 
 function visitTop(node: ts.Node): void {
-    if (innerVisitTop(node) === JS) {
+    if (innerVisitTop(node) === VISITED_JS) {
         seenJS = true;
     }
 }
 
-function innerVisitTop(node: ts.Node): NodeContents {
+function innerVisitTop(node: ts.Node): VisitResult {
     const n = node as any;
     switch (node.kind) {
         case ImportDeclaration: return visitImportDeclaration(n);
         case ExportDeclaration: return visitExportDeclaration(n);
         case ExportAssignment: return visitExportAssignment(n);
-        case ImportEqualsDeclaration: onError && onError(n); return JS;
+        case ImportEqualsDeclaration: onError && onError(n); return VISITED_JS;
     }
     return visitor(node);
 }
 
-function visitor(node: ts.Node): NodeContents {
+function visitor(node: ts.Node): VisitResult {
     const r = innerVisitor(node);
-    if (r === JS) {
+    if (r === VISITED_JS) {
         seenJS = true;
     }
     return r;
 }
 
-function innerVisitor(node: ts.Node): NodeContents {
+function innerVisitor(node: ts.Node): VisitResult {
     const n = node as any;
     switch (node.kind) {
-        case Identifier: return JS;
+        case Identifier: return VISITED_JS;
         case ExpressionStatement: return visitExpressionStatement(n);
         case VariableDeclaration: return visitVariableDeclaration(n);
         case VariableStatement: return visitVariableStatement(n);
         case CallExpression:
         case NewExpression: return visitCallOrNewExpression(n);
         case TypeAliasDeclaration:
-        case InterfaceDeclaration: blankStatement(n); return BLANK;
+        case InterfaceDeclaration: blankStatement(n); return VISIT_BLANKED;
         case ClassDeclaration:
         case ClassExpression: return visitClassLike(n);
         case ExpressionWithTypeArguments: return visitExpressionWithTypeArguments(n);
@@ -174,15 +176,15 @@ function innerVisitor(node: ts.Node): NodeContents {
             return visitFunctionLikeDeclaration(n);
         case EnumDeclaration:
         case ModuleDeclaration: return visitEnumOrModule(n);
-        case IndexSignature: blankExact(n); return BLANK;
+        case IndexSignature: blankExact(n); return VISIT_BLANKED;
         case TaggedTemplateExpression: return visitTaggedTemplate(n);
         case TypeAssertionExpression: return visitLegacyTypeAssertion(n);
     }
 
-    return node.forEachChild(visitor) || JS;
+    return node.forEachChild(visitor) || VISITED_JS;
 }
 
-function visitExpressionStatement(node: ts.ExpressionStatement): NodeContents {
+function visitExpressionStatement(node: ts.ExpressionStatement): VisitResult {
     if (src.charCodeAt(node.end) !== 59 /* ; */) {
         missingSemiPos = node.end;
     }
@@ -192,19 +194,19 @@ function visitExpressionStatement(node: ts.ExpressionStatement): NodeContents {
 /**
  * `let x : T` (outer)
  */
-function visitVariableStatement(node: ts.VariableStatement): NodeContents {
+function visitVariableStatement(node: ts.VariableStatement): VisitResult {
     if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
         blankStatement(node);
-        return BLANK;
+        return VISIT_BLANKED;
     }
     node.forEachChild(visitor);
-    return JS;
+    return VISITED_JS;
 }
 
 /**
  * `new Set<string>()` | `foo<string>()`
  */
-function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): NodeContents {
+function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): VisitResult {
     visitor(node.expression);
     if (node.typeArguments) {
         blankGenerics(node, node.typeArguments);
@@ -214,25 +216,25 @@ function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): N
             visitor(node.arguments[i]);
         }
     }
-    return JS;
+    return VISITED_JS;
 }
 
 /**
  * foo<T>`tagged template`
  */
-function visitTaggedTemplate(node: ts.TaggedTemplateExpression): NodeContents {
+function visitTaggedTemplate(node: ts.TaggedTemplateExpression): VisitResult {
     visitor(node.tag);
     if (node.typeArguments) {
         blankGenerics(node, node.typeArguments);
     }
     visitor(node.template);
-    return JS;
+    return VISITED_JS;
 }
 
 /**
  * `let x : T = v` (inner)
  */
-function visitVariableDeclaration(node: ts.VariableDeclaration): NodeContents {
+function visitVariableDeclaration(node: ts.VariableDeclaration): VisitResult {
     visitor(node.name);
 
     // let x!
@@ -245,17 +247,17 @@ function visitVariableDeclaration(node: ts.VariableDeclaration): NodeContents {
     if (node.initializer) {
         visitor(node.initializer);
     }
-    return JS;
+    return VISITED_JS;
 }
 
 /**
  * `class ...`
  */
-function visitClassLike(node: ts.ClassLikeDeclaration): NodeContents {
+function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
     if (node.modifiers) {
         if (modifiersContainsDeclare(node.modifiers)) {
             blankStatement(node);
-            return BLANK;
+            return VISIT_BLANKED;
         }
         visitModifiers(node.modifiers);
     }
@@ -280,18 +282,18 @@ function visitClassLike(node: ts.ClassLikeDeclaration): NodeContents {
         }
     }
     node.members.forEach(visitor);
-    return JS;
+    return VISITED_JS;
 }
 
 /**
  * Exp<T>
  */
-function visitExpressionWithTypeArguments(node: ts.ExpressionWithTypeArguments): NodeContents {
+function visitExpressionWithTypeArguments(node: ts.ExpressionWithTypeArguments): VisitResult {
     visitor(node.expression);
     if (node.typeArguments) {
         blankGenerics(node, node.typeArguments);
     }
-    return JS;
+    return VISITED_JS;
 }
 
 function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
@@ -336,11 +338,11 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
 /**
  * prop: T
  */
-function visitPropertyDeclaration(node: ts.PropertyDeclaration): NodeContents {
+function visitPropertyDeclaration(node: ts.PropertyDeclaration): VisitResult {
     if (node.modifiers) {
         if (modifiersContainsAbstractOrDeclare(node.modifiers)) {
             blankStatement(node);
-            return BLANK;
+            return VISIT_BLANKED;
         }
         visitModifiers(node.modifiers);
     }
@@ -353,22 +355,22 @@ function visitPropertyDeclaration(node: ts.PropertyDeclaration): NodeContents {
     if (node.initializer) {
         visitor(node.initializer);
     }
-    return JS;
+    return VISITED_JS;
 }
 
 /**
  * `expr!`
  */
-function visitNonNullExpression(node: ts.NonNullExpression): NodeContents {
+function visitNonNullExpression(node: ts.NonNullExpression): VisitResult {
     visitor(node.expression);
     str.blank(node.end - 1, node.end);
-    return JS;
+    return VISITED_JS;
 }
 
 /**
  * `exp satisfies T, exp as T`
  */
-function visitTypeAssertion(node: ts.SatisfiesExpression | ts.AsExpression): NodeContents {
+function visitTypeAssertion(node: ts.SatisfiesExpression | ts.AsExpression): VisitResult {
     const r = visitor(node.expression);
     if (node.end === missingSemiPos) {
         str.blankButStartWithSemi(node.expression.end, node.end);
@@ -381,7 +383,7 @@ function visitTypeAssertion(node: ts.SatisfiesExpression | ts.AsExpression): Nod
 /**
  * `<type>v`
  */
-function visitLegacyTypeAssertion(node: ts.TypeAssertion): NodeContents {
+function visitLegacyTypeAssertion(node: ts.TypeAssertion): VisitResult {
     onError && onError(node);
     return visitor(node.expression);
 }
@@ -389,15 +391,15 @@ function visitLegacyTypeAssertion(node: ts.TypeAssertion): NodeContents {
 /**
  * `function<T>(p: T): T {}`
  */
-function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): NodeContents {
+function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): VisitResult {
     if (!node.body) {
         if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
             blankStatement(node);
-            return BLANK;
+            return VISIT_BLANKED;
         }
         // else: overload
         blankExact(node);
-        return BLANK;
+        return VISIT_BLANKED;
     }
 
     if (node.modifiers) {
@@ -458,7 +460,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): NodeCon
         const cache = seenJS;
         seenJS = false;
         for (let i = 0; i < statements.length; i++) {
-            if (visitor(statements[i]) === JS) {
+            if (visitor(statements[i]) === VISITED_JS) {
                 seenJS = true;
             }
         }
@@ -466,7 +468,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): NodeCon
     } else {
         visitor(node.body);
     }
-    return JS;
+    return VISITED_JS;
 }
 
 function spansLines(a: number, b: number): boolean {
@@ -476,11 +478,11 @@ function spansLines(a: number, b: number): boolean {
 /**
  * `import ...`
  */
-function visitImportDeclaration(node: ts.ImportDeclaration): NodeContents {
+function visitImportDeclaration(node: ts.ImportDeclaration): VisitResult {
     if (node.importClause) {
         if (node.importClause.isTypeOnly) {
             blankStatement(node);
-            return BLANK;
+            return VISIT_BLANKED;
         }
         const {namedBindings} = node.importClause;
         if (namedBindings && tslib.isNamedImports(namedBindings)) {
@@ -491,16 +493,16 @@ function visitImportDeclaration(node: ts.ImportDeclaration): NodeContents {
             }
         }
     }
-    return JS;
+    return VISITED_JS;
 }
 
 /**
  * `export ...`
  */
-function visitExportDeclaration(node: ts.ExportDeclaration): NodeContents {
+function visitExportDeclaration(node: ts.ExportDeclaration): VisitResult {
     if (node.isTypeOnly) {
         blankStatement(node);
-        return BLANK;
+        return VISIT_BLANKED;
     }
 
     const {exportClause} = node;
@@ -511,29 +513,29 @@ function visitExportDeclaration(node: ts.ExportDeclaration): NodeContents {
             e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
         }
     }
-    return JS;
+    return VISITED_JS;
 }
 
 /**
  * `export default ...`
  */
-function visitExportAssignment(node: ts.ExportAssignment): NodeContents {
+function visitExportAssignment(node: ts.ExportAssignment): VisitResult {
     if (node.isExportEquals) {
         // `export = ...`
         onError && onError(node);
-        return JS;
+        return VISITED_JS;
     }
     visitor(node.expression);
-    return JS;
+    return VISITED_JS;
 }
 
-function visitEnumOrModule(node: ts.EnumDeclaration | ts.ModuleDeclaration): NodeContents {
+function visitEnumOrModule(node: ts.EnumDeclaration | ts.ModuleDeclaration): VisitResult {
     if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
         blankStatement(node);
-        return BLANK;
+        return VISIT_BLANKED;
     } else {
         onError && onError(node);
-        return JS;
+        return VISITED_JS;
     }
 }
 
