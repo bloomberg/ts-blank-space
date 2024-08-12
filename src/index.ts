@@ -3,6 +3,7 @@
 import type * as ts from "typescript";
 import tslib from "typescript";
 import BlankString from "./blank-string.js";
+const SK = tslib.SyntaxKind;
 
 // These values must be 'falsey' to not stop TypeScript's walk
 const VISIT_BLANKED = "";
@@ -16,8 +17,6 @@ const languageOptions: ts.CreateSourceFileOptions = {
     impliedNodeFormat: tslib.ModuleKind.ESNext,
 };
 
-// State is hoisted to module scope so we can avoid making so many closures
-
 const scanner = tslib.createScanner(tslib.ScriptTarget.ESNext, /*skipTrivia: */true, tslib.LanguageVariant.Standard);
 if (tslib.JSDocParsingMode) {
     // TypeScript >= 5.3
@@ -25,6 +24,7 @@ if (tslib.JSDocParsingMode) {
     scanner.setJSDocParsingMode(tslib.JSDocParsingMode.ParseNone);
 }
 
+// State is hoisted to module scope so we can avoid creating per-run closures
 let src = "";
 let str = new BlankString("");
 let ast: ts.SourceFile;
@@ -73,56 +73,6 @@ export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): st
     }
 }
 
-const {
-    EndOfFileToken,
-    Identifier,
-    VariableDeclaration,
-    VariableStatement,
-    InterfaceDeclaration,
-    TypeAliasDeclaration,
-    ClassDeclaration,
-    ClassExpression,
-    ExpressionWithTypeArguments,
-    PropertyDeclaration,
-    IndexSignature,
-    NonNullExpression,
-    AsExpression,
-    SatisfiesExpression,
-    Constructor,
-    MethodDeclaration,
-    FunctionDeclaration,
-    ArrowFunction,
-    FunctionExpression,
-    GetAccessor,
-    SetAccessor,
-    ImportDeclaration,
-    ImportEqualsDeclaration,
-    ExportDeclaration,
-    ExportAssignment,
-    EnumDeclaration,
-    ModuleDeclaration,
-    PrivateKeyword,
-    ProtectedKeyword,
-    PublicKeyword,
-    AbstractKeyword,
-    OverrideKeyword,
-    DeclareKeyword,
-    ReadonlyKeyword,
-    CommaToken,
-    GreaterThanToken,
-    LessThanToken,
-    CloseParenToken,
-    ImplementsKeyword,
-    ExtendsKeyword,
-    NewExpression,
-    CallExpression,
-    TypeAssertionExpression,
-    ExpressionStatement,
-    TaggedTemplateExpression,
-    Block,
-    Decorator,
-} = tslib.SyntaxKind;
-
 function visitTop(node: ts.Node): void {
     if (innerVisitTop(node) === VISITED_JS) {
         seenJS = true;
@@ -132,10 +82,10 @@ function visitTop(node: ts.Node): void {
 function innerVisitTop(node: ts.Node): VisitResult {
     const n = node as any;
     switch (node.kind) {
-        case ImportDeclaration: return visitImportDeclaration(n);
-        case ExportDeclaration: return visitExportDeclaration(n);
-        case ExportAssignment: return visitExportAssignment(n);
-        case ImportEqualsDeclaration: onError && onError(n); return VISITED_JS;
+        case SK.ImportDeclaration: return visitImportDeclaration(n);
+        case SK.ExportDeclaration: return visitExportDeclaration(n);
+        case SK.ExportAssignment: return visitExportAssignment(n);
+        case SK.ImportEqualsDeclaration: onError && onError(n); return VISITED_JS;
     }
     return visitor(node);
 }
@@ -151,34 +101,34 @@ function visitor(node: ts.Node): VisitResult {
 function innerVisitor(node: ts.Node): VisitResult {
     const n = node as any;
     switch (node.kind) {
-        case Identifier: return VISITED_JS;
-        case ExpressionStatement: return visitExpressionStatement(n);
-        case VariableDeclaration: return visitVariableDeclaration(n);
-        case VariableStatement: return visitVariableStatement(n);
-        case CallExpression:
-        case NewExpression: return visitCallOrNewExpression(n);
-        case TypeAliasDeclaration:
-        case InterfaceDeclaration: blankStatement(n); return VISIT_BLANKED;
-        case ClassDeclaration:
-        case ClassExpression: return visitClassLike(n);
-        case ExpressionWithTypeArguments: return visitExpressionWithTypeArguments(n);
-        case PropertyDeclaration: return visitPropertyDeclaration(n);
-        case NonNullExpression: return visitNonNullExpression(n);
-        case SatisfiesExpression:
-        case AsExpression: return visitTypeAssertion(n);
-        case ArrowFunction:
-        case FunctionDeclaration:
-        case MethodDeclaration:
-        case Constructor:
-        case FunctionExpression:
-        case GetAccessor:
-        case SetAccessor:
+        case SK.Identifier: return VISITED_JS;
+        case SK.ExpressionStatement: return visitExpressionStatement(n);
+        case SK.VariableDeclaration: return visitVariableDeclaration(n);
+        case SK.VariableStatement: return visitVariableStatement(n);
+        case SK.CallExpression:
+        case SK.NewExpression: return visitCallOrNewExpression(n);
+        case SK.TypeAliasDeclaration:
+        case SK.InterfaceDeclaration: blankStatement(n); return VISIT_BLANKED;
+        case SK.ClassDeclaration:
+        case SK.ClassExpression: return visitClassLike(n);
+        case SK.ExpressionWithTypeArguments: return visitExpressionWithTypeArguments(n);
+        case SK.PropertyDeclaration: return visitPropertyDeclaration(n);
+        case SK.NonNullExpression: return visitNonNullExpression(n);
+        case SK.SatisfiesExpression:
+        case SK.AsExpression: return visitTypeAssertion(n);
+        case SK.ArrowFunction:
+        case SK.FunctionDeclaration:
+        case SK.MethodDeclaration:
+        case SK.Constructor:
+        case SK.FunctionExpression:
+        case SK.GetAccessor:
+        case SK.SetAccessor:
             return visitFunctionLikeDeclaration(n);
-        case EnumDeclaration:
-        case ModuleDeclaration: return visitEnumOrModule(n);
-        case IndexSignature: blankExact(n); return VISIT_BLANKED;
-        case TaggedTemplateExpression: return visitTaggedTemplate(n);
-        case TypeAssertionExpression: return visitLegacyTypeAssertion(n);
+        case SK.EnumDeclaration:
+        case SK.ModuleDeclaration: return visitEnumOrModule(n);
+        case SK.IndexSignature: blankExact(n); return VISIT_BLANKED;
+        case SK.TaggedTemplateExpression: return visitTaggedTemplate(n);
+        case SK.TypeAssertionExpression: return visitLegacyTypeAssertion(n);
     }
 
     return node.forEachChild(visitor) || VISITED_JS;
@@ -272,11 +222,11 @@ function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
         for (let i = 0; i < heritageClauses.length; i++) {
             const hc = heritageClauses[i];
             // implements T
-            if (hc.token === ImplementsKeyword) {
+            if (hc.token === SK.ImplementsKeyword) {
                 blankExact(hc);
             }
             // ... extends C<T> ...
-            else if (hc.token === ExtendsKeyword) {
+            else if (hc.token === SK.ExtendsKeyword) {
                 hc.forEachChild(visitor);
             }
         }
@@ -300,16 +250,16 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
     for (let i = 0; i < modifiers.length; i++) {
         const modifier = modifiers[i];
         switch (modifier.kind) {
-            case PrivateKeyword:
-            case ProtectedKeyword:
-            case PublicKeyword:
-            case AbstractKeyword:
-            case OverrideKeyword:
-            case DeclareKeyword:
-            case ReadonlyKeyword:
+            case SK.PrivateKeyword:
+            case SK.ProtectedKeyword:
+            case SK.PublicKeyword:
+            case SK.AbstractKeyword:
+            case SK.OverrideKeyword:
+            case SK.DeclareKeyword:
+            case SK.ReadonlyKeyword:
                 blankExact(modifier);
                 continue;
-            case Decorator:
+            case SK.Decorator:
                 visitor(modifier);
                 continue;
         }
@@ -320,14 +270,14 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
         if (trueAsFalse) continue;
 
         switch (modifier.kind) {
-            case tslib.SyntaxKind.ConstKeyword:
-            case tslib.SyntaxKind.DefaultKeyword:
-            case tslib.SyntaxKind.ExportKeyword:
-            case tslib.SyntaxKind.InKeyword:
-            case tslib.SyntaxKind.StaticKeyword:
-            case tslib.SyntaxKind.AccessorKeyword:
-            case tslib.SyntaxKind.AsyncKeyword:
-            case tslib.SyntaxKind.OutKeyword:
+            case SK.ConstKeyword:
+            case SK.DefaultKeyword:
+            case SK.ExportKeyword:
+            case SK.InKeyword:
+            case SK.StaticKeyword:
+            case SK.AccessorKeyword:
+            case SK.AsyncKeyword:
+            case SK.OutKeyword:
                 continue;
             default:
                 never(modifier);
@@ -428,10 +378,10 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): VisitRe
             for (let i = 0; i < p.modifiers.length; i++) {
                 const mod = p.modifiers[i];
                 switch (mod.kind) {
-                    case PublicKeyword:
-                    case ProtectedKeyword:
-                    case PrivateKeyword:
-                    case ReadonlyKeyword:
+                    case SK.PublicKeyword:
+                    case SK.ProtectedKeyword:
+                    case SK.PrivateKeyword:
+                    case SK.ReadonlyKeyword:
                         onError && onError(mod);
                 }
             }
@@ -443,7 +393,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): VisitRe
     }
 
     const returnType = node.type;
-    const isArrow = node.kind === ArrowFunction;
+    const isArrow = node.kind === SK.ArrowFunction;
     if (returnType) {
         if (!isArrow || !spansLines(node.parameters.end, node.equalsGreaterThanToken.pos)) {
             blankTypeNode(returnType);
@@ -455,7 +405,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): VisitRe
     }
 
     const body = node.body;
-    if (body.kind === Block) {
+    if (body.kind === SK.Block) {
         const statements = (body as ts.Block).statements;
         const cache = seenJS;
         seenJS = false;
@@ -545,7 +495,7 @@ function visitEnumOrModule(node: ts.EnumDeclaration | ts.ModuleDeclaration): Vis
 function modifiersContainsDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolean {
     for (let i = 0; i < modifiers.length; i++) {
         const modifier = modifiers[i];
-        if (modifier.kind === DeclareKeyword) {
+        if (modifier.kind === SK.DeclareKeyword) {
             return true;
         }
     }
@@ -555,7 +505,7 @@ function modifiersContainsDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolea
 function modifiersContainsAbstractOrDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolean {
     for (let i = 0; i < modifiers.length; i++) {
         const modifierKind = modifiers[i].kind;
-        if (modifierKind === AbstractKeyword || modifierKind === DeclareKeyword) {
+        if (modifierKind === SK.AbstractKeyword || modifierKind === SK.DeclareKeyword) {
             return true;
         }
     }
@@ -563,43 +513,36 @@ function modifiersContainsAbstractOrDeclare(modifiers: ArrayLike<ts.ModifierLike
 }
 
 function scanRange<T>(start: number, end: number, callback: () => T): T {
-    return scanner.scanRange(
-        start,
-        end - start,
-        callback
-    );
+    return scanner.scanRange(start, /* length: */end - start, callback);
 }
 
-function posOfToken(token: ts.SyntaxKind, end: boolean): number {
+function endPosOfToken(token: ts.SyntaxKind): number {
     let first = true;
     let start = 0;
     while (true) {
         const next = scanner.scan();
         if (first) {
             start = scanner.getTokenStart();
+            first = false;
         }
-        first = false;
         if (next === token) break;
-        if (next === EndOfFileToken) {
+        if (next === SK.EndOfFileToken) {
             // We should always find the token we are looking for
             // if we don't, return the start of where we started searching from
             return start;
         }
     }
-    return end ? scanner.getTokenEnd() : scanner.getTokenStart();
+    return scanner.getTokenEnd();
 }
 
-/** < */
-function getLessThanToken() {
-    return posOfToken(LessThanToken, /* end: */false);
-}
 /** > */
 function getGreaterThanToken() {
-    return posOfToken(GreaterThanToken, /* end: */true);
+    return endPosOfToken(SK.GreaterThanToken);
 }
+
 /** ) */
 function getClosingParen() {
-    return posOfToken(CloseParenToken, /* end: */true);
+    return endPosOfToken(SK.CloseParenToken);
 }
 
 function blankTypeNode(n: ts.TypeNode): void {
@@ -621,7 +564,7 @@ function blankStatement(n: ts.Node): void {
 
 function blankExactAndOptionalTrailingComma(n: ts.Node): void {
     scanner.resetTokenState(n.end);
-    const trailingComma = scanner.scan() === CommaToken;
+    const trailingComma = scanner.scan() === SK.CommaToken;
     str.blank(n.getStart(ast), trailingComma ? scanner.getTokenEnd() : n.end);
 }
 
@@ -629,11 +572,7 @@ function blankExactAndOptionalTrailingComma(n: ts.Node): void {
  * `<T1, T2>`
  */
 function blankGenerics(node: ts.Node, arr: ts.NodeArray<ts.Node>): void {
-    const start = scanRange(
-        arr.pos - 1,
-        arr[0].getFullStart(),
-        getLessThanToken
-    );
+    const start = arr.pos - 1;
     const end = scanRange(
         arr.end,
         node.end,
@@ -643,15 +582,8 @@ function blankGenerics(node: ts.Node, arr: ts.NodeArray<ts.Node>): void {
 }
 
 function getClosingParenthesisPos(node: ts.NodeArray<ts.ParameterDeclaration>): number {
-    if (node.length === 0) {
-        return scanRange(
-            node.pos,
-            ast.end,
-            getClosingParen,
-        );
-    }
     return scanRange(
-        node[node.length -1].end,
+        node.length === 0 ? node.pos : node[node.length - 1].end,
         ast.end,
         getClosingParen,
     );
