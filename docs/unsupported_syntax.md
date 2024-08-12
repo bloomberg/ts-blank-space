@@ -21,7 +21,7 @@ enum Direction {
 }
 ```
 
-Alternative approach:
+Alternative approach to defining an enum like value and type, which is `ts-blank-space` compatible:
 
 ```typescript
 const Direction = {
@@ -143,7 +143,7 @@ function foo(arg1 = () => 1, arg2 = 2) {
 }
 ```
 
-An alternative way for `ts-blank-space` to fix up the output by adding JavaScript:
+An alternative way for `ts-blank-space` to fix up the output by adding JavaScript could be:
 
 ```javascript
 const fn = () =>     0||{};
@@ -161,7 +161,7 @@ Because the following output is a syntax error:
 const fn = () =>     0||{ p: a }.p ?? b;
 ```
 
-### Summary
+### In Summary
 
 Due to the following:
 

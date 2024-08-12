@@ -3,16 +3,13 @@
 TypeScript goes in:
 
 ```typescript
-class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
-//          ^^^^^                      ^^^     ^^^^^^^^^^^^^^
-    readonly field/**/: string/**/ = "";
-//  ^^^^^^^^          ^^^^^^^^
-    static accessor f1;
-    private f2/**/!/**/: string/*︎*/;
-//  ^^^^^^^       ^    ^^^^^^^^
+class C<T> extends Array<T> implements I {
+//     ^^^              ^^^ ^^^^^^^^^^^^
+    private field!: string;
+//  ^^^^^^^      ^^^^^^^^^
 
-    method/**/<T>/*︎*/(/*︎*/this: T,/**/ a? /*︎*/: string/**/)/*︎*/: void/*︎*/ {
-//            ^^^         ^^^^^^^^      ^     ^^^^^^^^         ^^^^^^
+    method<T>(this: T, a?: string): void {
+//        ^^^ ^^^^^^^^  ^  ^^^^^^   ^^^^
     }
 }
 ```
@@ -20,19 +17,31 @@ class C /**/< T >/*︎*/ extends Array/**/<T> /*︎*/implements I,J/*︎*/ {
 JavaScript + space comes out:
 
 ```javascript
-class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
-//          ^^^^^                      ^^^     ^^^^^^^^^^^^^^
-             field/**/        /**/ = "";
-//  ^^^^^^^^          ^^^^^^^^
-    static accessor f1;
-            f2/**/ /**/        /*︎*/;
-//  ^^^^^^^       ^    ^^^^^^^^
+class C    extends Array                 {
+//     ^^^              ^^^ ^^^^^^^^^^^^
+            field         ;
+//  ^^^^^^^      ^^^^^^^^^
 
-    method/**/   /*︎*/(/*︎*/        /**/ a  /*︎*/        /**/)/*︎*/      /*︎*/ {
-//            ^^^         ^^^^^^^^      ^     ^^^^^^^^         ^^^^^^
+    method   (         a         )       {
+//        ^^^ ^^^^^^^^  ^  ^^^^^^   ^^^^
     }
 }
 ```
+
+## Menu
+
+- [API](#api)
+- [Source Maps](#where-are-my-sourcemaps)
+- [Rationale](#rationale)
+- [Implementation details](#does-it-really-just-blank-out-all-the-type-annotations)
+- [Unsupported syntax](#unsupported)
+- [tsconfig.json](#recommend-tsconfigjson-compiler-settings)
+- [TSX/JSX](#tsxjsx)
+- [ESM output](#ensuring-esm-output)
+- [Contributions](#contributions)
+- [License](#license)
+- [Code of Conduct](#code-of-conduct)
+- [Security Vulnerability Reporting](#security-vulnerability-reporting)
 
 ## API
 
@@ -56,7 +65,7 @@ console.log(tsBlankSpace(`let x: string;`));
 
 ```typescript
 export function blankSourceFile(
-    ts: TS.SourceFile,
+    ts: typescript.SourceFile,
     onError?: (node) => void
 ): string
 ```
@@ -74,7 +83,7 @@ console.log(blankSourceFile(ast));
 Because all the JavaScript in the output is located at the same line, column, and byte-offset as the original
 there is no mapping information that is lost during the transform.
 
-## Why?
+## Rationale
 
 The benefits of this library are:
 
@@ -83,7 +92,7 @@ The benefits of this library are:
   - This is particularly true if other parts of your program are already generating the TypeScript SourceFile object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
 - It is small (less than 800 LOC)
   - By doing so little the code should be relatively easy to maintain
-  - The hard part, of parsing the source, is delegated to TypeScript.
+  - The hard part, of parsing the source, is delegated to the official TypeScript parser.
 - No need for additional SourceMap processing. See ["where are my SourceMaps?"](#where-are-my-sourcemaps)
 
 ## Does it really just blank out all the type annotations?
@@ -161,8 +170,33 @@ Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
 By default `ts-blank-space` will parse the file assuming `.ts`. If the original file contains JSX syntax
 then the [parsing should be done manually](#bring-your-own-ast). There is a TSX example in [`valid.test.js`](./tests/valid.test.js).
 
-### Ensuring ESM output
+## Ensuring ESM output
 
 TypeScript may add an `export {};` if all `import`s and `export`s were removed (because they were `import/export type`).
 
 Because `ts-blank-space` only removes code this is not performed. To force the output to always have an ESM syntactic marker you can manually append `"export {};"`;
+
+## Contributions
+
+We :heart: contributions.
+
+Have you had a good experience with this project? Why not share some love and contribute code, or just let us know about any issues you had with it?
+
+We welcome issue reports [here](../../issues); be sure to choose the proper issue template for your issue, so that we can be sure you're providing the necessary information.
+
+Before sending a [Pull Request](../../pulls), please make sure you read our
+[Contribution Guidelines](https://github.com/bloomberg/.github/blob/master/CONTRIBUTING.md).
+
+## License
+
+Please read the [LICENSE](./LICENSE) file.
+
+## Code of Conduct
+
+This project has adopted a [Code of Conduct](https://github.com/bloomberg/.github/blob/master/CODE_OF_CONDUCT.md).
+If you have any concerns about the Code, or behavior which you have experienced in the project, please
+contact us at opensource@bloomberg.net.
+
+## Security Vulnerability Reporting
+
+Please refer to the project [Security Policy](https://github.com/bloomberg/.github/blob/master/SECURITY.MD).
