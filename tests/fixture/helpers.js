@@ -24,7 +24,7 @@ export function outputForInput(inputPath) {
  * @param {string} expectedOutputPath
  */
 export function testFixture(fixturePath, expectedOutputPath) {
-    const updateMsg = "(`npm run update-fixture` to update)";
+    const updateMsg = "(`npm run fixtures` to update)";
     const input = fs.readFileSync(fixturePath, "utf-8");
     const expectedOutput = fs.readFileSync(expectedOutputPath, "utf-8");
 
