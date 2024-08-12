@@ -472,7 +472,10 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): VisitRe
 }
 
 function spansLines(a: number, b: number): boolean {
-    return ast.getLineEndOfPosition(a) !== ast.getLineEndOfPosition(b);
+    for (let i = a; i < b; i++) {
+        if (src.charCodeAt(i) === 10 /* \n */) return true;
+    }
+    return false;
 }
 
 /**
