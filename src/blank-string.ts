@@ -7,7 +7,7 @@ function getSpace(input: string, start: number, end: number): string {
     let out = "";
 
     for (let i = start; i < end; i++) {
-        let charCode = /** @type {number} */(input.charCodeAt(i));
+        const charCode = input.charCodeAt(i);
         switch (charCode) {
             case 10 /* \n */:
                 out += "\n";
