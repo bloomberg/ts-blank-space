@@ -163,10 +163,12 @@ runtime semantics. See [unsupported_syntax.md](./docs/unsupported_syntax.md).
 When unsupported syntax is encountered `ts-blank-space` will call the optional `onError` callback and continue.
 Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
 
-## Recommend `tsconfig.json` compiler settings
+## Recommended `tsconfig.json` compiler settings
 
 ```jsonc
 {
+    // Because JS syntax is emitted as-is
+    "target": "esnext",
     // Because class fields are preserved as written which corresponds
     // to 'define' semantics in the ECMAScript specification
     "useDefineAsClassFields": true,
