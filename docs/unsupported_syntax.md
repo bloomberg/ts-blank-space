@@ -55,7 +55,7 @@ class Person {
 
 ## Compile time only syntax
 
-TypeScript type assertions have no runtime semantics, however `ts-blank-space` does not erase prefix style type assertions.
+TypeScript type assertions have no runtime semantics, however `ts-blank-space` does not erase the legacy prefix-style type assertions.
 
 ```typescript
 const x = <const>{ a: 1 };
