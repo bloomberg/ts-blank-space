@@ -6,7 +6,8 @@
   "main": "./out/index.js",
   "exports": {
     "./package.json": "./package.json",
-    ".": "./out/index.js"
+    ".": "./out/index.js",
+    "./register": "./loader/register.js"
   },
   "engines": {
       "node": ">=10.13"

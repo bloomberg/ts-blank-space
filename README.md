@@ -31,6 +31,7 @@ class C    extends Array                 {
 ## Menu
 
 - [API](#api)
+- [Node.js Loader](#nodejs-loader)
 - [Source Maps](#where-are-my-sourcemaps)
 - [Rationale](#rationale)
 - [Implementation details](#does-it-really-just-blank-out-all-the-type-annotations)
@@ -76,6 +77,18 @@ import { blankSourceFile } from "ts-blank-space";
 
 const ast = ts.createSourceFile(...);
 console.log(blankSourceFile(ast));
+```
+
+## Node.js loader
+
+`ts-blank-space` exposes the required [Node.js module loader hooks](https://nodejs.org/api/module.html#customization-hooks) to use `ts-blank-space` to pre-process `*.ts` that are imported before they are evaluated.
+
+```sh
+# Install (one time):
+$ npm install --save-dev ts-blank-space
+
+# Example usage:
+$ node --import ts-blank-space/register ./path/to/your/file.ts
 ```
 
 ## Where are my SourceMaps?
