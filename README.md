@@ -28,7 +28,7 @@ class C    extends Array                 {
 }
 ```
 
-## Menu
+## Contents
 
 - [API](#api)
 - [Node.js Loader](#nodejs-loader)
