@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ts-blank-space playground</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+        body { border: 0; margin: 0; }
+        div { border: 0; margin: 0; }
+
+        .col { display: flex; flex-direction: column; width: 50vw; }
+        .header {
+            height: 60px;
+            font-family:
+                "SF Mono",
+                Monaco,
+                Menlo,
+                Consolas,
+                "Ubuntu Mono",
+                "Liberation Mono",
+                "DejaVu Sans Mono",
+                "Courier New",
+                monospace;
+        }
+        .editor { height: 600px; }
+    </style>
+</head>
+<body>
+    <div style="display: flex;">
+        <div class="col">
+            <div class="header" style="background-color: #3178c6;">
+                <span style="font-size: 2em;">ts-
+            </div>
+            <div id="container-ts" class="editor"></div>
+        </div>
+        <div class="col">
+            <div class="header" style="background-color: #f90;">
+                <span style="font-size: 2em;">blank-space</span>
+                <label for="checked">diff</label>
+                <input type="checkbox" id="diff-check" />
+            </div>
+            <div id="container-js" class="editor"></div>
+        </div>
+    </div>
+    <div id="container-diff" class="editor"></div>
+
+    <script src="./index.js"></script>
+</body>
+</html>
