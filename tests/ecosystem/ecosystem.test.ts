@@ -15,12 +15,17 @@ const typescriptCompilerCasesDir = join(__dirname, "typescript", "tests", "cases
 let i = 0;
 
 const skipList = new Set([
+    // ts-blank-space can not, currently, handle the same level of AST nesting as TypeScript:
     "binderBinaryExpressionStress.ts",
     "binderBinaryExpressionStressJs.ts",
+    // Input not valid TypeScript:
     "ClassDeclaration11.ts",
     "ClassDeclaration8.ts",
+    // https://github.com/microsoft/TypeScript/issues/59484:
+    "defaultValueInConstructorOverload1.ts",
+    "constructorOverloads9.ts",
+    // esbuild can't parse: "ERROR: Cannot continue to label "target1""
     "continueTarget3.ts",
-    "defaultValueInConstructorOverload1.ts" // https://github.com/microsoft/TypeScript/issues/59484
 ]);
 
 /**
