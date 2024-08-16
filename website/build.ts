@@ -1,13 +1,13 @@
-// @ts-check
-const esbuild = require('esbuild');
-const path = require('node:path');
-const fs = require('node:fs');
+import esbuild from "esbuild";
+import * as path from "node:path";
+import * as fs from "node:fs";
 
 const workerEntryPoints = [
 	'vs/language/typescript/ts.worker.js',
 	'vs/editor/editor.worker.js'
 ];
 
+const __dirname = import.meta.dirname;
 const dist = path.join(__dirname, "dist");
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist);
@@ -27,7 +27,7 @@ build({
 });
 
 build({
-	entryPoints: ['index.js'],
+	entryPoints: ['index.ts'],
 	bundle: true,
 	format: 'iife',
 	outdir: path.join(__dirname, 'dist'),

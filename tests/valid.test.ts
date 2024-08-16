@@ -1,11 +1,10 @@
-// @ts-check
 import {it, mock} from 'node:test';
 import assert from 'node:assert';
 import * as fs from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
 import { casesDir, outputForInput, testFixture } from "./fixture/helpers.js";
-import tsBlankSpace, { blankSourceFile } from '../out/index.js';
+import tsBlankSpace, { blankSourceFile } from '../src/index.ts';
 
 for (const filename of fs.readdirSync(casesDir)) {
     if (!filename.endsWith(".ts")) {

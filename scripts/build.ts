@@ -1,4 +1,3 @@
-// @ts-check
 import lastKnownGoodTsBlankSpace from "./lkg/index.js";
 import * as fs from "node:fs";
 import { join } from "node:path";

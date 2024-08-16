@@ -6,9 +6,13 @@
         "@babel/parser": "^7.24.8",
         "esbuild": "^0.23.0",
         "prettier": "^3.3.3",
-        "terser": "^5.31.3"
+        "terser": "^5.31.3",
+        "ts-blank-space": "../.."
+    },
+    "imports": {
+        "#r": "ts-blank-space/register"
     },
     "scripts": {
-        "test": "node --test ecosystem.test.js"
+        "test": "node --test --import=#r ecosystem.test.ts"
     }
 }

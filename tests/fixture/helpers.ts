@@ -1,10 +1,9 @@
-// @ts-check
 import * as fs from "node:fs";
 import assert from "node:assert";
 import { mock } from "node:test";
 import ts from "typescript";
 import { join, relative, resolve } from "node:path";
-import tsBlankSpace from "../../out/index.js";
+import tsBlankSpace from "../../src/index.ts";
 
 const __dirname = import.meta.dirname;
 

@@ -1,10 +1,9 @@
-// @ts-check
 import { test } from 'node:test';
 import assert from 'node:assert';
 import * as fs from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
-import tsBlankSpace from '../../out/index.js';
+import tsBlankSpace from '../../src/index.ts';
 import * as prettier from "prettier";
 import * as terser from "terser";
 import * as esbuild from "esbuild";

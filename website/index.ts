@@ -1,4 +1,3 @@
-// @ts-check
 import tsBlankSpace from "ts-blank-space";
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.main.js';
 
@@ -68,11 +67,11 @@ tsModel.onDidChangeContent(() => {
     jsModel.setValue(tsBlankSpace(text));
 });
 
-const containers = /** @type {Record<string, HTMLElement>} */({
-    ts: document.getElementById('container-ts'),
-    js: document.getElementById('container-js'),
-    diff: document.getElementById('container-diff')
-});
+const containers = {
+    ts: document.getElementById('container-ts')!,
+    js: document.getElementById('container-js')!,
+    diff: document.getElementById('container-diff')!,
+};
 
 const tsEditor = monaco.editor.create(containers.ts, {
     model: tsModel,
@@ -143,7 +142,7 @@ function initDiffEditor() {
     return diffEditor;
 }
 
-const diffCheck = /** @type {HTMLInputElement} */(document.getElementById("diff-check"));
+const diffCheck = document.getElementById("diff-check") as HTMLInputElement;
 diffCheck.onchange = function() {
     if (diffCheck.checked) {
         containers.ts.style.display = "none";

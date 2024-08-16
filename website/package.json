@@ -1,8 +1,12 @@
 {
   "name": "ts-blank-space-website",
   "private": true,
+  "type": "module",
+  "imports": {
+    "#r": "ts-blank-space/register"
+  },
   "scripts": {
-    "build": "node build.js",
+    "build": "node --import=#r build.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d ./dist"
   },

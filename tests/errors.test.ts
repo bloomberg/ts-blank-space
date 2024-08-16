@@ -1,7 +1,6 @@
-// @ts-check
 import {it, mock} from 'node:test';
 import assert from 'node:assert';
-import tsBlankSpace from '../out/index.js';
+import tsBlankSpace from '../src/index.ts';
 
 it("errors on enums", () => {
     const onError = mock.fn();
