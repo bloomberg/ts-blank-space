@@ -1,6 +1,6 @@
 // Copyright 2024 Bloomberg Finance L.P.
 // Distributed under the terms of the Apache 2.0 license.
-import tsBlankSpace from "../out/index.js";
+import tsBlankSpace from "#out/index.js";
 
 export async function resolve(specifier, context, nextResolve) {
     try {

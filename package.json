@@ -17,14 +17,18 @@
         "typescript": "5.1.6 - 5.5.x"
     },
     "imports": {
-        "#r": "./loader/register.js"
+        "#r": "./loader/register.js",
+        "#out/*": {
+            "bootstrap": "./scripts/lkg/*",
+            "default": "./out/*"
+        }
     },
     "devDependencies": {
         "@types/node": "^20.9.4",
         "prettier": "3.3.3"
     },
     "scripts": {
-        "build": "node --import=#r ./scripts/build.ts",
+        "build": "node --conditions=bootstrap --import=#r ./scripts/build.ts",
         "gen-types": "tsc -p ./src/tsconfig.json",
         "fixtures": "node --import=#r ./tests/fixture/_run.ts",
         "fixtures:watch": "node --watch-path ./tests/fixture/cases --import=#r ./tests/fixture/_run.ts",
