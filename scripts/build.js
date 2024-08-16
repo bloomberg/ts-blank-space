@@ -5,6 +5,7 @@ import { join } from "node:path";
 
 const src = join(import.meta.dirname, "..", "src");
 const out = join(import.meta.dirname, "..", "out");
+fs.mkdirSync(out, { recursive: true });
 
 /**
  * @param {string} filename
