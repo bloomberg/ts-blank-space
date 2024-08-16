@@ -10,14 +10,14 @@ const VISIT_BLANKED = "";
 const VISITED_JS = null;
 
 type VisitResult = typeof VISIT_BLANKED | typeof VISITED_JS;
-type ErrorCb = ((n: ts.Node) => void);
+type ErrorCb = (n: ts.Node) => void;
 
 const languageOptions: ts.CreateSourceFileOptions = {
     languageVersion: tslib.ScriptTarget.ESNext,
     impliedNodeFormat: tslib.ModuleKind.ESNext,
 };
 
-const scanner = tslib.createScanner(tslib.ScriptTarget.ESNext, /*skipTrivia: */true, tslib.LanguageVariant.Standard);
+const scanner = tslib.createScanner(tslib.ScriptTarget.ESNext, /*skipTrivia: */ true, tslib.LanguageVariant.Standard);
 if (tslib.JSDocParsingMode) {
     // TypeScript >= 5.3
     languageOptions.jsDocParsingMode = tslib.JSDocParsingMode.ParseNone;
@@ -40,7 +40,7 @@ let missingSemiPos = 0;
 export default function tsBlankSpace(input: string, onErrorArg?: ErrorCb): string {
     return blankSourceFile(
         tslib.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, tslib.ScriptKind.TS),
-        onErrorArg
+        onErrorArg,
     );
 }
 
@@ -82,10 +82,15 @@ function visitTop(node: ts.Node): void {
 function innerVisitTop(node: ts.Node): VisitResult {
     const n = node as any;
     switch (node.kind) {
-        case SK.ImportDeclaration: return visitImportDeclaration(n);
-        case SK.ExportDeclaration: return visitExportDeclaration(n);
-        case SK.ExportAssignment: return visitExportAssignment(n);
-        case SK.ImportEqualsDeclaration: onError && onError(n); return VISITED_JS;
+        case SK.ImportDeclaration:
+            return visitImportDeclaration(n);
+        case SK.ExportDeclaration:
+            return visitExportDeclaration(n);
+        case SK.ExportAssignment:
+            return visitExportAssignment(n);
+        case SK.ImportEqualsDeclaration:
+            onError && onError(n);
+            return VISITED_JS;
     }
     return visitor(node);
 }
@@ -100,6 +105,7 @@ function visitor(node: ts.Node): VisitResult {
 
 function innerVisitor(node: ts.Node): VisitResult {
     const n = node as any;
+    // prettier-ignore
     switch (node.kind) {
         case SK.Identifier: return VISITED_JS;
         case SK.ExpressionStatement: return visitExpressionStatement(n);
@@ -122,8 +128,7 @@ function innerVisitor(node: ts.Node): VisitResult {
         case SK.Constructor:
         case SK.FunctionExpression:
         case SK.GetAccessor:
-        case SK.SetAccessor:
-            return visitFunctionLikeDeclaration(n);
+        case SK.SetAccessor: return visitFunctionLikeDeclaration(n);
         case SK.EnumDeclaration:
         case SK.ModuleDeclaration: return visitEnumOrModule(n);
         case SK.IndexSignature: blankExact(n); return VISIT_BLANKED;
@@ -217,7 +222,7 @@ function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
         blankGenerics(node, node.typeParameters);
     }
 
-    const {heritageClauses} = node;
+    const { heritageClauses } = node;
     if (heritageClauses) {
         for (let i = 0; i < heritageClauses.length; i++) {
             const hc = heritageClauses[i];
@@ -266,7 +271,7 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
 
         // at runtime skip the remaining checks
         // these are here only as a compile-time exhaustive check
-        const trueAsFalse = /** @type {false} */(true);
+        const trueAsFalse = /** @type {false} */ true;
         if (trueAsFalse) continue;
 
         switch (modifier.kind) {
@@ -437,7 +442,7 @@ function visitImportDeclaration(node: ts.ImportDeclaration): VisitResult {
             blankStatement(node);
             return VISIT_BLANKED;
         }
-        const {namedBindings} = node.importClause;
+        const { namedBindings } = node.importClause;
         if (namedBindings && tslib.isNamedImports(namedBindings)) {
             const elements = namedBindings.elements;
             for (let i = 0; i < elements.length; i++) {
@@ -458,7 +463,7 @@ function visitExportDeclaration(node: ts.ExportDeclaration): VisitResult {
         return VISIT_BLANKED;
     }
 
-    const {exportClause} = node;
+    const { exportClause } = node;
     if (exportClause && tslib.isNamedExports(exportClause)) {
         const elements = exportClause.elements;
         for (let i = 0; i < elements.length; i++) {
@@ -513,7 +518,7 @@ function modifiersContainsAbstractOrDeclare(modifiers: ArrayLike<ts.ModifierLike
 }
 
 function scanRange<T>(start: number, end: number, callback: () => T): T {
-    return scanner.scanRange(start, /* length: */end - start, callback);
+    return scanner.scanRange(start, /* length: */ end - start, callback);
 }
 
 function endPosOfToken(token: ts.SyntaxKind): number {
@@ -573,20 +578,12 @@ function blankExactAndOptionalTrailingComma(n: ts.Node): void {
  */
 function blankGenerics(node: ts.Node, arr: ts.NodeArray<ts.Node>): void {
     const start = arr.pos - 1;
-    const end = scanRange(
-        arr.end,
-        node.end,
-        getGreaterThanToken
-    );
+    const end = scanRange(arr.end, node.end, getGreaterThanToken);
     str.blank(start, end);
 }
 
 function getClosingParenthesisPos(node: ts.NodeArray<ts.ParameterDeclaration>): number {
-    return scanRange(
-        node.length === 0 ? node.pos : node[node.length - 1].end,
-        ast.end,
-        getClosingParen,
-    );
+    return scanRange(node.length === 0 ? node.pos : node[node.length - 1].end, ast.end, getClosingParen);
 }
 
 function never(n: never): never {

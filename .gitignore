@@ -1,2 +1,6 @@
 node_modules
 out
+tests/ecosystem/package-lock.json
+tests/ecosystem/typescript
+website/dist
+website/package-lock.json

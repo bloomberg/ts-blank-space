@@ -11,7 +11,7 @@ const count = Number(process.argv[3]) || 100;
 
 const options = {
     sourceMaps: false,
-    mode: 'strip-only',
+    mode: "strip-only",
 };
 
 console.time("");

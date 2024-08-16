@@ -15,7 +15,7 @@ const languageOptions = {
 
 // State is hoisted to module scope so we can avoid making so many closures
 
-const scanner = ts.createScanner(ts.ScriptTarget.ESNext, /*skipTrivia: */true, ts.LanguageVariant.Standard);
+const scanner = ts.createScanner(ts.ScriptTarget.ESNext, /*skipTrivia: */ true, ts.LanguageVariant.Standard);
 if (ts.JSDocParsingMode) {
     // TypeScript >= 5.3
     languageOptions.jsDocParsingMode = ts.JSDocParsingMode.ParseNone;
@@ -39,7 +39,7 @@ let missingSemiPos = 0;
 export default function tsBlankSpace(input, onErrorArg) {
     return blankSourceFile(
         ts.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, ts.ScriptKind.TS),
-        onErrorArg
+        onErrorArg,
     );
 }
 
@@ -64,8 +64,8 @@ export function blankSourceFile(source, onErrorArg) {
         // Cleanup. Release memory. Reset state.
         scanner.setText("");
         onError = undefined;
-        ast = /** @type {any} */(undefined);
-        str = /** @type {any} */(undefined);
+        ast = /** @type {any} */ (undefined);
+        str = /** @type {any} */ (undefined);
         src = "";
         seenJS = false;
         missingSemiPos = 0;
@@ -122,7 +122,6 @@ const {
     Block,
 } = ts.SyntaxKind;
 
-
 /**
  * @param {ts.Node} node
  * @returns {void}
@@ -138,12 +137,17 @@ function visitTop(node) {
  * @returns {NodeContents}
  */
 function innerVisitTop(node) {
-    const n = /** @type {any} */(node);
+    const n = /** @type {any} */ (node);
     switch (node.kind) {
-        case ImportDeclaration: return visitImportDeclaration(n);
-        case ExportDeclaration: return visitExportDeclaration(n);
-        case ExportAssignment: return visitExportAssignment(n);
-        case ImportEqualsDeclaration: onError && onError(n); return JS;
+        case ImportDeclaration:
+            return visitImportDeclaration(n);
+        case ExportDeclaration:
+            return visitExportDeclaration(n);
+        case ExportAssignment:
+            return visitExportAssignment(n);
+        case ImportEqualsDeclaration:
+            onError && onError(n);
+            return JS;
     }
     return visitor(node);
 }
@@ -165,24 +169,37 @@ function visitor(node) {
  * @returns {NodeContents}
  */
 function innerVisitor(node) {
-    const n = /** @type {any} */(node);
+    const n = /** @type {any} */ (node);
     switch (node.kind) {
-        case Identifier: return JS;
-        case ExpressionStatement: return visitExpressionStatement(n);
-        case VariableDeclaration: return visitVariableDeclaration(n);
-        case VariableStatement: return visitVariableStatement(n);
+        case Identifier:
+            return JS;
+        case ExpressionStatement:
+            return visitExpressionStatement(n);
+        case VariableDeclaration:
+            return visitVariableDeclaration(n);
+        case VariableStatement:
+            return visitVariableStatement(n);
         case CallExpression:
-        case NewExpression: return visitCallOrNewExpression(n);
+        case NewExpression:
+            return visitCallOrNewExpression(n);
         case TypeAliasDeclaration:
-        case InterfaceDeclaration: blankStatement(n); return BLANK;
+        case InterfaceDeclaration:
+            blankStatement(n);
+            return BLANK;
         case ClassDeclaration:
-        case ClassExpression: return visitClassLike(n);
-        case ReturnStatement: return visitReturn(n);
-        case ExpressionWithTypeArguments: return visitExpressionWithTypeArguments(n);
-        case PropertyDeclaration: return visitPropertyDeclaration(n);
-        case NonNullExpression: return visitNonNullExpression(n);
+        case ClassExpression:
+            return visitClassLike(n);
+        case ReturnStatement:
+            return visitReturn(n);
+        case ExpressionWithTypeArguments:
+            return visitExpressionWithTypeArguments(n);
+        case PropertyDeclaration:
+            return visitPropertyDeclaration(n);
+        case NonNullExpression:
+            return visitNonNullExpression(n);
         case SatisfiesExpression:
-        case AsExpression: return visitTypeAssertion(n);
+        case AsExpression:
+            return visitTypeAssertion(n);
         case ArrowFunction:
         case FunctionDeclaration:
         case MethodDeclaration:
@@ -192,10 +209,15 @@ function innerVisitor(node) {
         case SetAccessor:
             return visitFunctionLikeDeclaration(n);
         case EnumDeclaration:
-        case ModuleDeclaration: return visitEnumOrModule(n);
-        case IndexSignature: blankExact(n); return BLANK;
-        case TaggedTemplateExpression: return visitTaggedTemplate(n);
-        case TypeAssertionExpression: return visitLegacyTypeAssertion(n);
+        case ModuleDeclaration:
+            return visitEnumOrModule(n);
+        case IndexSignature:
+            blankExact(n);
+            return BLANK;
+        case TaggedTemplateExpression:
+            return visitTaggedTemplate(n);
+        case TypeAssertionExpression:
+            return visitLegacyTypeAssertion(n);
     }
 
     return node.forEachChild(visitor) || JS;
@@ -311,7 +333,7 @@ function visitClassLike(node) {
         blankGenerics(node, node.typeParameters);
     }
 
-    const {heritageClauses} = node;
+    const { heritageClauses } = node;
     if (heritageClauses) {
         for (let i = 0; i < heritageClauses.length; i++) {
             const hc = heritageClauses[i];
@@ -363,7 +385,7 @@ function visitModifiers(modifiers) {
 
         // at runtime skip the remaining checks
         // these are here only as a compile-time exhaustive check
-        const trueAsFalse = /** @type {false} */(true);
+        const trueAsFalse = /** @type {false} */ (true);
         if (trueAsFalse) continue;
 
         switch (modifier.kind) {
@@ -514,7 +536,7 @@ function visitFunctionLikeDeclaration(node) {
 
     const body = node.body;
     if (body.kind === Block) {
-        const statements = /** @type {ts.Block} */(body).statements;
+        const statements = /** @type {ts.Block} */ (body).statements;
         const cache = seenJS;
         seenJS = false;
         for (let i = 0; i < statements.length; i++) {
@@ -549,7 +571,7 @@ function visitImportDeclaration(node) {
             blankStatement(node);
             return BLANK;
         }
-        const {namedBindings} = node.importClause;
+        const { namedBindings } = node.importClause;
         if (namedBindings && ts.isNamedImports(namedBindings)) {
             const elements = namedBindings.elements;
             for (let i = 0; i < elements.length; i++) {
@@ -572,7 +594,7 @@ function visitExportDeclaration(node) {
         return BLANK;
     }
 
-    const {exportClause} = node;
+    const { exportClause } = node;
     if (exportClause && ts.isNamedExports(exportClause)) {
         const elements = exportClause.elements;
         for (let i = 0; i < elements.length; i++) {
@@ -648,11 +670,7 @@ function modifiersContainsAbstractOrDeclare(modifiers) {
  * @returns {T}
  */
 function scanRange(start, end, callback) {
-    return scanner.scanRange(
-        start,
-        end - start,
-        callback
-    );
+    return scanner.scanRange(start, end - start, callback);
 }
 
 /**
@@ -681,15 +699,15 @@ function posOfToken(token, end) {
 
 /** < */
 function getLessThanToken() {
-    return posOfToken(LessThanToken, /* end: */false);
+    return posOfToken(LessThanToken, /* end: */ false);
 }
 /** > */
 function getGreaterThanToken() {
-    return posOfToken(GreaterThanToken, /* end: */true);
+    return posOfToken(GreaterThanToken, /* end: */ true);
 }
 /** ) */
 function getClosingParen() {
-    return posOfToken(CloseParenToken, /* end: */true);
+    return posOfToken(CloseParenToken, /* end: */ true);
 }
 
 /** @param {ts.TypeNode} n  */
@@ -725,16 +743,8 @@ function blankExactAndOptionalTrailingComma(n) {
  * @param {ts.NodeArray<ts.Node>} arr
  */
 function blankGenerics(node, arr) {
-    const start = scanRange(
-        arr.pos - 1,
-        arr[0].getFullStart(),
-        getLessThanToken
-    );
-    const end = scanRange(
-        arr.end,
-        node.end,
-        getGreaterThanToken
-    );
+    const start = scanRange(arr.pos - 1, arr[0].getFullStart(), getLessThanToken);
+    const end = scanRange(arr.end, node.end, getGreaterThanToken);
     str.blank(start, end);
 }
 
@@ -744,17 +754,9 @@ function blankGenerics(node, arr) {
  */
 function getClosingParenthesisPos(node) {
     if (node.length === 0) {
-        return scanRange(
-            node.pos,
-            ast.end,
-            getClosingParen,
-        );
+        return scanRange(node.pos, ast.end, getClosingParen);
     }
-    return scanRange(
-        node[node.length -1].end,
-        ast.end,
-        getClosingParen,
-    );
+    return scanRange(node[node.length - 1].end, ast.end, getClosingParen);
 }
 
 /**

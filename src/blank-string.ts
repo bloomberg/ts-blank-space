@@ -17,7 +17,7 @@ function getSpace(input: string, start: number, end: number): string {
                 break;
             default:
                 out += " ";
-                if ((charCode & 0xF800) == 0xD800) {
+                if ((charCode & 0xf800) == 0xd800) {
                     // Surrogate pair
                     out += " ";
                     i++;
@@ -64,8 +64,7 @@ export default class BlankString {
         if (flags === FLAG_REPLACE_WITH_CLOSE_PAREN) {
             out += ")";
             previousStart += 1;
-        }
-        else if (flags === FLAG_REPLACE_WITH_SEMI) {
+        } else if (flags === FLAG_REPLACE_WITH_SEMI) {
             out += ";";
             previousStart += 1;
         }
@@ -79,8 +78,8 @@ export default class BlankString {
         const max = Math.max;
         for (let i = 3; i < ranges.length; i += 3) {
             flags = ranges[i];
-            let rangeStart = ranges[i+1];
-            const rangeEnd = ranges[i+2];
+            let rangeStart = ranges[i + 1];
+            const rangeEnd = ranges[i + 2];
 
             rangeStart = max(rangeStart, previousEnd);
             out += input.slice(previousEnd, rangeStart);
@@ -88,8 +87,7 @@ export default class BlankString {
             if (flags === FLAG_REPLACE_WITH_CLOSE_PAREN) {
                 out += ")";
                 rangeStart += 1;
-            }
-            else if (flags === FLAG_REPLACE_WITH_SEMI) {
+            } else if (flags === FLAG_REPLACE_WITH_SEMI) {
                 out += ";";
                 rangeStart += 1;
             }

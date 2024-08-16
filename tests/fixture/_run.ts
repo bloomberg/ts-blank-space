@@ -7,7 +7,7 @@ for (const file of fs.readdirSync(casesDir)) {
     if (!file.endsWith(".ts")) {
         continue;
     }
-    const input = join(casesDir, file)
+    const input = join(casesDir, file);
     const output = outputForInput(input);
     updateFixture(input, output);
 }

@@ -1,23 +1,26 @@
 # TypeScript syntax not supported by `ts-blank-space`
 
-- [Runtime impacting syntax](#runtime-impacting-syntax)
-- [Compile time only syntax](#compile-time-only-syntax)
+-   [Runtime impacting syntax](#runtime-impacting-syntax)
+-   [Compile time only syntax](#compile-time-only-syntax)
 
 ## Runtime impacting syntax
 
 The following TypeScript features can not be erased by `ts-blank-space` because they have runtime semantics
 
-- `enum` (unless `declare enum`) [more details](#enum)
-- `namespace` (unless `declare namespace`)
-- `module` (unless `declare module`)
-- `import lib = ...`, `export = ...` (TypeScript style CommonJS)
-- `constructor(public x) {}` [more details](#constructor-parameter-properties)
+-   `enum` (unless `declare enum`) [more details](#enum)
+-   `namespace` (unless `declare namespace`)
+-   `module` (unless `declare module`)
+-   `import lib = ...`, `export = ...` (TypeScript style CommonJS)
+-   `constructor(public x) {}` [more details](#constructor-parameter-properties)
 
 ### Enum
 
 ```typescript
 enum Direction {
-    North, South, East, West
+    North,
+    South,
+    East,
+    West,
 }
 ```
 
@@ -28,9 +31,9 @@ const Direction = {
     North: 1,
     South: 2,
     East: 3,
-    West: 4
+    West: 4,
 } as const;
-type Direction = typeof Direction[keyof typeof Direction];
+type Direction = (typeof Direction)[keyof typeof Direction];
 //   ^? = 1 | 2 | 3 | 4
 ```
 
@@ -57,6 +60,7 @@ class Person {
 
 TypeScript type assertions have no runtime semantics, however `ts-blank-space` does not erase the legacy prefix-style type assertions.
 
+<!-- prettier-ignore -->
 ```typescript
 const x = <const>{ a: 1 };
 //        ^^^^^^^ not erased by `ts-blank-space`
@@ -64,12 +68,14 @@ const x = <const>{ a: 1 };
 
 In 2015 [TypeScript 1.6](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-1-6.html#new-tsx-file-extension-and-as-operator) added an alternative style, which `ts-blank-space` does support. The above can be re-written as:
 
+<!-- prettier-ignore -->
 ```typescript
 const x = { a: 1 } as const;
 ```
 
 Which `ts-blank-space` will transform to:
 
+<!-- prettier-ignore -->
 ```javascript
 const x = { a: 1 }         ;
 ```
@@ -80,6 +86,7 @@ The reason `ts-blank-space` doesn't support the prefix style is because there ar
 
 ### Type assertion at start of a `return` statement
 
+<!-- prettier-ignore -->
 ```typescript
 function foo() {
     return <const>
@@ -89,6 +96,7 @@ function foo() {
 
 Erasing the type assertion would result in the following **incorrect output**:
 
+<!-- prettier-ignore -->
 ```javascript
 function foo() {
     return
@@ -98,6 +106,7 @@ function foo() {
 
 Because of the new-line after `return` the above function is actually the same as:
 
+<!-- prettier-ignore -->
 ```javascript
 function foo() {
     return;
@@ -106,6 +115,7 @@ function foo() {
 
 One possible approach `ts-blank-space` could take to retain the original semantics is to insert some JavaScript:
 
+<!-- prettier-ignore -->
 ```javascript
 function foo() {
     return 0,
@@ -117,18 +127,21 @@ However there are other places where prefix-style type-assertions can't be erase
 
 ### Type assertion at the start of an `=>` arrow function body
 
+<!-- prettier-ignore -->
 ```typescript
 const fn = () => <const>{};
 ```
 
 Erasing the type assertion would result in the following **incorrect output**:
 
+<!-- prettier-ignore -->
 ```javascript
 const fn = () =>        {};
 ```
 
 The above function is the same as:
 
+<!-- prettier-ignore -->
 ```javascript
 const fn = () => {
     return;
@@ -137,6 +150,7 @@ const fn = () => {
 
 The comma-operator approach above doesn't work here because the comma (`,`) could represent the end of the expression:
 
+<!-- prettier-ignore -->
 ```javascript
 function foo(arg1 = () => 1, arg2 = 2) {
 //                         ^ comma marks the end of the first argument
@@ -145,18 +159,21 @@ function foo(arg1 = () => 1, arg2 = 2) {
 
 An alternative way for `ts-blank-space` to fix up the output by adding JavaScript could be:
 
+<!-- prettier-ignore -->
 ```javascript
 const fn = () =>     0||{};
 ```
 
 But this doesn't work for the following input:
 
+<!-- prettier-ignore -->
 ```typescript
 const fn = () => <const>{ p: a }.p ?? b;
 ```
 
 Because the following output is a syntax error:
 
+<!-- prettier-ignore -->
 ```javascript
 const fn = () =>     0||{ p: a }.p ?? b;
 ```
@@ -165,9 +182,9 @@ const fn = () =>     0||{ p: a }.p ?? b;
 
 Due to the following:
 
-- There does not appear to be a universal strategy for erasing prefix type assertions
-- Potential solutions involve injecting JavaScript not present in the input
-- Adding parenthesis `(` `)` to the output requires generating a sourcemap
-- `<const>val` can be re-written to `val as const`
+-   There does not appear to be a universal strategy for erasing prefix type assertions
+-   Potential solutions involve injecting JavaScript not present in the input
+-   Adding parenthesis `(` `)` to the output requires generating a sourcemap
+-   `<const>val` can be re-written to `val as const`
 
 `ts-blank-space` has decided to not support the prefix style.

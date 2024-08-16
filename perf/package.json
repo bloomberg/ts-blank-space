@@ -1,14 +1,14 @@
 {
-  "type": "module",
-  "dependencies": {
-    "@swc/core": "^1.7.0-nightly-20240715.2",
-    "@swc/wasm": "^1.7.0-nightly-20240715.2",
-    "@swc/wasm-typescript": "^1.7.0-nightly-20240715.2",
-    "sucrase": "^3.34.0"
-  },
-  "scripts": {
-    "this": "node ./this.js ./checker.txt 100",
-    "sucrase": "node ./sucrase.js ./checker.txt 100",
-    "ts": "node ./ts.js ./checker.txt 100"
-  }
+    "type": "module",
+    "dependencies": {
+        "@swc/core": "^1.7.0-nightly-20240715.2",
+        "@swc/wasm": "^1.7.0-nightly-20240715.2",
+        "@swc/wasm-typescript": "^1.7.0-nightly-20240715.2",
+        "sucrase": "^3.34.0"
+    },
+    "scripts": {
+        "this": "node ./this.js ./checker.txt 100",
+        "sucrase": "node ./sucrase.js ./checker.txt 100",
+        "ts": "node ./ts.js ./checker.txt 100"
+    }
 }

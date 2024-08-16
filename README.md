@@ -2,6 +2,7 @@
 
 TypeScript goes in:
 
+<!-- prettier-ignore -->
 ```typescript
 class C<T> extends Array<T> implements I {
 //     ^^^              ^^^ ^^^^^^^^^^^^
@@ -16,6 +17,7 @@ class C<T> extends Array<T> implements I {
 
 JavaScript + space comes out:
 
+<!-- prettier-ignore -->
 ```javascript
 class C    extends Array                 {
 //     ^^^              ^^^ ^^^^^^^^^^^^
@@ -30,29 +32,26 @@ class C    extends Array                 {
 
 ## Contents
 
-- [API](#api)
-- [Node.js Loader](#nodejs-loader)
-- [Source Maps](#where-are-my-sourcemaps)
-- [Rationale](#rationale)
-- [Implementation details](#does-it-really-just-blank-out-all-the-type-annotations)
-- [Unsupported syntax](#unsupported)
-- [tsconfig.json](#recommend-tsconfigjson-compiler-settings)
-- [TSX/JSX](#tsxjsx)
-- [ESM output](#ensuring-esm-output)
-- [Contributions](#contributions)
-- [License](#license)
-- [Code of Conduct](#code-of-conduct)
-- [Security Vulnerability Reporting](#security-vulnerability-reporting)
+-   [API](#api)
+-   [Node.js Loader](#nodejs-loader)
+-   [Source Maps](#where-are-my-sourcemaps)
+-   [Rationale](#rationale)
+-   [Implementation details](#does-it-really-just-blank-out-all-the-type-annotations)
+-   [Unsupported syntax](#unsupported)
+-   [tsconfig.json](#recommend-tsconfigjson-compiler-settings)
+-   [TSX/JSX](#tsxjsx)
+-   [ESM output](#ensuring-esm-output)
+-   [Contributions](#contributions)
+-   [License](#license)
+-   [Code of Conduct](#code-of-conduct)
+-   [Security Vulnerability Reporting](#security-vulnerability-reporting)
 
 ## API
 
 ### String to String
 
 ```typescript
-export default function tsBlankSpace(
-    ts: string,
-    onError?: (node) => void
-): string;
+export default function tsBlankSpace(ts: string, onError?: (node) => void): string;
 ```
 
 ```javascript
@@ -65,10 +64,7 @@ console.log(tsBlankSpace(`let x: string;`));
 ### Bring your own AST
 
 ```typescript
-export function blankSourceFile(
-    ts: typescript.SourceFile,
-    onError?: (node) => void
-): string
+export function blankSourceFile(ts: typescript.SourceFile, onError?: (node) => void): string;
 ```
 
 ```javascript
@@ -100,13 +96,13 @@ there is no mapping information that is lost during the transform.
 
 The benefits of this library are:
 
-- It is fast (for a pure JavaScript transform). See the `./perf` folder
-  - No new JavaScript needs to be emitted from an AST, it re-uses slices of the existing source string
-  - This is particularly true if other parts of your program are already generating the TypeScript SourceFile object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
-- It is small (less than 700 LOC)
-  - By doing so little the code should be relatively easy to maintain
-  - The hard part, of parsing the source, is delegated to the official TypeScript parser.
-- No need for additional SourceMap processing. See ["where are my SourceMaps?"](#where-are-my-sourcemaps)
+-   It is fast (for a pure JavaScript transform). See the `./perf` folder
+    -   No new JavaScript needs to be emitted from an AST, it re-uses slices of the existing source string
+    -   This is particularly true if other parts of your program are already generating the TypeScript SourceFile object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
+-   It is small (~700 LOC)
+    -   By doing so little the code should be relatively easy to maintain
+    -   The hard part, of parsing the source, is delegated to the official TypeScript parser.
+-   No need for additional SourceMap processing. See ["where are my SourceMaps?"](#where-are-my-sourcemaps)
 
 ## Does it really just blank out all the type annotations?
 
@@ -118,6 +114,7 @@ To guard against [ASI](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 
 Example input:
 
+<!-- prettier-ignore -->
 ```typescript
 statementWithNoSemiColon
 type Erased = true
@@ -126,6 +123,7 @@ type Erased = true
 
 becomes:
 
+<!-- prettier-ignore -->
 ```javascript
 statementWithNoSemiColon
 ;
@@ -141,6 +139,7 @@ So in addition to removing the type annotation, the `)` is moved down to the end
 
 Example input:
 
+<!-- prettier-ignore -->
 ```typescript
 let f = (a: string, b: string): Array<
    string
@@ -149,6 +148,7 @@ let f = (a: string, b: string): Array<
 
 becomes:
 
+<!-- prettier-ignore -->
 ```javascript
 let f = (a        , b
 
@@ -174,7 +174,7 @@ Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
     "useDefineAsClassFields": true,
     // Because imports and exports are preserved as written, only removing the
     // parts which are explicitly annotated with the `type` keyword
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
 }
 ```
 

@@ -1,6 +1,6 @@
 // @ts-check
 import * as fs from "node:fs";
-import ts from "typescript"
+import ts from "typescript";
 
 function assert(v) {
     if (!v) throw new Error();
@@ -16,7 +16,7 @@ for (let i = 0; i < count; i++) {
         compilerOptions: {
             target: ts.ScriptTarget.ESNext,
             module: ts.ModuleKind.ESNext,
-            sourceMap: true
+            sourceMap: true,
         },
     }).outputText;
     assert(output.length > 100);

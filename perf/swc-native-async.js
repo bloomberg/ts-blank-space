@@ -20,9 +20,11 @@ async function main() {
     console.time("");
     for (let i = 0; i < count; i++) {
         const out = swc.transform(input, options);
-        p.push(out.then(out => {
-            assert(out.code.length > 100);
-        }));
+        p.push(
+            out.then((out) => {
+                assert(out.code.length > 100);
+            }),
+        );
     }
     await Promise.all(p);
     console.timeEnd("");

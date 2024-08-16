@@ -1,13 +1,13 @@
 import tsBlankSpace from "ts-blank-space";
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.main.js';
+import * as monaco from "monaco-editor/esm/vs/editor/editor.main.js";
 
 self.MonacoEnvironment = {
-	getWorkerUrl: function (_moduleId, label) {
-		if (label === 'typescript' || label === 'javascript') {
-			return './vs/language/typescript/ts.worker.js';
-		}
-		return './vs/editor/editor.worker.js';
-	}
+    getWorkerUrl: function (_moduleId, label) {
+        if (label === "typescript" || label === "javascript") {
+            return "./vs/language/typescript/ts.worker.js";
+        }
+        return "./vs/editor/editor.worker.js";
+    },
 };
 
 // expose for devTools console usage
@@ -33,8 +33,8 @@ export class C<T> extends Array<T> implements HasField {
     }
     try {
         let b64 = urlData.slice(1);
-        b64 += Array(((4 - (b64.length % 4)) % 4) + 1).join('=');
-        b64 = b64.replace(/\-/g, '+').replace(/\_/g, '/');
+        b64 += Array(((4 - (b64.length % 4)) % 4) + 1).join("=");
+        b64 = b64.replace(/\-/g, "+").replace(/\_/g, "/");
         return JSON.parse(atob(b64)).text;
     } catch (_e) {
         console.error(_e);
@@ -45,21 +45,15 @@ export class C<T> extends Array<T> implements HasField {
 function saveToUrl(text) {
     try {
         let encoded = `${btoa(JSON.stringify({ text }))}`;
-        encoded = encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        encoded = encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
         window.history.replaceState(null, "", "#" + encoded);
     } catch (err) {
         console.error(err);
     }
 }
 
-const tsModel = monaco.editor.createModel(
-    loadFromURL(),
-	"typescript"
-);
-const jsModel = monaco.editor.createModel(
-    tsBlankSpace(tsModel.getValue()),
-	"javascript"
-);
+const tsModel = monaco.editor.createModel(loadFromURL(), "typescript");
+const jsModel = monaco.editor.createModel(tsBlankSpace(tsModel.getValue()), "javascript");
 
 tsModel.onDidChangeContent(() => {
     const text = tsModel.getValue();
@@ -68,20 +62,20 @@ tsModel.onDidChangeContent(() => {
 });
 
 const containers = {
-    ts: document.getElementById('container-ts')!,
-    js: document.getElementById('container-js')!,
-    diff: document.getElementById('container-diff')!,
+    ts: document.getElementById("container-ts")!,
+    js: document.getElementById("container-js")!,
+    diff: document.getElementById("container-diff")!,
 };
 
 const tsEditor = monaco.editor.create(containers.ts, {
     model: tsModel,
-	language: 'typescript',
+    language: "typescript",
     codeLens: false,
     hover: {
-        enabled: true
+        enabled: true,
     },
     minimap: {
-        enabled: false
+        enabled: false,
     },
     renderLineHighlight: "none",
     contextmenu: false,
@@ -89,25 +83,25 @@ const tsEditor = monaco.editor.create(containers.ts, {
 
 const jsViewer = monaco.editor.create(containers.js, {
     model: jsModel,
-	language: 'javascript',
+    language: "javascript",
     readOnly: true,
     scrollbar: {
-        handleMouseWheel: false
+        handleMouseWheel: false,
     },
     codeLens: false,
     hover: {
-        enabled: false
+        enabled: false,
     },
     minimap: {
-        enabled: false
+        enabled: false,
     },
     lineNumbers: "off",
     renderWhitespace: "all",
     renderLineHighlight: "none",
-    contextmenu: false
+    contextmenu: false,
 });
 
-tsEditor.onDidScrollChange(e => {
+tsEditor.onDidScrollChange((e) => {
     jsViewer.setScrollTop(e.scrollTop);
 });
 
@@ -119,10 +113,10 @@ function initDiffEditor() {
     diffEditor = monaco.editor.createDiffEditor(containers.diff, {
         codeLens: false,
         hover: {
-            enabled: false
+            enabled: false,
         },
         minimap: {
-            enabled: false
+            enabled: false,
         },
         renderLineHighlight: "none",
         contextmenu: false,
@@ -143,7 +137,7 @@ function initDiffEditor() {
 }
 
 const diffCheck = document.getElementById("diff-check") as HTMLInputElement;
-diffCheck.onchange = function() {
+diffCheck.onchange = function () {
     if (diffCheck.checked) {
         containers.ts.style.display = "none";
         containers.js.style.display = "none";

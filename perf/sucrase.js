@@ -16,8 +16,8 @@ const options = {
     preserveDynamicImport: true,
     filePath: "file.ts",
     sourceMapOptions: {
-        compiledFilename: "file.ts"
-   },
+        compiledFilename: "file.ts",
+    },
     production: true,
     keepUnusedImports: true,
 };

@@ -1,21 +1,21 @@
 {
-  "name": "ts-blank-space-website",
-  "private": true,
-  "type": "module",
-  "imports": {
-    "#r": "ts-blank-space/register"
-  },
-  "scripts": {
-    "build": "node --import=#r build.js",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d ./dist"
-  },
-  "dependencies": {
-    "monaco-editor": "^0.50.0",
-    "ts-blank-space": ".."
-  },
-  "devDependencies": {
-    "esbuild": "^0.23.0",
-    "gh-pages": "^6.1.1"
-  }
+    "name": "ts-blank-space-website",
+    "private": true,
+    "type": "module",
+    "imports": {
+        "#r": "ts-blank-space/register"
+    },
+    "scripts": {
+        "build": "node --import=#r build.js",
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d ./dist"
+    },
+    "dependencies": {
+        "monaco-editor": "^0.50.0",
+        "ts-blank-space": ".."
+    },
+    "devDependencies": {
+        "esbuild": "^0.23.0",
+        "gh-pages": "^6.1.1"
+    }
 }

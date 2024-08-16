@@ -1,9 +1,9 @@
-import { test } from 'node:test';
-import assert from 'node:assert';
+import { test } from "node:test";
+import assert from "node:assert";
 import * as fs from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
-import tsBlankSpace from '../../src/index.ts';
+import tsBlankSpace from "../../src/index.ts";
 import * as prettier from "prettier";
 import * as terser from "terser";
 import * as esbuild from "esbuild";
@@ -24,7 +24,7 @@ const skipList = new Set([
     // https://github.com/microsoft/TypeScript/issues/59484:
     "defaultValueInConstructorOverload1.ts",
     "constructorOverloads9.ts",
-    // esbuild can't parse: "ERROR: Cannot continue to label "target1""
+    // esbuild can't parse: "ERROR: Cannot continue to label "target1"
     "continueTarget3.ts",
 ]);
 
@@ -43,7 +43,7 @@ function validFileName(filename) {
 
 for (const filename of fs.readdirSync(typescriptCompilerCasesDir, {
     recursive: false,
-    encoding: "utf8"
+    encoding: "utf8",
 })) {
     if (!validFileName(filename)) {
         continue;
@@ -57,7 +57,7 @@ for (const filename of fs.readdirSync(typescriptCompilerCasesDir, {
         await sameEmit(fs.readFileSync(path, "utf-8"), t);
     });
     if (i++ % 100 === 0) {
-        await new Promise(r => setTimeout(r));
+        await new Promise((r) => setTimeout(r));
     }
 }
 
@@ -67,11 +67,11 @@ for (const filename of fs.readdirSync(typescriptCompilerCasesDir, {
  */
 async function sameEmit(source, t, multipart = false) {
     if (!multipart && source.match(/\/\/ ?@filename:/i)) {
-        const parts = source.split(/(?=\/\/ ?@filename:)/gi).filter(v => v.trim());
+        const parts = source.split(/(?=\/\/ ?@filename:)/gi).filter((v) => v.trim());
         for (const section of parts) {
             const match = section.match(/@filename:(.+)/);
             if (!match) continue;
-            const filename = match[/* capture-group: */1];
+            const filename = match[/* capture-group: */ 1];
             if (!validFileName(filename)) {
                 continue;
             }
@@ -85,7 +85,7 @@ async function sameEmit(source, t, multipart = false) {
     try {
         babel.parse(source, {
             sourceType: "module",
-            plugins: ["typescript", "decorators"]
+            plugins: ["typescript", "decorators"],
         });
     } catch (err) {
         t.skip("Babel errored: " + err.message);
@@ -100,8 +100,8 @@ async function sameEmit(source, t, multipart = false) {
             moduleDetection: ts.ModuleDetectionKind.Force,
             target: ts.ScriptTarget.ESNext,
             module: ts.ModuleKind.ES2022,
-            sourceMap: false
-        }
+            sourceMap: false,
+        },
     });
     if (tsOut.diagnostics?.length) {
         t.skip("TS errored: " + tsOut.diagnostics[0].messageText);
@@ -129,7 +129,11 @@ async function sameEmit(source, t, multipart = false) {
 }
 
 function tidyLines(input) {
-    return input.split("\n").filter(line => line !== "export {};").map(line => line.trim()).filter(line => line);
+    return input
+        .split("\n")
+        .filter((line) => line !== "export {};")
+        .map((line) => line.trim())
+        .filter((line) => line);
 }
 
 /**
@@ -139,22 +143,25 @@ async function normalizeJS(input) {
     let minified;
 
     try {
-        minified = terser.minify_sync(input, {
-            compress: false,
-            mangle: false,
-            module: true,
-            format: {
-                ecma: 2020,
-                comments: false,
-                keep_numbers: true,
-            }
-        }).code || "";
+        minified =
+            terser.minify_sync(input, {
+                compress: false,
+                mangle: false,
+                module: true,
+                format: {
+                    ecma: 2020,
+                    comments: false,
+                    keep_numbers: true,
+                },
+            }).code || "";
     } catch {
-        minified = (await esbuild.transform(input, {
-            legalComments: "none",
-            minifyWhitespace: true,
-            keepNames: true
-        })).code;
+        minified = (
+            await esbuild.transform(input, {
+                legalComments: "none",
+                minifyWhitespace: true,
+                keepNames: true,
+            })
+        ).code;
     }
 
     // Put standardized air back in
