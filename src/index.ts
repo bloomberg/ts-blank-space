@@ -66,8 +66,8 @@ export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): st
         // Cleanup. Release memory. Reset state.
         scanner.setText("");
         onError = undefined;
-        ast = undefined as any;
-        str = undefined as any;
+        ast = undefined!;
+        str = undefined!;
         src = "";
         seenJS = false;
         missingSemiPos = 0;
