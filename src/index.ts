@@ -1,5 +1,6 @@
-// Copyright 2023 Bloomberg Finance L.P.
+// Copyright 2024 Bloomberg Finance L.P.
 // Distributed under the terms of the Apache 2.0 license.
+
 import type * as ts from "typescript";
 import tslib from "typescript";
 import BlankString from "./blank-string.js";
@@ -589,7 +590,3 @@ function getClosingParenthesisPos(node: ts.NodeArray<ts.ParameterDeclaration>): 
 function never(n: never): never {
     throw new Error("unreachable code was reached");
 }
-
-// Copyright 2024 Bloomberg Finance L.P.
-// Distributed under the terms of the Apache 2.0 license.
-// https://www.apache.org/licenses/LICENSE-2.0
