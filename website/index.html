@@ -3,6 +3,7 @@
     <head>
         <title>ts-blank-space playground</title>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" href="./index.css" />
         <style>
             body {
@@ -17,7 +18,7 @@
             .col {
                 display: flex;
                 flex-direction: column;
-                width: 50vw;
+                flex: 1 0 400px;
             }
             .header {
                 height: 60px;
@@ -25,12 +26,18 @@
                     "Courier New", monospace;
             }
             .editor {
-                height: 600px;
+                height: 80vh;
+            }
+            .tsbs-ghost {
+                display: inline-block;
+                overflow: visible;
+                width: 0;
+                opacity: 0.2;
             }
         </style>
     </head>
     <body>
-        <div style="display: flex">
+        <div style="display: flex; flex-flow: row wrap">
             <div class="col">
                 <div class="header" style="background-color: #3178c6">
                     <span style="font-size: 2em">ts-</span>
@@ -39,9 +46,22 @@
             </div>
             <div class="col">
                 <div class="header" style="background-color: #f90">
-                    <span style="font-size: 2em">blank-space</span>
-                    <label for="checked">diff</label>
-                    <input type="checkbox" id="diff-check" />
+                    <span style="font-size: 2em">blank-space</span>&nbsp;
+                    <label>diff:<input type="checkbox" id="diff-check" /> </label>
+                    <label>👻:<input type="checkbox" id="ghost-check" checked /> </label>
+                    <label
+                        >parser:<select id="lang-select">
+                            <option value="ts">.ts</option>
+                            <option value="tsx">.tsx</option>
+                        </select>
+                    </label>
+                    <button
+                        style="background: transparent; border: 0"
+                        title="Save state to URL address bar"
+                        id="save-button"
+                    >
+                        💾
+                    </button>
                 </div>
                 <div id="container-js" class="editor"></div>
             </div>

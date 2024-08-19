@@ -1,5 +1,12 @@
-import tsBlankSpace from "ts-blank-space";
-import * as monaco from "monaco-editor/esm/vs/editor/editor.main.js";
+import * as tsBlankSpace from "ts-blank-space";
+import * as monaco from "monaco-editor";
+import { createGhostDecoration, createErrorMarker, parseTS, selectBooleanWrapper } from "./utils";
+
+const containers = {
+    ts: document.getElementById("container-ts")!,
+    js: document.getElementById("container-js")!,
+    diff: document.getElementById("container-diff")!,
+};
 
 self.MonacoEnvironment = {
     getWorkerUrl: function (_moduleId, label) {
@@ -13,7 +20,12 @@ self.MonacoEnvironment = {
 // expose for devTools console usage
 globalThis.tsBlankSpace = tsBlankSpace;
 
-function loadFromURL() {
+interface URLData {
+    readonly text: string;
+    readonly tsx: boolean;
+}
+
+function loadFromURL(): URLData {
     const defaultStr = `
 interface HasField {
     field: string;
@@ -29,22 +41,31 @@ export class C<T> extends Array<T> implements HasField {
 `;
     const urlData = location.hash;
     if (!urlData) {
-        return defaultStr;
+        return {
+            text: defaultStr,
+            tsx: false,
+        };
     }
     try {
         let b64 = urlData.slice(1);
         b64 += Array(((4 - (b64.length % 4)) % 4) + 1).join("=");
         b64 = b64.replace(/\-/g, "+").replace(/\_/g, "/");
-        return JSON.parse(atob(b64)).text;
+        return JSON.parse(atob(b64));
     } catch (_e) {
         console.error(_e);
-        return defaultStr;
+        return {
+            text: defaultStr,
+            tsx: false,
+        };
     }
 }
 
-function saveToUrl(text) {
+let savedURL = false;
+function saveURL() {
+    const text = tsModel.getValue();
+    const tsx = tsxConfig.enabled;
     try {
-        let encoded = `${btoa(JSON.stringify({ text }))}`;
+        let encoded = `${btoa(JSON.stringify({ tsx, text } satisfies URLData))}`;
         encoded = encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
         window.history.replaceState(null, "", "#" + encoded);
     } catch (err) {
@@ -52,20 +73,94 @@ function saveToUrl(text) {
     }
 }
 
-const tsModel = monaco.editor.createModel(loadFromURL(), "typescript");
-const jsModel = monaco.editor.createModel(tsBlankSpace(tsModel.getValue()), "javascript");
+const tsxConfig = selectBooleanWrapper("lang-select", "tsx", "ts");
+const ghostCheckBox = document.getElementById("ghost-check") as HTMLInputElement;
 
-tsModel.onDidChangeContent(() => {
+function updateCompilerOptions() {
+    const mts = monaco.languages.typescript;
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+        target: mts.ScriptTarget.ESNext,
+        jsx: tsxConfig.enabled ? mts.JsxEmit.Preserve : mts.JsxEmit.None,
+    });
+}
+
+const tsModel = (() => {
+    const start = loadFromURL();
+    tsxConfig.enabled = !!start.tsx;
+    updateCompilerOptions();
+
+    const model = monaco.editor.createModel(start.text, "typescript");
+    model.detectIndentation(true, 4);
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+        onlyVisible: true,
+        noSemanticValidation: true,
+        noSyntaxValidation: false,
+        noSuggestionDiagnostics: true,
+    });
+
+    return model;
+})();
+
+const jsModel = monaco.editor.createModel("", "javascript");
+const jsViewer = createJsViewer(jsModel);
+const jsDecorations = jsViewer.createDecorationsCollection();
+
+function updateGhostDecorations() {
     const text = tsModel.getValue();
-    saveToUrl(text);
-    jsModel.setValue(tsBlankSpace(text));
-});
+    if (ghostCheckBox.checked) {
+        const decorations = text.split("\n").flatMap((l, i) => {
+            return createGhostDecoration(i + 1, l);
+        });
+        jsDecorations.set(decorations);
+    } else {
+        jsDecorations.clear();
+    }
+}
 
-const containers = {
-    ts: document.getElementById("container-ts")!,
-    js: document.getElementById("container-js")!,
-    diff: document.getElementById("container-diff")!,
+function updateModel() {
+    const text = tsModel.getValue();
+    const tsxEnabled = tsxConfig.enabled;
+    try {
+        const markers: monaco.editor.IMarkerData[] = [];
+        const ast = parseTS(text, tsxEnabled);
+        const output = tsBlankSpace.blankSourceFile(ast, (errorNode) => {
+            markers.push(createErrorMarker(ast, errorNode));
+        });
+
+        monaco.editor.setModelMarkers(tsModel, "ts-blank-space", markers);
+        jsModel.setValue(output);
+
+        updateGhostDecorations();
+    } catch (err) {
+        console.error(err);
+        jsModel.setValue("Error");
+    }
+}
+
+updateModel();
+tsModel.onDidChangeContent((e) => {
+    updateModel();
+});
+tsxConfig.onchange = function () {
+    updateCompilerOptions();
+    if (savedURL) {
+        saveURL();
+    }
+    updateModel();
 };
+ghostCheckBox.onchange = updateGhostDecorations;
+document.body.addEventListener(
+    "blur",
+    (e) => {
+        if (e.relatedTarget === null && savedURL) {
+            if (savedURL) {
+                saveURL();
+            }
+        }
+    },
+    { capture: true },
+);
+document.getElementById("save-button")!.onclick = saveURL;
 
 const tsEditor = monaco.editor.create(containers.ts, {
     model: tsModel,
@@ -79,27 +174,38 @@ const tsEditor = monaco.editor.create(containers.ts, {
     },
     renderLineHighlight: "none",
     contextmenu: false,
-});
-
-const jsViewer = monaco.editor.create(containers.js, {
-    model: jsModel,
-    language: "javascript",
-    readOnly: true,
+    wordWrap: "off",
     scrollbar: {
         handleMouseWheel: false,
     },
-    codeLens: false,
-    hover: {
-        enabled: false,
-    },
-    minimap: {
-        enabled: false,
-    },
-    lineNumbers: "off",
-    renderWhitespace: "all",
-    renderLineHighlight: "none",
-    contextmenu: false,
 });
+
+function createJsViewer(model: monaco.editor.ITextModel) {
+    return monaco.editor.create(containers.js, {
+        model,
+        language: "javascript",
+        readOnly: true,
+        scrollbar: {
+            handleMouseWheel: false,
+        },
+        codeLens: false,
+        hover: {
+            enabled: false,
+        },
+        minimap: {
+            enabled: false,
+        },
+        lineNumbers: "off",
+        renderWhitespace: "none",
+        detectIndentation: false,
+        wordWrap: "off",
+        renderLineHighlight: "none",
+        contextmenu: false,
+        guides: {
+            indentation: false,
+        },
+    });
+}
 
 tsEditor.onDidScrollChange((e) => {
     jsViewer.setScrollTop(e.scrollTop);

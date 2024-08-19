@@ -12,7 +12,8 @@
     },
     "dependencies": {
         "monaco-editor": "^0.50.0",
-        "ts-blank-space": ".."
+        "ts-blank-space": "..",
+        "typescript": "^5.5.4"
     },
     "devDependencies": {
         "esbuild": "^0.23.0",
