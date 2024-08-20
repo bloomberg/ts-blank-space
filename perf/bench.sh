@@ -5,11 +5,14 @@ cd "$(dirname "$0")"
 
 echo "\n"
 
+fixture='./fixtures/checker.txt'
+count=10
+
 hyperfine --warmup 3 \
-   'node ./this.js checker.txt 10'\
-   'node ./sucrase.js checker.txt 10'\
-   'node ./ts.js checker.txt 10'\
-   'node ./swc-wasm.js checker.txt 10'\
-   'node ./swc-wasm-strip.js checker.txt 10'\
-   'node ./swc-native-sync.js checker.txt 10'\
-   'node ./swc-native-async.js checker.txt 10'
+   "node ./ts-blank-space.js $fixture $count"\
+   "node ./sucrase.js $fixture $count"\
+   "node ./typescript.js $fixture $count"\
+   "node ./swc-wasm.js $fixture $count"\
+   "node ./swc-wasm-strip.js $fixture $count"\
+   "node ./swc-native-sync.js $fixture $count"\
+   "node ./swc-native-async.js $fixture $count"

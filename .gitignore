@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 out
+perf/fixtures
 tests/ecosystem/package-lock.json
 tests/ecosystem/typescript
 website/dist
