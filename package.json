@@ -5,8 +5,8 @@
     "type": "module",
     "main": "./out/index.js",
     "exports": {
-        "./package.json": "./package.json",
         ".": "./out/index.js",
+        "./package.json": "./package.json",
         "./register": "./loader/register.js"
     },
     "engines": {
@@ -19,7 +19,7 @@
     "imports": {
         "#r": "./loader/register.js",
         "#out/*": {
-            "bootstrap": "./scripts/lkg/*",
+            "LKG": "./scripts/lkg/*",
             "default": "./out/*"
         }
     },
@@ -28,12 +28,13 @@
         "prettier": "3.3.3"
     },
     "scripts": {
-        "build": "node --conditions=bootstrap --import=#r ./scripts/build.ts",
-        "gen-types": "tsc -p ./src/tsconfig.json",
-        "fixtures": "node --import=#r ./tests/fixture/_run.ts",
-        "fixtures:watch": "node --watch-path ./tests/fixture/cases --import=#r ./tests/fixture/_run.ts",
-        "pretest": "npm run build",
-        "test": "node --test --import=#r ./tests/*.test.ts ./tests/ecosystem/ecosystem.test.ts",
+        "build": "node -C LKG --import=#r ./scripts/build.ts",
+        "check": "tsc -p ./src/tsconfig.json --noEmit",
+        "gen-types": "tsc -p ./src/tsconfig.json --emitDeclarationOnly",
+        "fixtures": "node -C LKG --import=#r ./tests/fixture/_run.ts",
+        "fixtures:watch": "node --watch-path ./tests/fixture/cases -C LKG --import=#r ./tests/fixture/_run.ts",
+        "test": "node --test -C LKG --import=#r ./tests/*.test.ts",
+        "test-ecosystem": "node --test -C LKG --import=#r ./tests/ecosystem/ecosystem.test.ts",
         "format": "prettier . -w",
         "format:check": "prettier . -c",
         "prepack": "npm run gen-types;npm run build;"
@@ -42,7 +43,8 @@
         "!tests",
         "!perf",
         "out/*.js",
-        "out/*.d.ts"
+        "out/*.d.ts",
+        "loader/*.js"
     ],
     "repository": {
         "type": "git",

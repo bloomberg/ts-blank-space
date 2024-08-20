@@ -6,7 +6,7 @@
         "#r": "ts-blank-space/register"
     },
     "scripts": {
-        "build": "node --import=#r build.js",
+        "build": "node -C LKG --import=#r ./build.ts",
         "predeploy": "npm run build",
         "deploy": "gh-pages -d ./dist"
     },

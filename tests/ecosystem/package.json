@@ -13,6 +13,6 @@
         "#r": "ts-blank-space/register"
     },
     "scripts": {
-        "test": "node --test --import=#r ecosystem.test.ts"
+        "test": "node --test -C LKG --import=#r ecosystem.test.ts"
     }
 }

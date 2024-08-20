@@ -4,8 +4,9 @@
         "target": "es2020",
         "module": "nodeNext",
         "moduleDetection": "force",
+        "verbatimModuleSyntax": true,
+        "useDefineForClassFields": true,
         "declaration": true,
-        "emitDeclarationOnly": true,
         "declarationDir": "../out"
     },
     "files": ["./index.ts"]
