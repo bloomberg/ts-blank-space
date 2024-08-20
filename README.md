@@ -30,12 +30,29 @@ class C    extends Array                 {
 }
 ```
 
+## Rationale
+
+The benefits of this library are:
+
+-   It is fast
+    -   Only 50% slower than a native transformer in a micro-benchmark (see `./perf` folder)
+    -   No new JavaScript code is generated, instead it re-uses slices of the existing source string
+    -   This is particularly true if other parts of your program are already generating the TypeScript SourceFile object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
+-   100% JavaScript runtime
+-   It is small
+    -   ~700 lines of code and one dependency (`typescript`)
+    -   By doing so little the code should be relatively easy to maintain
+-   Uses the official TypeScript parser
+-   No need for additional SourceMap processing. See ["where are my SourceMaps?"](#where-are-my-sourcemaps)
+
+:information_source: Not all TypeScript syntax is supported (see [unsupported syntax](#unsupported)). There is also no down leveling, the JavaScript is preserved as is.
+
 ## Contents
 
+-   [Installing](#installing)
 -   [API](#api)
 -   [Node.js Loader](#nodejs-loader)
 -   [Source Maps](#where-are-my-sourcemaps)
--   [Rationale](#rationale)
 -   [Implementation details](#does-it-really-just-blank-out-all-the-type-annotations)
 -   [Unsupported syntax](#unsupported)
 -   [tsconfig.json](#recommend-tsconfigjson-compiler-settings)
@@ -45,6 +62,12 @@ class C    extends Array                 {
 -   [License](#license)
 -   [Code of Conduct](#code-of-conduct)
 -   [Security Vulnerability Reporting](#security-vulnerability-reporting)
+
+## Installing
+
+```sh
+npm install ts-blank-space
+```
 
 ## API
 
@@ -83,26 +106,16 @@ console.log(blankSourceFile(ast));
 # Install (one time):
 $ npm install --save-dev ts-blank-space
 
-# Example usage:
+# Example usage (Node.js v18.18):
 $ node --import ts-blank-space/register ./path/to/your/file.ts
 ```
+
+In addition to loading `*.ts` files, an import resolver is also registered which will catches failed `*.js` imports and re-attempts the import replacing the extension with `.ts`. This allows import paths to choose either `.ts` or `.js` depending on which other factors the project may need to take into account such as bundling and package distribution.
 
 ## Where are my SourceMaps?
 
 Because all the JavaScript in the output is located at the same line, column, and byte-offset as the original
 there is no mapping information that is lost during the transform.
-
-## Rationale
-
-The benefits of this library are:
-
--   It is fast (for a pure JavaScript transform). See the `./perf` folder
-    -   No new JavaScript needs to be emitted from an AST, it re-uses slices of the existing source string
-    -   This is particularly true if other parts of your program are already generating the TypeScript SourceFile object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
--   It is small (~700 LOC)
-    -   By doing so little the code should be relatively easy to maintain
-    -   The hard part, of parsing the source, is delegated to the official TypeScript parser.
--   No need for additional SourceMap processing. See ["where are my SourceMaps?"](#where-are-my-sourcemaps)
 
 ## Does it really just blank out all the type annotations?
 

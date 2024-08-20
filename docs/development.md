@@ -49,20 +49,7 @@ npm run test-ecosystem
 
 ### Performance tests
 
-Setup:
-
-```sh
-cd perf
-npm ci
-./setup.sh
-```
-
-Running:
-
-```sh
-cd perf
-./bench.sh
-```
+See [`../perf/README`](../perf/README.md).
 
 ## Website
 
