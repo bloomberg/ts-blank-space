@@ -1,0 +1,17 @@
+name: Node.js CI
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+jobs:
+    ci:
+        name: Test + Lint + Check
+        runs-on: ubuntu-latest
+        steps:
+            - run: npm ci
+            - run: npm run check
+            - run: npm run format:check
+            - run: npm test
