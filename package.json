@@ -43,5 +43,9 @@
         "!perf",
         "out/*.js",
         "out/*.d.ts"
-    ]
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bloomberg/ts-blank-space"
+    }
 }
