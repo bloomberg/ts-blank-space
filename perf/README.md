@@ -1,6 +1,6 @@
 # `ts-blank-space` performance tests
 
-Transforming just over 500,000 lines of TypeScript (one 50k file, ten times).
+Transforming just over 500,000 lines of TypeScript (one ~50k file, ten times).
 
 ## Setup
 
@@ -21,17 +21,19 @@ You will also need to install https://github.com/sharkdp/hyperfine
 
 -   Node.js v20.11.1
 -   Apple M2 Pro 32GB
+-   1 File read done in Node.js
+-   3 warmup runs
+-   10 measured runs
 
-```sh
-Summary
-  node ./swc-native-async.js ./fixtures/checker.txt 10 ran
-    1.52 ± 0.05 times faster than node ./ts-blank-space.js ./fixtures/checker.txt 10
-    1.71 ± 0.03 times faster than node ./swc-wasm-strip.js ./fixtures/checker.txt 10
-    1.85 ± 0.05 times faster than node ./sucrase.js ./fixtures/checker.txt 10
-    3.19 ± 0.05 times faster than node ./swc-native-sync.js ./fixtures/checker.txt 10
-    4.98 ± 0.08 times faster than node ./swc-wasm.js ./fixtures/checker.txt 10
-    7.58 ± 0.16 times faster than node ./typescript.js ./fixtures/checker.txt 10
-```
+| package              | runtime      | mean time ± σ      |
+| -------------------- | ------------ | ------------------ |
+| @swc/core            | async native | 853.7 ms ± 11.8 ms |
+| ts-blank-space       | sync JS      | 1.295 s ± 0.035 s  |
+| @swc/wasm-typescript | sync wasm    | 1.462 s ± 0.013 s  |
+| sucrase              | sync JS      | 1.583 s ± 0.041 s  |
+| @swc/core            | sync native  | 2.727 s ± 0.020 s  |
+| @swc/wasm            | sync wasm    | 4.252 s ± 0.027 s  |
+| typescript           | sync JS      | 6.470 s ± 0.109 s  |
 
 ```sh
 Benchmark: node ./swc-native-async.js ./fixtures/checker.txt 10
