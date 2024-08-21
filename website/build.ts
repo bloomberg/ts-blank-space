@@ -7,9 +7,9 @@ const workerEntryPoints = ["vs/language/typescript/ts.worker.js", "vs/editor/edi
 const __dirname = import.meta.dirname;
 const dist = path.join(__dirname, "dist");
 fs.rmSync(dist, { recursive: true, force: true });
-fs.mkdirSync(dist);
+fs.mkdirSync(path.join(dist, "play"), { recursive: true });
 
-fs.copyFileSync(path.join(__dirname, "index.html"), path.join(dist, "index.html"));
+fs.copyFileSync(path.join(__dirname, "play", "index.html"), path.join(dist, "play", "index.html"));
 
 build({
     entryPoints: workerEntryPoints.map((entry) => `./node_modules/monaco-editor/esm/${entry}`),
@@ -21,10 +21,10 @@ build({
 });
 
 build({
-    entryPoints: ["index.ts"],
+    entryPoints: ["./play/play.ts"],
     bundle: true,
     format: "iife",
-    outdir: path.join(__dirname, "dist"),
+    outdir: path.join(__dirname, "dist", "play"),
     loader: {
         ".ttf": "file",
     },

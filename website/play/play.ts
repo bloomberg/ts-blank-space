@@ -1,6 +1,6 @@
 import * as tsBlankSpace from "ts-blank-space";
 import * as monaco from "monaco-editor";
-import { createGhostDecoration, createErrorMarker, parseTS, selectBooleanWrapper } from "./utils";
+import { createGhostDecoration, createErrorMarker, parseTS, selectBooleanWrapper } from "./play-utils";
 
 const containers = {
     ts: document.getElementById("container-ts")!,
@@ -11,9 +11,9 @@ const containers = {
 self.MonacoEnvironment = {
     getWorkerUrl: function (_moduleId, label) {
         if (label === "typescript" || label === "javascript") {
-            return "./vs/language/typescript/ts.worker.js";
+            return "../vs/language/typescript/ts.worker.js";
         }
-        return "./vs/editor/editor.worker.js";
+        return "../vs/editor/editor.worker.js";
     },
 };
 
