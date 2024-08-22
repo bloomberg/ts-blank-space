@@ -9,10 +9,14 @@ function assert(v) {
 const input = fs.readFileSync(process.argv[2], "utf-8");
 const count = Number(process.argv[3]) || 100;
 
+/** @type {swc.Options} */
 const options = {
     filename: "input.ts",
     sourceMaps: true,
     isModule: true,
+    jsc: {
+        target: "es2022",
+    },
 };
 
 console.time("");

@@ -25,42 +25,42 @@ You will also need to install https://github.com/sharkdp/hyperfine
 -   3 warmup runs
 -   10 measured runs
 
-| package              | runtime      | mean time ± σ      |
-| -------------------- | ------------ | ------------------ |
-| @swc/core            | async native | 853.7 ms ± 11.8 ms |
-| ts-blank-space       | sync JS      | 1.295 s ± 0.035 s  |
-| @swc/wasm-typescript | sync wasm    | 1.462 s ± 0.013 s  |
-| sucrase              | sync JS      | 1.583 s ± 0.041 s  |
-| @swc/core            | sync native  | 2.727 s ± 0.020 s  |
-| @swc/wasm            | sync wasm    | 4.252 s ± 0.027 s  |
-| typescript           | sync JS      | 6.470 s ± 0.109 s  |
+| package              | runtime    | mean time ± σ      |
+| -------------------- | ---------- | ------------------ |
+| @swc/core            | async Rust | 538.8 ms ± 14.5 ms |
+| ts-blank-space       | sync JS    | 1.255 s ± 0.014 s  |
+| @swc/wasm-typescript | sync wasm  | 1.436 s ± 0.012 s  |
+| sucrase              | sync JS    | 1.537 s ± 0.037 s  |
+| @swc/core            | sync Rust  | 1.682 s ± 0.030 s  |
+| @swc/wasm            | sync wasm  | 2.679 s ± 0.011 s  |
+| typescript           | sync JS    | 6.375 s ± 0.086 s  |
 
 ```sh
 Benchmark: node ./swc-native-async.js ./fixtures/checker.txt 10
-  Time (mean ± σ):     853.7 ms ±  11.8 ms    [User: 2891.6 ms, System: 144.4 ms]
-  Range (min … max):   836.9 ms … 865.9 ms    10 runs
+  Time (mean ± σ):     538.8 ms ±  14.5 ms    [User: 1765.2 ms, System: 96.6 ms]
+  Range (min … max):   521.0 ms … 556.9 ms    10 runs
 
 Benchmark: node ./ts-blank-space.js ./fixtures/checker.txt 10
-  Time (mean ± σ):      1.295 s ±  0.035 s    [User: 2.150 s, System: 0.146 s]
-  Range (min … max):    1.255 s …  1.363 s    10 runs
+  Time (mean ± σ):      1.255 s ±  0.014 s    [User: 2.090 s, System: 0.130 s]
+  Range (min … max):    1.235 s …  1.281 s    10 runs
 
 Benchmark: node ./swc-wasm-strip.js ./fixtures/checker.txt 10
-  Time (mean ± σ):      1.462 s ±  0.013 s    [User: 1.670 s, System: 0.050 s]
-  Range (min … max):    1.444 s …  1.481 s    10 runs
+  Time (mean ± σ):      1.436 s ±  0.012 s    [User: 1.646 s, System: 0.046 s]
+  Range (min … max):    1.425 s …  1.457 s    10 runs
 
 Benchmark: node ./sucrase.js ./fixtures/checker.txt 10
-  Time (mean ± σ):      1.583 s ±  0.041 s    [User: 2.261 s, System: 0.250 s]
-  Range (min … max):    1.535 s …  1.637 s    10 runs
+  Time (mean ± σ):      1.537 s ±  0.037 s    [User: 2.206 s, System: 0.231 s]
+  Range (min … max):    1.494 s …  1.625 s    10 runs
 
 Benchmark: node ./swc-native-sync.js ./fixtures/checker.txt 10
-  Time (mean ± σ):      2.727 s ±  0.020 s    [User: 2.856 s, System: 0.133 s]
-  Range (min … max):    2.698 s …  2.755 s    10 runs
+  Time (mean ± σ):      1.682 s ±  0.030 s    [User: 1.737 s, System: 0.085 s]
+  Range (min … max):    1.656 s …  1.744 s    10 runs
 
 Benchmark: node ./swc-wasm.js ./fixtures/checker.txt 10
-  Time (mean ± σ):      4.252 s ±  0.027 s    [User: 5.605 s, System: 0.136 s]
-  Range (min … max):    4.223 s …  4.313 s    10 runs
+  Time (mean ± σ):      2.679 s ±  0.011 s    [User: 3.431 s, System: 0.091 s]
+  Range (min … max):    2.660 s …  2.701 s    10 runs
 
 Benchmark: node ./typescript.js ./fixtures/checker.txt 10
-  Time (mean ± σ):      6.470 s ±  0.109 s    [User: 9.967 s, System: 0.370 s]
-  Range (min … max):    6.336 s …  6.710 s    10 runs
+  Time (mean ± σ):      6.375 s ±  0.086 s    [User: 9.701 s, System: 0.405 s]
+  Range (min … max):    6.249 s …  6.549 s    10 runs
 ```

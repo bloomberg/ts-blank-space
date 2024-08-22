@@ -35,7 +35,7 @@ class C    extends Array                 {
 The benefits of this library are:
 
 -   It is fast
-    -   Only 50% slower than a native transformer in a micro-benchmark (see [`./perf`](./perf/) folder)
+    -   Only 2.3 times slower than a native asynchronous transformer in a micro-benchmark (see [`./perf`](./perf/) folder)
     -   No new JavaScript code is generated, instead it re-uses slices of the existing source string
     -   This is particularly true if other parts of your program are already generating the TypeScript SourceFile object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
 -   100% JavaScript runtime
