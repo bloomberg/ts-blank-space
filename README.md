@@ -37,7 +37,7 @@ The benefits of this library are:
 -   It is fast
     -   Only 2.3 times slower than a native asynchronous transformer in a micro-benchmark (see [`./perf`](./perf/) folder)
     -   No new JavaScript code is generated, instead it re-uses slices of the existing source string
-    -   This is particularly true if other parts of your program are already generating the TypeScript SourceFile object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
+    -   This is particularly true if other parts of your program are already generating the TypeScript `SourceFile` object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
 -   100% JavaScript runtime
 -   It is small
     -   ~700 lines of code and one dependency (`typescript`)
@@ -55,7 +55,7 @@ The benefits of this library are:
 -   [Source Maps](#where-are-my-sourcemaps)
 -   [Implementation details](#does-it-really-just-blank-out-all-the-type-annotations)
 -   [Unsupported syntax](#unsupported)
--   [tsconfig.json](#recommend-tsconfigjson-compiler-settings)
+-   [tsconfig.json](#recommended-tsconfigjson-compiler-settings)
 -   [TSX/JSX](#tsxjsx)
 -   [ESM output](#ensuring-esm-output)
 -   [Contributions](#contributions)
@@ -98,7 +98,7 @@ const ast = ts.createSourceFile(...);
 console.log(blankSourceFile(ast));
 ```
 
-## Node.js loader
+## Node.js Loader
 
 `ts-blank-space` exposes the required [Node.js module loader hooks](https://nodejs.org/api/module.html#customization-hooks) to use `ts-blank-space` to pre-process `*.ts` that are imported before they are evaluated.
 
@@ -110,11 +110,11 @@ $ npm install --save-dev ts-blank-space
 $ node --import ts-blank-space/register ./path/to/your/file.ts
 ```
 
-In addition to loading `*.ts` files, an import resolver is also registered which will catches failed `*.js` imports and re-attempts the import replacing the extension with `.ts`. This allows import paths to choose either `.ts` or `.js` depending on which other factors the project may need to take into account such as bundling and package distribution.
+In addition to loading `*.ts` files, an import resolver is also registered which catches failed `*.js` imports and re-attempts the import replacing the extension with `.ts`. This allows import paths to choose either `.ts` or `.js` depending on which other factors the project may need to take into account such as bundling and package distribution.
 
 ## Where are my SourceMaps?
 
-Because all the JavaScript in the output is located at the same line, column, and byte-offset as the original
+Because all the JavaScript in the output is located at the same line, column, and byte-offset as the original source
 there is no mapping information that is lost during the transform.
 
 ## Does it really just blank out all the type annotations?
@@ -213,7 +213,7 @@ Have you had a good experience with this project? Why not share some love and co
 We welcome issue reports [here](../../issues); be sure to choose the proper issue template for your issue, so that we can be sure you're providing the necessary information.
 
 Before sending a [Pull Request](../../pulls), please make sure you read our
-[Contribution Guidelines](https://github.com/bloomberg/.github/blob/master/CONTRIBUTING.md).
+[Contribution Guidelines](https://github.com/bloomberg/.github/blob/main/CONTRIBUTING.md).
 
 ## License
 
@@ -221,10 +221,10 @@ Please read the [LICENSE](./LICENSE) file.
 
 ## Code of Conduct
 
-This project has adopted a [Code of Conduct](https://github.com/bloomberg/.github/blob/master/CODE_OF_CONDUCT.md).
+This project has adopted a [Code of Conduct](https://github.com/bloomberg/.github/blob/main/CODE_OF_CONDUCT.md).
 If you have any concerns about the Code, or behavior which you have experienced in the project, please
 contact us at opensource@bloomberg.net.
 
 ## Security Vulnerability Reporting
 
-Please refer to the project [Security Policy](https://github.com/bloomberg/.github/blob/master/SECURITY.MD).
+Please refer to the project [Security Policy](https://github.com/bloomberg/.github/blob/main/SECURITY.MD).
