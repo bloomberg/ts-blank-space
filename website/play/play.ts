@@ -195,7 +195,7 @@ function createJsViewer(model: monaco.editor.ITextModel) {
         minimap: {
             enabled: false,
         },
-        lineNumbers: "off",
+        lineNumbers: "on",
         renderWhitespace: "none",
         detectIndentation: false,
         wordWrap: "off",
@@ -211,7 +211,7 @@ tsEditor.onDidScrollChange((e) => {
     jsViewer.setScrollTop(e.scrollTop);
 });
 
-let diffEditor;
+let diffEditor: monaco.editor.IDiffEditor;
 function initDiffEditor() {
     if (diffEditor) {
         return diffEditor;

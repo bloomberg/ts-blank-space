@@ -47,16 +47,21 @@
             <div class="col">
                 <div class="header" style="background-color: #f90">
                     <span style="font-size: 2em">blank-space</span>&nbsp;
-                    <label>diff:<input type="checkbox" id="diff-check" /> </label>
-                    <label>👻:<input type="checkbox" id="ghost-check" checked /> </label>
+                    <label title="Control if output should be shown as a diff"
+                        >diff:<input type="checkbox" id="diff-check"
+                    /></label>
                     <label
+                        title="Control if a faint ghost of the original TypeScript should still be displayed in the output"
+                        >👻:<input type="checkbox" id="ghost-check" checked />
+                    </label>
+                    <label title="Select which parser mode to use for the input text"
                         >parser:<select id="lang-select">
                             <option value="ts">.ts</option>
                             <option value="tsx">.tsx</option>
                         </select>
                     </label>
                     <button
-                        style="background: transparent; border: 0"
+                        style="background: transparent; border: 0; cursor: pointer"
                         title="Save state to URL address bar"
                         id="save-button"
                     >
