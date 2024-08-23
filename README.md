@@ -35,14 +35,19 @@ class C    extends Array                 {
 The benefits of this library are:
 
 -   It is fast
-    -   Only 2.3 times slower than a native asynchronous transformer in a micro-benchmark (see [`./perf`](./perf/) folder)
+    -   See [`./perf`](./perf/) folder for a micro-benchmark
+        -   Only 4 times slower than a native multi-threaded transformer
+        -   Fastest compared to non-native (JavaScript or Wasm)
     -   No new JavaScript code is generated, instead it re-uses slices of the existing source string
-    -   This is particularly true if other parts of your program are already generating the TypeScript `SourceFile` object for other reasons because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
+    -   This is particularly true if your program is already generating the TypeScript `SourceFile` object because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
 -   100% JavaScript runtime
+    -   No [Wasm](https://webassembly.org)
+    -   No [native-addons](https://nodejs.org/api/addons.html)
+    -   No [child process](https://nodejs.org/api/child_process.html)
 -   It is small
-    -   ~700 lines of code and one dependency (`typescript`)
+    -   Less than 700 lines of code and one dependency ([`typescript`](https://www.npmjs.com/package/typescript))
     -   By doing so little the code should be relatively easy to maintain
--   Uses the official TypeScript parser
+-   Delegates the parsing to the [official TypeScript parser](https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API)
 -   No need for additional SourceMap processing. See ["where are my SourceMaps?"](#where-are-my-sourcemaps)
 
 :information_source: Not all TypeScript syntax is supported (see [unsupported syntax](#unsupported)). There is also no down leveling, the JavaScript is preserved as is.
@@ -111,6 +116,8 @@ $ node --import ts-blank-space/register ./path/to/your/file.ts
 ```
 
 In addition to loading `*.ts` files, an import resolver is also registered which catches failed `*.js` imports and re-attempts the import replacing the extension with `.ts`. This allows import paths to choose either `.ts` or `.js` depending on which other factors the project may need to take into account such as bundling and package distribution.
+
+:information_source: The loader assumes that all `.ts` files are [ESM](https://nodejs.org/api/esm.html).
 
 ## Where are my SourceMaps?
 
