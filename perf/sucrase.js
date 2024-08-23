@@ -22,9 +22,8 @@ const options = {
     keepUnusedImports: true,
 };
 
-console.time("");
 for (let i = 0; i < count; i++) {
     const output = sucrase.transform(input, options);
+    assert((output.sourceMap?.mappings?.length ?? 0) > 100);
     assert(output.code.length > 100);
 }
-console.timeEnd("");

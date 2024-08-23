@@ -1,9 +1,13 @@
 {
     "type": "module",
     "dependencies": {
-        "@swc/core": "^1.7.0-nightly-20240715.2",
-        "@swc/wasm": "^1.7.0-nightly-20240715.2",
-        "@swc/wasm-typescript": "^1.7.0-nightly-20240715.2",
+        "@babel/core": "^7.25.2",
+        "@babel/plugin-transform-typescript": "^7.25.2",
+        "@swc/core": "^1.7.11",
+        "@swc/wasm": "^1.7.11",
+        "@swc/wasm-typescript": "^1.7.11",
+        "esbuild": "^0.23.0",
+        "esbuild-wasm": "^0.23.0",
         "sucrase": "^3.34.0"
     },
     "scripts": {

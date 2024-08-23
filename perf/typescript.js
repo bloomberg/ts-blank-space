@@ -9,7 +9,6 @@ function assert(v) {
 const input = fs.readFileSync(process.argv[2], "utf-8");
 const count = Number(process.argv[3]) || 100;
 
-console.time("");
 for (let i = 0; i < count; i++) {
     const output = ts.transpileModule(input, {
         fileName: "input.ts",
@@ -18,7 +17,7 @@ for (let i = 0; i < count; i++) {
             module: ts.ModuleKind.ESNext,
             sourceMap: true,
         },
-    }).outputText;
-    assert(output.length > 100);
+    });
+    assert((output.sourceMapText?.length ?? 0) > 100);
+    assert(output.outputText.length > 100);
 }
-console.timeEnd("");

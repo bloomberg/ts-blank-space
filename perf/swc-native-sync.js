@@ -19,9 +19,8 @@ const options = {
     },
 };
 
-console.time("");
 for (let i = 0; i < count; i++) {
     const out = swc.transformSync(input, options);
+    assert((out.map?.length ?? 0) > 100);
     assert(out.code.length > 100);
 }
-console.timeEnd("");

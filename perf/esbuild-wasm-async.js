@@ -1,5 +1,5 @@
 // @ts-check
-import * as swc from "@swc/core";
+import * as esbuild from "esbuild-wasm";
 import * as fs from "node:fs";
 
 function assert(v) {
@@ -9,23 +9,21 @@ function assert(v) {
 const input = fs.readFileSync(process.argv[2], "utf-8");
 const count = Number(process.argv[3]) || 100;
 
-/** @type {swc.Options} */
+/** @type {esbuild.TransformOptions} */
 const options = {
-    filename: "input.ts",
-    sourceMaps: true,
-    isModule: true,
-    jsc: {
-        target: "es2022",
-    },
+    format: "esm",
+    target: "esnext",
+    sourcemap: "external",
+    loader: "ts",
 };
 
 async function main() {
     const p = [];
     for (let i = 0; i < count; i++) {
-        const out = swc.transform(input, options);
+        const out = esbuild.transform(input, options);
         p.push(
             out.then((out) => {
-                assert((out.map?.length ?? 0) > 100);
+                assert(out.map.length > 100);
                 assert(out.code.length > 100);
             }),
         );
