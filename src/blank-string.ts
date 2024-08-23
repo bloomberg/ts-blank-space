@@ -18,11 +18,6 @@ function getSpace(input: string, start: number, end: number): string {
                 break;
             default:
                 out += " ";
-                if ((charCode & 0xf800) == 0xd800) {
-                    // Surrogate pair
-                    out += " ";
-                    i++;
-                }
         }
     }
     return out;
