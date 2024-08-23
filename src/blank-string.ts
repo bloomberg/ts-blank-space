@@ -57,28 +57,12 @@ export default class BlankString {
             return input;
         }
 
-        let flags = ranges[0];
-        let previousStart = ranges[1];
-        let previousEnd = ranges[2];
-        let out = input.slice(0, previousStart);
-
-        if (flags === FLAG_REPLACE_WITH_CLOSE_PAREN) {
-            out += ")";
-            previousStart += 1;
-        } else if (flags === FLAG_REPLACE_WITH_SEMI) {
-            out += ";";
-            previousStart += 1;
-        }
-
-        out += getSpace(input, previousStart, previousEnd);
-
-        if (ranges.length === 3) {
-            return out + input.slice(previousEnd);
-        }
+        let out = "";
+        let previousEnd = 0;
 
         const max = Math.max;
-        for (let i = 3; i < ranges.length; i += 3) {
-            flags = ranges[i];
+        for (let i = 0; i < ranges.length; i += 3) {
+            const flags = ranges[i];
             let rangeStart = ranges[i + 1];
             const rangeEnd = ranges[i + 2];
 
@@ -93,9 +77,8 @@ export default class BlankString {
                 rangeStart += 1;
             }
 
-            previousStart = rangeStart;
             previousEnd = rangeEnd;
-            out += getSpace(input, previousStart, previousEnd);
+            out += getSpace(input, rangeStart, previousEnd);
         }
 
         return out + input.slice(previousEnd);
