@@ -59,18 +59,9 @@ Ensure `ts-blank-space` has been built
 npm run build
 ```
 
-Build website:
+Start development server
 
 ```sh
 cd website
-npm i
-npm run build
-```
-
-Serve:
-
-```sh
-cd website/dist
-python3 -m http.server 8080
-open http://localhost:8080/play
+npm start
 ```

@@ -6,9 +6,10 @@
         "#r": "ts-blank-space/register"
     },
     "scripts": {
-        "build": "node -C LKG --import=#r ./build.ts",
-        "predeploy": "npm run build",
-        "deploy": "gh-pages -d ./dist"
+        "start": "npm run build -- --serve",
+        "build": "node -C LKG --import=#r ./node_modules/.bin/eleventy --config=.eleventy.ts",
+        "predeploy": "npm run build -- --pathprefix=ts-blank-space",
+        "deploy": "gh-pages -d ./_site"
     },
     "dependencies": {
         "monaco-editor": "^0.50.0",
@@ -16,7 +17,10 @@
         "typescript": "^5.5.4"
     },
     "devDependencies": {
+        "@11ty/eleventy": "3.0.0-beta.1",
+        "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.0",
         "esbuild": "^0.23.0",
-        "gh-pages": "^6.1.1"
+        "gh-pages": "^6.1.1",
+        "prism-themes": "^1.9.0"
     }
 }

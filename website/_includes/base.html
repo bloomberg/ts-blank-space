@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="/node_modules/prism-themes/themes/prism-vs.min.css" />
+        <link
+            rel="stylesheet"
+            href="/node_modules/prism-themes/themes/prism-vsc-dark-plus.min.css"
+            disabled
+            id="prism-dark-link"
+        />
+        <link rel="stylesheet" href="/assets/base.css" />
+        <style>
+            body {
+                display: grid;
+                grid-template-columns: 1fr min(45rem, 90%) 1fr;
+            }
+            body > * {
+                grid-column: 2;
+            }
+            header {
+                padding-bottom: 2em;
+            }
+        </style>
+    </head>
+    <body>
+        <header style="grid-column-start: 1; grid-column-end: -1; display: grid; grid-template-columns: 1fr 1fr">
+            <div style="background-color: #3178c6; flex-grow: 1">
+                <h1 class="cds-t-h1">ts-</h1>
+            </div>
+            <div style="background-color: #f90; flex-grow: 1">
+                <h1 class="cds-t-h1">blank-space</h1>
+            </div>
+        </header>
+        <main class="cds-prose">{{ content }}</main>
+        <script>
+            const darkMode = window.matchMedia("(prefers-color-scheme: dark)");
+            function themeUpdate() {
+                document.getElementById("prism-dark-link").toggleAttribute("disabled", !darkMode.matches);
+            }
+            darkMode.addEventListener("change", themeUpdate);
+            themeUpdate();
+        </script>
+    </body>
+</html>

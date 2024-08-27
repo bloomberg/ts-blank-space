@@ -256,3 +256,22 @@ diffCheck.onchange = function () {
     }
 };
 containers.diff.style.display = "none";
+
+const mo = new ResizeObserver(() => {
+    console.log("layout");
+    tsEditor.layout();
+    jsViewer.layout();
+});
+mo.observe(containers.ts);
+mo.observe(containers.js);
+
+const darkMode = window.matchMedia("(prefers-color-scheme: dark)");
+function themeUpdate() {
+    if (darkMode.matches) {
+        monaco.editor.setTheme("vs-dark");
+    } else {
+        monaco.editor.setTheme("vs-light");
+    }
+}
+darkMode.addEventListener("change", themeUpdate);
+themeUpdate();

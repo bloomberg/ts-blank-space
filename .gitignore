@@ -1,8 +1,17 @@
 .DS_Store
 node_modules
 out
+
+# perf
 perf/fixtures
+
+# tests
 tests/ecosystem/package-lock.json
 tests/ecosystem/typescript
-website/dist
+
+# website
+website/_site
 website/package-lock.json
+
+# previous site output:
+website/dist
