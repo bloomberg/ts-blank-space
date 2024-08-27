@@ -59,3 +59,23 @@ foo satisfies string/*trailing*/
 // No ASI:
 foo satisfies string/*trailing*/
 + "";
+
+// More statement types and positions:
+let car = 1 as number/*trailing*/
+(1);
+
+class ASI {
+    f = 1 as number/*trailing*/
+    ["method"]() {
+        let v = 1 as number/*trailing*/
+        (1);
+
+        if (true) (() => { 1 })
+        else 1 as number/*trailing*/
+        (1);
+
+        // Also missing `;` on LHS before visiting RHS
+        ((() => { 1/*trailing*/})(), 1) + 1 as number/*trailing*/
+        (1);
+    }
+}

@@ -31,7 +31,7 @@ let str = new BlankString("");
 let ast: ts.SourceFile;
 let onError: ErrorCb | undefined;
 let seenJS = false;
-let missingSemiPos = 0;
+let parentStatement: ts.Node | undefined = undefined;
 
 /**
  * @param input string containing TypeScript
@@ -59,7 +59,7 @@ export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): st
         scanner.setText(input);
         ast = source;
 
-        ast.forEachChild(visitTop);
+        ast.forEachChild(visitStatementLike);
 
         return str.toString();
     } finally {
@@ -70,19 +70,30 @@ export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): st
         str = undefined!;
         src = "";
         seenJS = false;
-        missingSemiPos = 0;
+        parentStatement = undefined;
     }
 }
 
-function visitTop(node: ts.Node): void {
-    if (innerVisitTop(node) === VISITED_JS) {
+function visitHelper(visitor: typeof innerVisitor, node: ts.Node, knownStatementLike: boolean): VisitResult {
+    const previousParentStatement = parentStatement;
+    if (knownStatementLike || tslib.isStatement(node)) {
+        parentStatement = node;
+    }
+    const r = visitor(node, node.kind);
+    if (r === VISITED_JS) {
         seenJS = true;
     }
+    parentStatement = previousParentStatement;
+    return r;
 }
 
-function innerVisitTop(node: ts.Node): VisitResult {
+function visitStatementLike(node: ts.Node): void {
+    visitHelper(innerVisitStatementLike, node, /* knownStatementLike */ true);
+}
+
+function innerVisitStatementLike(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
     const n = node as any;
-    switch (node.kind) {
+    switch (kind) {
         case SK.ImportDeclaration:
             return visitImportDeclaration(n);
         case SK.ExportDeclaration:
@@ -93,23 +104,19 @@ function innerVisitTop(node: ts.Node): VisitResult {
             onError && onError(n);
             return VISITED_JS;
     }
-    return visitor(node);
+    return innerVisitor(node, kind);
 }
 
 function visitor(node: ts.Node): VisitResult {
-    const r = innerVisitor(node);
-    if (r === VISITED_JS) {
-        seenJS = true;
-    }
-    return r;
+    return visitHelper(innerVisitor, node, /* knownStatementLike: */ false);
 }
 
-function innerVisitor(node: ts.Node): VisitResult {
+function innerVisitor(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
     const n = node as any;
     // prettier-ignore
-    switch (node.kind) {
+    switch (kind) {
         case SK.Identifier: return VISITED_JS;
-        case SK.ExpressionStatement: return visitExpressionStatement(n);
+        case SK.Block: return node.forEachChild(visitStatementLike) || VISITED_JS;
         case SK.VariableDeclaration: return visitVariableDeclaration(n);
         case SK.VariableStatement: return visitVariableStatement(n);
         case SK.CallExpression:
@@ -129,7 +136,7 @@ function innerVisitor(node: ts.Node): VisitResult {
         case SK.Constructor:
         case SK.FunctionExpression:
         case SK.GetAccessor:
-        case SK.SetAccessor: return visitFunctionLikeDeclaration(n);
+        case SK.SetAccessor: return visitFunctionLikeDeclaration(n, kind);
         case SK.EnumDeclaration:
         case SK.ModuleDeclaration: return visitEnumOrModule(n);
         case SK.IndexSignature: blankExact(n); return VISIT_BLANKED;
@@ -138,13 +145,6 @@ function innerVisitor(node: ts.Node): VisitResult {
     }
 
     return node.forEachChild(visitor) || VISITED_JS;
-}
-
-function visitExpressionStatement(node: ts.ExpressionStatement): VisitResult {
-    if (src.charCodeAt(node.end) !== 59 /* ; */) {
-        missingSemiPos = node.end;
-    }
-    return visitor(node.expression);
 }
 
 /**
@@ -237,7 +237,7 @@ function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
             }
         }
     }
-    node.members.forEach(visitor);
+    node.members.forEach(visitStatementLike);
     return VISITED_JS;
 }
 
@@ -328,10 +328,11 @@ function visitNonNullExpression(node: ts.NonNullExpression): VisitResult {
  */
 function visitTypeAssertion(node: ts.SatisfiesExpression | ts.AsExpression): VisitResult {
     const r = visitor(node.expression);
-    if (node.end === missingSemiPos) {
-        str.blankButStartWithSemi(node.expression.end, node.end);
+    const nodeEnd = node.end;
+    if (parentStatement && nodeEnd === parentStatement.end && src.charCodeAt(nodeEnd) !== 59 /* ; */) {
+        str.blankButStartWithSemi(node.expression.end, nodeEnd);
     } else {
-        str.blank(node.expression.end, node.end);
+        str.blank(node.expression.end, nodeEnd);
     }
     return r;
 }
@@ -347,7 +348,7 @@ function visitLegacyTypeAssertion(node: ts.TypeAssertion): VisitResult {
 /**
  * `function<T>(p: T): T {}`
  */
-function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): VisitResult {
+function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts.SyntaxKind): VisitResult {
     if (!node.body) {
         if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
             blankStatement(node);
@@ -416,9 +417,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration): VisitRe
         const cache = seenJS;
         seenJS = false;
         for (let i = 0; i < statements.length; i++) {
-            if (visitor(statements[i]) === VISITED_JS) {
-                seenJS = true;
-            }
+            visitStatementLike(statements[i]);
         }
         seenJS = cache;
     } else {

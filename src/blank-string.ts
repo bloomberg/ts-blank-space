@@ -6,7 +6,6 @@ const FLAG_REPLACE_WITH_SEMI = 2;
 
 function getSpace(input: string, start: number, end: number): string {
     let out = "";
-
     for (let i = start; i < end; i++) {
         const charCode = input.charCodeAt(i);
         switch (charCode) {
