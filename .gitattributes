@@ -1,0 +1,3 @@
+tests/fixture/output/** linguist-generated
+scripts/lkg/** linguist-vendored
+website/** linguist-documentation
