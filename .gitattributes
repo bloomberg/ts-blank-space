@@ -1,3 +1,4 @@
 tests/fixture/output/** linguist-generated
 scripts/lkg/** linguist-vendored
+perf/** linguist-documentation
 website/** linguist-documentation
