@@ -258,7 +258,6 @@ diffCheck.onchange = function () {
 containers.diff.style.display = "none";
 
 const mo = new ResizeObserver(() => {
-    console.log("layout");
     tsEditor.layout();
     jsViewer.layout();
 });
