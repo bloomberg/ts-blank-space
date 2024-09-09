@@ -2,6 +2,13 @@
     "name": "ts-blank-space",
     "version": "0.3.3",
     "license": "Apache-2.0",
+    "contributors": [
+        "Ashley Claymore <aclaymore@bloomberg.net>",
+        "Kubilay Kahveci <mkahveci@bloomberg.net>",
+        "Rob Palmer <rpalmer57@bloomberg.net>",
+        "Thomas Chetwin <tchetwin@bloomberg.net>",
+        "Titian Cernicova-Dragomir <tcernicovad1@bloomberg.net>"
+    ],
     "type": "module",
     "main": "./out/index.js",
     "exports": {
