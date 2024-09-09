@@ -17,7 +17,7 @@
         "./register": "./loader/register.js"
     },
     "engines": {
-        "node": ">=10.13"
+        "node": ">=18.0.0"
     },
     "types": "./out/index.d.ts",
     "dependencies": {
