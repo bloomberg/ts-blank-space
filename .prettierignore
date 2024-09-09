@@ -1,2 +1,3 @@
 tests/fixture/cases
 tests/fixture/output
+*.min.css
