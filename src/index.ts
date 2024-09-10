@@ -59,7 +59,7 @@ export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): st
         scanner.setText(input);
         ast = source;
 
-        ast.forEachChild(visitStatementLike);
+        visitNodeArray(ast.statements, /* isStatementLike: */ true, /* isFunctionBody: */ false);
 
         return str.toString();
     } finally {
@@ -74,25 +74,36 @@ export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): st
     }
 }
 
-function visitHelper(visitor: typeof innerVisitor, node: ts.Node, knownStatementLike: boolean): VisitResult {
+function visitUnknownNodeArray(nodes: ts.NodeArray<ts.Node>): VisitResult {
+    if (nodes.length === 0) return VISITED_JS;
+    return visitNodeArray(nodes, tslib.isStatement(nodes[0]), /* isFunctionBody: */ false);
+}
+
+function visitNodeArray(nodes: ts.NodeArray<ts.Node>, isStatementLike: boolean, isFunctionBody: boolean): VisitResult {
     const previousParentStatement = parentStatement;
-    if (knownStatementLike || tslib.isStatement(node)) {
-        parentStatement = node;
+    const previousSeenJS = seenJS;
+    if (isFunctionBody) {
+        seenJS = false; // 'seenJS' resets for nested execution context
     }
-    const r = visitor(node, node.kind);
-    if (r === VISITED_JS) {
-        seenJS = true;
+    for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        if (isStatementLike) {
+            parentStatement = n;
+        }
+        if (visitStatementLike(n) === VISITED_JS) {
+            seenJS = true;
+        }
     }
     parentStatement = previousParentStatement;
-    return r;
+    if (isFunctionBody) {
+        seenJS = previousSeenJS;
+    }
+    return seenJS ? VISITED_JS : VISIT_BLANKED;
 }
 
-function visitStatementLike(node: ts.Node): void {
-    visitHelper(innerVisitStatementLike, node, /* knownStatementLike */ true);
-}
-
-function innerVisitStatementLike(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
+function visitStatementLike(node: ts.Node): VisitResult {
     const n = node as any;
+    const kind = node.kind;
     switch (kind) {
         case SK.ImportDeclaration:
             return visitImportDeclaration(n);
@@ -108,7 +119,9 @@ function innerVisitStatementLike(node: ts.Node, kind: ts.SyntaxKind): VisitResul
 }
 
 function visitor(node: ts.Node): VisitResult {
-    return visitHelper(innerVisitor, node, /* knownStatementLike: */ false);
+    const r = innerVisitor(node, node.kind);
+    if (r === VISITED_JS) seenJS = true;
+    return r;
 }
 
 function innerVisitor(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
@@ -116,7 +129,6 @@ function innerVisitor(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
     // prettier-ignore
     switch (kind) {
         case SK.Identifier: return VISITED_JS;
-        case SK.Block: return node.forEachChild(visitStatementLike) || VISITED_JS;
         case SK.VariableDeclaration: return visitVariableDeclaration(n);
         case SK.VariableStatement: return visitVariableStatement(n);
         case SK.CallExpression:
@@ -144,7 +156,7 @@ function innerVisitor(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
         case SK.TypeAssertionExpression: return visitLegacyTypeAssertion(n);
     }
 
-    return node.forEachChild(visitor) || VISITED_JS;
+    return node.forEachChild(visitor, visitUnknownNodeArray) || VISITED_JS;
 }
 
 /**
@@ -155,7 +167,7 @@ function visitVariableStatement(node: ts.VariableStatement): VisitResult {
         blankStatement(node);
         return VISIT_BLANKED;
     }
-    node.forEachChild(visitor);
+    node.forEachChild(visitor, visitUnknownNodeArray);
     return VISITED_JS;
 }
 
@@ -168,8 +180,9 @@ function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): V
         blankGenerics(node, node.typeArguments);
     }
     if (node.arguments) {
-        for (let i = 0; i < node.arguments.length; i++) {
-            visitor(node.arguments[i]);
+        const args = node.arguments;
+        for (let i = 0; i < args.length; i++) {
+            visitor(args[i]);
         }
     }
     return VISITED_JS;
@@ -237,7 +250,7 @@ function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
             }
         }
     }
-    node.members.forEach(visitStatementLike);
+    visitNodeArray(node.members, /* isStatementLike: */ true, /* isFunctionBody: */ false);
     return VISITED_JS;
 }
 
@@ -252,30 +265,37 @@ function visitExpressionWithTypeArguments(node: ts.ExpressionWithTypeArguments):
     return VISITED_JS;
 }
 
+const classElementModifiersToRemoveArray = [
+    SK.AbstractKeyword,
+    SK.DeclareKeyword,
+    SK.OverrideKeyword,
+    SK.PrivateKeyword,
+    SK.ProtectedKeyword,
+    SK.PublicKeyword,
+    SK.ReadonlyKeyword,
+] as const;
+const classElementModifiersToRemove = new Set(classElementModifiersToRemoveArray);
+
+function isRemovedModifier(kind: ts.SyntaxKind): kind is (typeof classElementModifiersToRemoveArray)[number] {
+    return classElementModifiersToRemove.has(kind as never);
+}
+
 function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
     for (let i = 0; i < modifiers.length; i++) {
         const modifier = modifiers[i];
-        switch (modifier.kind) {
-            case SK.PrivateKeyword:
-            case SK.ProtectedKeyword:
-            case SK.PublicKeyword:
-            case SK.AbstractKeyword:
-            case SK.OverrideKeyword:
-            case SK.DeclareKeyword:
-            case SK.ReadonlyKeyword:
-                blankExact(modifier);
-                continue;
-            case SK.Decorator:
-                visitor(modifier);
-                continue;
+        const kind = modifier.kind;
+        if (isRemovedModifier(kind)) {
+            blankExact(modifier);
+            continue;
+        } else if (kind === SK.Decorator) {
+            visitor(modifier);
+            continue;
         }
 
-        // at runtime skip the remaining checks
-        // these are here only as a compile-time exhaustive check
-        const trueAsFalse = /** @type {false} */ true;
-        if (trueAsFalse) continue;
+        // at runtime skip the remaining code, its purpose is a compile-time exhaustive check
+        if (true as false) continue;
 
-        switch (modifier.kind) {
+        switch (kind) {
             case SK.ConstKeyword:
             case SK.DefaultKeyword:
             case SK.ExportKeyword:
@@ -286,7 +306,7 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
             case SK.OutKeyword:
                 continue;
             default:
-                never(modifier);
+                never(kind);
         }
     }
 }
@@ -345,6 +365,13 @@ function visitLegacyTypeAssertion(node: ts.TypeAssertion): VisitResult {
     return visitor(node.expression);
 }
 
+const unsupportedParameterModifiers = new Set([
+    SK.PublicKeyword,
+    SK.ProtectedKeyword,
+    SK.PrivateKeyword,
+    SK.ReadonlyKeyword,
+]);
+
 /**
  * `function<T>(p: T): T {}`
  */
@@ -374,22 +401,19 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
     // method?
     node.questionToken && blankExact(node.questionToken);
 
-    for (let i = 0; i < node.parameters.length; i++) {
-        const p = node.parameters[i];
+    const params = node.parameters;
+    for (let i = 0; i < params.length; i++) {
+        const p = params[i];
         if (i === 0 && p.name.getText(ast) === "this") {
             blankExactAndOptionalTrailingComma(p);
             continue;
         }
-        if (p.modifiers) {
+        if (onError && p.modifiers) {
             // error on non-standard parameter properties
             for (let i = 0; i < p.modifiers.length; i++) {
-                const mod = p.modifiers[i];
-                switch (mod.kind) {
-                    case SK.PublicKeyword:
-                    case SK.ProtectedKeyword:
-                    case SK.PrivateKeyword:
-                    case SK.ReadonlyKeyword:
-                        onError && onError(mod);
+                const modifier = p.modifiers[i];
+                if (unsupportedParameterModifiers.has(modifier.kind)) {
+                    onError(modifier);
                 }
             }
         }
@@ -400,9 +424,9 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
     }
 
     const returnType = node.type;
-    const isArrow = node.kind === SK.ArrowFunction;
+    const isArrow = kind === SK.ArrowFunction;
     if (returnType) {
-        if (!isArrow || !spansLines(node.parameters.end, node.equalsGreaterThanToken.pos)) {
+        if (!isArrow || !spansLines(node.parameters.end, (node as ts.ArrowFunction).equalsGreaterThanToken.pos)) {
             blankTypeNode(returnType);
         } else {
             // danger! new line between parameters and `=>`
@@ -413,13 +437,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
 
     const body = node.body;
     if (body.kind === SK.Block) {
-        const statements = (body as ts.Block).statements;
-        const cache = seenJS;
-        seenJS = false;
-        for (let i = 0; i < statements.length; i++) {
-            visitStatementLike(statements[i]);
-        }
-        seenJS = cache;
+        visitNodeArray((body as ts.Block).statements, /* isStatementLike: */ true, /* isFunctionBody: */ true);
     } else {
         visitor(node.body);
     }
