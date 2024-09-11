@@ -1,5 +1,6 @@
 {
     "name": "ts-blank-space",
+    "description": "A small, fast, pure JavaScript, type-stripper using the official TypeScript parser",
     "version": "0.3.3333",
     "license": "Apache-2.0",
     "contributors": [
@@ -48,7 +49,8 @@
         "!perf",
         "out/*.js",
         "out/*.d.ts",
-        "loader/*.js"
+        "loader/*.js",
+        "loader/*.d.ts"
     ],
     "repository": {
         "type": "git",
