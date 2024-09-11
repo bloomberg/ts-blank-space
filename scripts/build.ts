@@ -1,4 +1,4 @@
-import lastKnownGoodTsBlankSpace from "./lkg/index.js";
+import lastKnownGoodTsBlankSpace from "ts-blank-space-lkg";
 import * as fs from "node:fs";
 import { join } from "node:path";
 

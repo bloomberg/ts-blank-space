@@ -7,12 +7,12 @@
         "esbuild": "^0.23.0",
         "prettier": "^3.3.3",
         "terser": "^5.31.3",
-        "ts-blank-space": "../.."
+        "ts-blank-space-lkg": "npm:ts-blank-space@^0.3.3333"
     },
     "imports": {
-        "#r": "ts-blank-space/register"
+        "#r": "ts-blank-space-lkg/register"
     },
     "scripts": {
-        "test": "node --test -C LKG --import=#r ecosystem.test.ts"
+        "test": "node --test --import=#r ecosystem.test.ts"
     }
 }

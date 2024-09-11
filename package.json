@@ -24,24 +24,21 @@
         "typescript": "5.1.6 - 5.6.x"
     },
     "imports": {
-        "#r": "./loader/register.js",
-        "#out/*": {
-            "LKG": "./scripts/lkg/*",
-            "default": "./out/*"
-        }
+        "#r": "ts-blank-space-lkg/register"
     },
     "devDependencies": {
         "@types/node": "^20.9.4",
-        "prettier": "3.3.3"
+        "prettier": "3.3.3",
+        "ts-blank-space-lkg": "npm:ts-blank-space@^0.3.3333"
     },
     "scripts": {
-        "build": "node -C LKG --import=#r ./scripts/build.ts",
+        "build": "node --import=#r ./scripts/build.ts",
         "check": "tsc -p ./src/tsconfig.json --noEmit",
         "gen-types": "tsc -p ./src/tsconfig.json --emitDeclarationOnly",
-        "fixtures": "node -C LKG --import=#r ./tests/fixture/_run.ts",
-        "fixtures:watch": "node --watch-path ./tests/fixture/cases -C LKG --import=#r ./tests/fixture/_run.ts",
-        "test": "node --test -C LKG --import=#r ./tests/*.test.ts",
-        "test-ecosystem": "node --test -C LKG --import=#r ./tests/ecosystem/ecosystem.test.ts",
+        "fixtures": "node --import=#r ./tests/fixture/_run.ts",
+        "fixtures:watch": "node --watch-path ./tests/fixture/cases --import=#r ./tests/fixture/_run.ts",
+        "test": "node --test --import=#r ./tests/*.test.ts",
+        "test-ecosystem": "node --test --import=#r ./tests/ecosystem/ecosystem.test.ts",
         "format": "prettier . -w",
         "format:check": "prettier . -c",
         "prepack": "npm run gen-types;npm run build;"
@@ -55,6 +52,6 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/bloomberg/ts-blank-space"
+        "url": "git+https://github.com/bloomberg/ts-blank-space.git"
     }
 }
