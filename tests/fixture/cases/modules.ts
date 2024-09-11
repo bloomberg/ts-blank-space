@@ -1,8 +1,11 @@
 /**/import type T from "node:assert";
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `import type`
 
+import { "🙂" as C2 } from "./modules";
+
 type I = any;
 class C {}
+C === C2;
 
 /**/export type { I };
 //  ^^^^^^^^^^^^^^^^^^ `export type`
@@ -17,6 +20,7 @@ export {
     C,
     type T,
 //  ^^^^^^
+    C as "🙂"
 }
 
 /**/export type T2 = 1;

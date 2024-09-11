@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { test, type TestContext } from "node:test";
 import assert from "node:assert";
 import * as fs from "node:fs";
 import { join } from "node:path";
@@ -26,12 +26,11 @@ const skipList = new Set([
     "constructorOverloads9.ts",
     // esbuild can't parse: "ERROR: Cannot continue to label "target1"
     "continueTarget3.ts",
+    // Prettier can't yet parse: `import {"0n" as foo}`
+    "bigintArbirtraryIdentifier.ts",
 ]);
 
-/**
- * @param {string} filename
- */
-function validFileName(filename) {
+function validFileName(filename: string) {
     if (!filename.endsWith(".ts")) {
         return false;
     }
@@ -54,29 +53,25 @@ for (const filename of fs.readdirSync(typescriptCompilerCasesDir, {
             return;
         }
         const path = join(typescriptCompilerCasesDir, filename);
-        await sameEmit(fs.readFileSync(path, "utf-8"), t);
+        await sameEmit(fs.readFileSync(path, "utf-8"), t, filename);
     });
     if (i++ % 100 === 0) {
         await new Promise((r) => setTimeout(r));
     }
 }
 
-/**
- * @param {string} source
- * @param {import("node:test").TestContext} t
- */
-async function sameEmit(source, t, multipart = false) {
+async function sameEmit(source: string, t: TestContext, filename: string, multipart = false) {
     if (!multipart && source.match(/\/\/ ?@filename:/i)) {
         const parts = source.split(/(?=\/\/ ?@filename:)/gi).filter((v) => v.trim());
         for (const section of parts) {
             const match = section.match(/@filename:(.+)/);
             if (!match) continue;
-            const filename = match[/* capture-group: */ 1];
-            if (!validFileName(filename)) {
+            const virtualFilename = match[/* capture-group: */ 1].trim();
+            if (!validFileName(virtualFilename)) {
                 continue;
             }
-            await t.test(`multipart: ${filename}`, async (t) => {
-                await sameEmit(section, t, /* multipart: */ true);
+            await t.test(`multipart: ${filename}/${virtualFilename}`, async (t) => {
+                await sameEmit(section, t, filename, /* multipart: */ true);
             });
         }
         return;
@@ -136,10 +131,7 @@ function tidyLines(input) {
         .filter((line) => line);
 }
 
-/**
- * @param {string} input
- */
-async function normalizeJS(input) {
+async function normalizeJS(input: string) {
     let minified;
 
     try {

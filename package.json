@@ -21,7 +21,7 @@
     },
     "types": "./out/index.d.ts",
     "dependencies": {
-        "typescript": "5.1.6 - 5.5.x"
+        "typescript": "5.1.6 - 5.6.x"
     },
     "imports": {
         "#r": "./loader/register.js",
