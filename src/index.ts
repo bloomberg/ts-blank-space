@@ -102,17 +102,16 @@ function visitNodeArray(nodes: ts.NodeArray<ts.Node>, isStatementLike: boolean, 
 }
 
 function visitStatementLike(node: ts.Node): VisitResult {
-    const n = node as any;
     const kind = node.kind;
     switch (kind) {
         case SK.ImportDeclaration:
-            return visitImportDeclaration(n);
+            return visitImportDeclaration(node as ts.ImportDeclaration);
         case SK.ExportDeclaration:
-            return visitExportDeclaration(n);
+            return visitExportDeclaration(node as ts.ExportDeclaration);
         case SK.ExportAssignment:
-            return visitExportAssignment(n);
+            return visitExportAssignment(node as ts.ExportAssignment);
         case SK.ImportEqualsDeclaration:
-            onError && onError(n);
+            onError && onError(node);
             return VISITED_JS;
     }
     return innerVisitor(node, kind);
@@ -125,35 +124,36 @@ function visitor(node: ts.Node): VisitResult {
 }
 
 function innerVisitor(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
-    const n = node as any;
     // prettier-ignore
     switch (kind) {
         case SK.Identifier: return VISITED_JS;
-        case SK.VariableDeclaration: return visitVariableDeclaration(n);
-        case SK.VariableStatement: return visitVariableStatement(n);
+        case SK.VariableDeclaration: return visitVariableDeclaration(node as ts.VariableDeclaration);
+        case SK.VariableStatement: return visitVariableStatement(node as ts.VariableStatement);
         case SK.CallExpression:
-        case SK.NewExpression: return visitCallOrNewExpression(n);
+        case SK.NewExpression: return visitCallOrNewExpression(node as (ts.CallExpression | ts.NewExpression));
         case SK.TypeAliasDeclaration:
-        case SK.InterfaceDeclaration: blankStatement(n); return VISIT_BLANKED;
+        case SK.InterfaceDeclaration:
+            blankStatement(node as (ts.TypeAliasDeclaration | ts.InterfaceDeclaration));
+            return VISIT_BLANKED;
         case SK.ClassDeclaration:
-        case SK.ClassExpression: return visitClassLike(n);
-        case SK.ExpressionWithTypeArguments: return visitExpressionWithTypeArguments(n);
-        case SK.PropertyDeclaration: return visitPropertyDeclaration(n);
-        case SK.NonNullExpression: return visitNonNullExpression(n);
+        case SK.ClassExpression: return visitClassLike(node as ts.ClassLikeDeclaration);
+        case SK.ExpressionWithTypeArguments: return visitExpressionWithTypeArguments(node as ts.ExpressionWithTypeArguments);
+        case SK.PropertyDeclaration: return visitPropertyDeclaration(node as ts.PropertyDeclaration);
+        case SK.NonNullExpression: return visitNonNullExpression(node as ts.NonNullExpression);
         case SK.SatisfiesExpression:
-        case SK.AsExpression: return visitTypeAssertion(n);
+        case SK.AsExpression: return visitTypeAssertion(node as (ts.AsExpression | ts.SatisfiesExpression));
         case SK.ArrowFunction:
         case SK.FunctionDeclaration:
         case SK.MethodDeclaration:
         case SK.Constructor:
         case SK.FunctionExpression:
         case SK.GetAccessor:
-        case SK.SetAccessor: return visitFunctionLikeDeclaration(n, kind);
+        case SK.SetAccessor: return visitFunctionLikeDeclaration(node as ts.FunctionLikeDeclaration, kind);
         case SK.EnumDeclaration:
-        case SK.ModuleDeclaration: return visitEnumOrModule(n);
-        case SK.IndexSignature: blankExact(n); return VISIT_BLANKED;
-        case SK.TaggedTemplateExpression: return visitTaggedTemplate(n);
-        case SK.TypeAssertionExpression: return visitLegacyTypeAssertion(n);
+        case SK.ModuleDeclaration: return visitEnumOrModule(node as (ts.EnumDeclaration | ts.ModuleDeclaration));
+        case SK.IndexSignature: blankExact(node); return VISIT_BLANKED;
+        case SK.TaggedTemplateExpression: return visitTaggedTemplate(node as ts.TaggedTemplateExpression);
+        case SK.TypeAssertionExpression: return visitLegacyTypeAssertion(node as ts.TypeAssertion);
     }
 
     return node.forEachChild(visitor, visitUnknownNodeArray) || VISITED_JS;
@@ -604,6 +604,6 @@ function getClosingParenthesisPos(node: ts.NodeArray<ts.ParameterDeclaration>): 
     return scanRange(node.length === 0 ? node.pos : node[node.length - 1].end, ast.end, getClosingParen);
 }
 
-function never(n: never): never {
+function never(_n: never): never {
     throw new Error("unreachable code was reached");
 }
