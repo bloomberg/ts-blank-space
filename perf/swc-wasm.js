@@ -8,6 +8,7 @@ function assert(v) {
 
 const input = fs.readFileSync(process.argv[2], "utf-8");
 const count = Number(process.argv[3]) || 100;
+const parseTS = process.argv.includes("--ts-ast");
 
 /** @type {swc.Options} */
 const options = {
@@ -19,8 +20,21 @@ const options = {
     },
 };
 
+/** @type {swc.ParseOptions} */
+const parseOptions = {
+    syntax: "typescript",
+    target: "es2022",
+};
+
 for (let i = 0; i < count; i++) {
-    const out = swc.transformSync(input, options);
+    let out;
+    if (parseTS) {
+        const ast = swc.parseSync(input, parseOptions);
+        assert(ast.body);
+        out = swc.transformSync(input, options);
+    } else {
+        out = swc.transformSync(input, options);
+    }
     assert((out.map?.length ?? 0) > 100);
     assert(out.code.length > 100);
 }

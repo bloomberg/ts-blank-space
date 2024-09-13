@@ -15,7 +15,7 @@ const options = {
     sourceMaps: true,
     isModule: true,
     jsc: {
-        target: "es2022",
+        target: "esnext",
     },
 };
 

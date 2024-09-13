@@ -8,6 +8,7 @@ function assert(v) {
 
 const input = fs.readFileSync(process.argv[2], "utf-8");
 const count = Number(process.argv[3]) || 100;
+const parseTS = process.argv.includes("--ts-ast");
 
 /** @type {swc.Options} */
 const options = {
@@ -15,14 +16,30 @@ const options = {
     sourceMaps: true,
     isModule: true,
     jsc: {
-        target: "es2022",
+        target: "esnext",
     },
+};
+
+/** @type {swc.ParseOptions} */
+const parseOptions = {
+    syntax: "typescript",
+    target: "esnext",
 };
 
 async function main() {
     const p = [];
     for (let i = 0; i < count; i++) {
-        const out = swc.transform(input, options);
+        let out;
+        if (parseTS) {
+            out = Promise.all([
+                swc.transform(input, options),
+                swc.parse(input, parseOptions).then((_ast) => {
+                    assert(_ast.body);
+                }),
+            ]).then(([out]) => out);
+        } else {
+            out = swc.transform(input, options);
+        }
         p.push(
             out.then((out) => {
                 assert((out.map?.length ?? 0) > 100);
