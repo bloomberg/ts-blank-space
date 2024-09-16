@@ -1,4 +1,10 @@
-# ts-blank-space
+<img src="assets/ts-blank-space.png" width="728" alt="'ts-blank-space' as a logo. the 'ts' is in TypeScript blue and the 'blank-space' is in JavaScript orange" />
+
+A small, fast, pure JavaScript, type-stripper using the official TypeScript parser.
+
+[![npm Badge](https://img.shields.io/npm/v/ts-blank-space.svg)](https://www.npmjs.com/package/ts-blank-space)
+
+---
 
 TypeScript goes in:
 
