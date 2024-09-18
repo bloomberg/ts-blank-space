@@ -38,6 +38,7 @@
         "gen-types": "tsc -p ./src/tsconfig.json --emitDeclarationOnly",
         "fixtures": "node --import=#r ./tests/fixture/_run.ts",
         "fixtures:watch": "node --watch-path ./tests/fixture/cases --import=#r ./tests/fixture/_run.ts",
+        "pretest": "npm run build",
         "test": "node --test --import=#r ./tests/*.test.ts",
         "test-ecosystem": "node --test --import=#r ./tests/ecosystem/ecosystem.test.ts",
         "format": "prettier . -w",
