@@ -36,6 +36,8 @@ class C    extends Array                 {
 }
 ```
 
+Try it out in the [playground](https://bloomberg.github.io/ts-blank-space/play/).
+
 ## Rationale
 
 The benefits of this library are:

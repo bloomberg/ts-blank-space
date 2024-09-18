@@ -16,12 +16,17 @@
             body {
                 display: grid;
                 grid-template-columns: 1fr min(45rem, 90%) 1fr;
+                padding-bottom: 50vh;
             }
             body > * {
                 grid-column: 2;
             }
             header {
                 padding-bottom: 2em;
+            }
+            .gh-link svg {
+                display: inline-block;
+                height: 2em;
             }
         </style>
     </head>
@@ -31,7 +36,13 @@
                 <h1 class="cds-t-h1">ts-</h1>
             </div>
             <div style="background-color: #f90; flex-grow: 1">
-                <h1 class="cds-t-h1">blank-space</h1>
+                <h1 class="cds-t-h1" style="float: left">blank-space</h1>
+                <menu style="float: right; padding: 5px">
+                    <a href="./play" class="cds-t-h4" style="margin-right: 5px">playground</a>
+                    <a href="https://github.com/bloomberg/ts-blank-space" class="gh-link"
+                        >{% include './github-mark.svg' %}</a
+                    >
+                </menu>
             </div>
         </header>
         <main class="cds-prose">{{ content }}</main>
