@@ -1,4 +1,6 @@
-<img src="assets/ts-blank-space.png" width="728" alt="'ts-blank-space' as a logo. the 'ts' is in TypeScript blue and the 'blank-space' is in JavaScript orange" />
+<a href="https://bloomberg.github.io/ts-blank-space">
+    <img src="assets/ts-blank-space.png" width="728" alt="'ts-blank-space' as a logo. the 'ts' is in TypeScript blue and the 'blank-space' is in JavaScript orange" />
+</a>
 
 A small, fast, pure JavaScript, type-stripper using the official TypeScript parser.
 
