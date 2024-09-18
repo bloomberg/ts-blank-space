@@ -46,6 +46,11 @@
             menu > * {
                 padding: 1ch;
             }
+
+            .gh-link svg {
+                display: inline-block;
+                height: 2em;
+            }
         </style>
     </head>
     <body>
@@ -54,8 +59,8 @@
                 <h1 class="cds-t-h1">ts-</h1>
             </div>
             <div style="background-color: #f90; grid-area: header-js">
-                <h1 class="cds-t-h1">blank-space</h1>
-                <menu>
+                <h1 class="cds-t-h1" style="float: left">blank-space</h1>
+                <menu style="float: right">
                     <label title="Control if output should be shown as a diff"
                         >diff: <input type="checkbox" id="diff-check" />
                     </label>
@@ -65,7 +70,7 @@
                     </label>
                     <label title="Select which parser mode to use for the input text"
                         >parser:
-                        <select id="lang-select" style="width: auto; display: inline-block">
+                        <select id="lang-select" style="width: auto; display: inline-block; padding: 5px">
                             <option value="ts">.ts</option>
                             <option value="tsx">.tsx</option>
                         </select>
@@ -77,6 +82,12 @@
                     >
                         💾
                     </button>
+                    <a
+                        href="https://github.com/bloomberg/ts-blank-space"
+                        class="gh-link"
+                        style="float: right; padding: 5px"
+                        >{% include 'github-mark.svg' %}</a
+                    >
                 </menu>
             </div>
             <div id="container-ts" class="editor" style="grid-area: editor-ts"></div>
@@ -84,7 +95,7 @@
         </div>
         <div id="container-diff" class="editor"></div>
         <footer style="text-align: center; padding-top: 10px">
-            <a href="https://github.com/bloomberg/ts-blank-space">github.com/bloomberg/ts-blank-space</a>
+            <a href="..">bloomberg/ts-blank-space</a>
         </footer>
         <script src="./play.js"></script>
     </body>
