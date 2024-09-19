@@ -9,7 +9,7 @@
         "start": "npm run build -- --serve",
         "build": "node --import=#r ./node_modules/.bin/eleventy --config=.eleventy.ts",
         "predeploy": "npm run build -- --pathprefix=ts-blank-space",
-        "deploy": "gh-pages -d ./_site --nojekyll"
+        "deploy": "gh-pages -d ./_site --nojekyll --no-history"
     },
     "dependencies": {
         "monaco-editor": "^0.50.0",
