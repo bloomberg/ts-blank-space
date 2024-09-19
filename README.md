@@ -121,7 +121,7 @@ console.log(blankSourceFile(ast));
 # Install (one time):
 $ npm install --save-dev ts-blank-space
 
-# Example usage (Node.js v18.18):
+# Example usage (Node.js >= v18.20):
 $ node --import ts-blank-space/register ./path/to/your/file.ts
 ```
 
