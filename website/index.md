@@ -151,7 +151,7 @@ es/error-stack.js n=100000 method="sourcemap": 55,918.729592805634
 
 ### Resilience
 
-Bloomberg is a heavy user of sourcemaps, and we have some engineering who are helping to [make them even better.](https://ecma-international.org/news/ecma-tc39-ecmascript-initiates-a-new-task-group-to-standardize-source-maps/) For sourcemaps to work, many different tools must align perfectly align end-to-end. This can lead to them [sometimes failing](https://x.com/robpalmer2/status/1583581325289656320). With `ts-blank-space` your debugging experience will be based on accurate locations even if your environment is misconfigured or you find yourself in situations when sourcemaps would have been inaccessible.
+Bloomberg is a heavy user of sourcemaps, and we have some engineering who are helping to [make them even better.](https://ecma-international.org/news/ecma-tc39-ecmascript-initiates-a-new-task-group-to-standardize-source-maps/) For sourcemaps to work, many different tools must perfectly align end-to-end. This can lead to them [sometimes failing](https://x.com/robpalmer2/status/1583581325289656320). With `ts-blank-space` your debugging experience will be based on accurate locations even if your environment is misconfigured or you find yourself in situations when sourcemaps would have been inaccessible.
 
 ## Maintenance Benefits
 
