@@ -187,7 +187,7 @@ let f = (a        , b
 
 Some parts of TypeScript are not supported because they can't be erased in place due to having runtime semantics. See [unsupported_syntax.md](./docs/unsupported_syntax.md).
 
-When unsupported syntax is encountered, `ts-blank-space` will call the optional `onError` callback and continue. Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
+When unsupported syntax is encountered, `ts-blank-space` will call the optional `onError` callback and continue. Examples can be seen in [`errors.test.ts`](./tests/errors.test.ts).
 
 ## Recommended `tsconfig.json` compiler settings
 
