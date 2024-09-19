@@ -2,7 +2,7 @@
     <img src="assets/ts-blank-space.png" width="728" alt="'ts-blank-space' as a logo. the 'ts' is in TypeScript blue and the 'blank-space' is in JavaScript orange" />
 </a>
 
-A small, fast, pure JavaScript, type-stripper using the official TypeScript parser.
+A small, fast, pure JavaScript type-stripper that uses the official TypeScript parser.
 
 [![npm Badge](https://img.shields.io/npm/v/ts-blank-space.svg)](https://www.npmjs.com/package/ts-blank-space)
 
@@ -48,31 +48,31 @@ The benefits of this library are:
     -   See [`./perf`](./perf/) folder for a micro-benchmark
         -   Only 4 times slower than a native multi-threaded transformer
         -   Fastest compared to non-native (JavaScript or Wasm)
-    -   No new JavaScript code is generated, instead it re-uses slices of the existing source string
-    -   This is particularly true if your program is already generating the TypeScript `SourceFile` object because it can [be reused](#bring-your-own-ast), and producing the AST is the most time consuming part.
+    -   No new JavaScript code is generated; instead, it re-uses slices of the existing source string
+    -   This is particularly true if your program is already generating the TypeScript `SourceFile` object, because it can [be reused](#bring-your-own-ast) -- and producing the AST is the most time consuming part.
 -   100% JavaScript runtime
     -   No [Wasm](https://webassembly.org)
     -   No [native-addons](https://nodejs.org/api/addons.html)
     -   No [child process](https://nodejs.org/api/child_process.html)
 -   It is small
-    -   Less than 700 lines of code and one dependency ([`typescript`](https://www.npmjs.com/package/typescript))
-    -   By doing so little the code should be relatively easy to maintain
+    -   Less than 700 lines of code and one dependency ([`TypeScript`](https://www.npmjs.com/package/typescript))
+    -   By doing so little, the code should be relatively easy to maintain
 -   Delegates the parsing to the [official TypeScript parser](https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API)
--   No need for additional SourceMap processing. See ["where are my SourceMaps?"](#where-are-my-sourcemaps)
+-   No need for additional SourceMap processing; see ["where are my SourceMaps?"](#where-are-my-sourcemaps)
 
-:information_source: Not all TypeScript syntax is supported (see [unsupported syntax](#unsupported)). There is also no down leveling, the JavaScript is preserved as is.
+:information_source: Not all TypeScript syntax is supported (see [unsupported syntax](#unsupported)). There is also no down-leveling; the JavaScript is preserved as is.
 
 ## Contents
 
 -   [Installing](#installing)
 -   [API](#api)
 -   [Node.js Loader](#nodejs-loader)
--   [Source Maps](#where-are-my-sourcemaps)
+-   [SourceMaps](#where-are-my-sourcemaps)
 -   [Implementation details](#does-it-really-just-blank-out-all-the-type-annotations)
--   [Unsupported syntax](#unsupported)
+-   [Unsupported Syntax](#unsupported-syntax)
 -   [tsconfig.json](#recommended-tsconfigjson-compiler-settings)
 -   [TSX/JSX](#tsxjsx)
--   [ESM output](#ensuring-esm-output)
+-   [ESM Output](#ensuring-esm-output)
 -   [Contributions](#contributions)
 -   [License](#license)
 -   [Code of Conduct](#code-of-conduct)
@@ -131,8 +131,7 @@ In addition to loading `*.ts` files, an import resolver is also registered which
 
 ## Where are my SourceMaps?
 
-Because all the JavaScript in the output is located at the same line, column, and byte-offset as the original source
-there is no mapping information that is lost during the transform.
+Because all the JavaScript in the output is located at the same line, column, and byte-offset as the original source, no mapping information is lost during the transform.
 
 ## Does it really just blank out all the type annotations?
 
@@ -140,7 +139,7 @@ There are two cases, described here, where it does more than replace the TypeScr
 
 ### ASI (automatic semicolon insertion)
 
-To guard against [ASI](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion) issues in the output `ts-blank-space` will add `;` to the end of type-only statements.
+To guard against [ASI](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion) issues in the output, `ts-blank-space` will add `;` to the end of type-only statements.
 
 Example input:
 
@@ -162,10 +161,9 @@ statementWithNoSemiColon
 
 ### Arrow function return types that introduce a new line
 
-If the annotation marking the return type of an arrow function introduces a new line before the `=>`
-then only replacing it with blank space would be incorrect.
+If the annotation marking the return type of an arrow function introduces a new line before the `=>`, then only replacing it with blank space would be incorrect.
 
-So in addition to removing the type annotation, the `)` is moved down to the end of the type annotation.
+Therefore, in addition to removing the type annotation, the `)` is moved down to the end of the type annotation.
 
 Example input:
 
@@ -185,13 +183,11 @@ let f = (a        , b
 ) => [a, b];
 ```
 
-## Unsupported
+## Unsupported Syntax
 
-Some parts of TypeScript are not supported because they can't be erased in place due to having
-runtime semantics. See [unsupported_syntax.md](./docs/unsupported_syntax.md).
+Some parts of TypeScript are not supported because they can't be erased in place due to having runtime semantics. See [unsupported_syntax.md](./docs/unsupported_syntax.md).
 
-When unsupported syntax is encountered `ts-blank-space` will call the optional `onError` callback and continue.
-Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
+When unsupported syntax is encountered, `ts-blank-space` will call the optional `onError` callback and continue. Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
 
 ## Recommended `tsconfig.json` compiler settings
 
@@ -210,16 +206,15 @@ Examples can be seen in [`errors.test.js`](./tests/errors.test.js).
 
 ## TSX/JSX
 
-`.tsx` input will be `.jsx` output because the JSX parts are not transformed, and instead preserved in the output.
+`.tsx` input will be `.jsx` output because the JSX parts are not transformed, but instead preserved in the output.
 
-By default `ts-blank-space` will parse the file assuming `.ts`. If the original file contains JSX syntax
-then the [parsing should be done manually](#bring-your-own-ast). There is a TSX example in [`valid.test.js`](./tests/valid.test.js).
+By default, `ts-blank-space` will parse the file assuming `.ts`. If the original file contains JSX syntax, then the [parsing should be done manually](#bring-your-own-ast). There is a TSX example in [`valid.test.js`](./tests/valid.test.js).
 
 ## Ensuring ESM output
 
 TypeScript may add an `export {};` if all `import`s and `export`s were removed (because they were `import/export type`).
 
-Because `ts-blank-space` only removes code this is not performed. To force the output to always have an ESM syntactic marker you can manually append `"export {};"`;
+Because `ts-blank-space` only removes code, this is not performed. To force the output to always have an ESM syntactic marker, you can manually append `"export {};"`;
 
 ## Contributions
 
