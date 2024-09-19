@@ -197,7 +197,7 @@ When unsupported syntax is encountered, `ts-blank-space` will call the optional 
     "target": "esnext",
     // Because class fields are preserved as written which corresponds
     // to 'define' semantics in the ECMAScript specification
-    "useDefineAsClassFields": true,
+    "useDefineForClassFields": true,
     // Because imports and exports are preserved as written, only removing the
     // parts which are explicitly annotated with the `type` keyword
     "verbatimModuleSyntax": true,
