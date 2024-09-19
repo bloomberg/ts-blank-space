@@ -60,7 +60,7 @@ The benefits of this library are:
 -   Delegates the parsing to the [official TypeScript parser](https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API)
 -   No need for additional SourceMap processing; see ["where are my SourceMaps?"](#where-are-my-sourcemaps)
 
-:information_source: Not all TypeScript syntax is supported (see [unsupported syntax](#unsupported)). There is also no down-leveling; the JavaScript is preserved as is.
+:information_source: Not all TypeScript syntax is supported (see [unsupported syntax](#unsupported-syntax)). There is also no down-leveling; the JavaScript is preserved as is.
 
 ## Contents
 
