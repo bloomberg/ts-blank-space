@@ -226,6 +226,10 @@ TypeScript may add an `export {};` if all `import`s and `export`s were removed (
 
 Because `ts-blank-space` only removes code, this is not performed. To force the output to always have an ESM syntactic marker, you can manually append `"export {};"`;
 
+## 3rd party ecosystem plugins
+
+-   Webpack/Rspack: [ts-blank-loader](https://github.com/leimonio/ts-blank-loader)
+
 ## Contributions
 
 We :heart: contributions.
