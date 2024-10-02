@@ -228,7 +228,7 @@ Because `ts-blank-space` only removes code, this is not performed. To force the 
 
 ## 3rd party ecosystem plugins
 
-- Webpack/Rspack: [ts-blank-loader](https://github.com/leimonio/ts-blank-loader)
+-   Webpack/Rspack: [ts-blank-loader](https://github.com/leimonio/ts-blank-loader)
 
 ## Contributions
 
