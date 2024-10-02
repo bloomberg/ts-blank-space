@@ -206,9 +206,19 @@ When unsupported syntax is encountered, `ts-blank-space` will call the optional 
 
 ## TSX/JSX
 
-`.tsx` input will be `.jsx` output because the JSX parts are not transformed, but instead preserved in the output.
+`.tsx` input will generate `.jsx` output. JSX parts are not transformed, but instead preserved in the output.
 
 By default, `ts-blank-space` will parse the file assuming `.ts`. If the original file contains JSX syntax, then the [parsing should be done manually](#bring-your-own-ast). There is a TSX example in [`valid.test.ts`](./tests/valid.test.ts).
+
+```typescript
+import ts from "typescript";
+import { blankSourceFile } from "ts-blank-space";
+
+...
+
+const tsxSource = ts.createSourceFile("input.tsx", tsxInput, ts.ScriptTarget.ESNext, false, ts.ScriptKind.TSX);
+const jsxOutput = blankSourceFile(tsxSource, onError);
+```
 
 ## Ensuring ESM output
 
