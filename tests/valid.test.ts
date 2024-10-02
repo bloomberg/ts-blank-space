@@ -101,9 +101,9 @@ it("allows declared module value", () => {
 
 it("TSX is preserved in the output", () => {
     const onError = mock.fn();
-    const tsInput = `const elm = <div>{x as string}</div>;\n`;
-    const tsSource = ts.createSourceFile("input.tsx", tsInput, ts.ScriptTarget.ESNext, false, ts.ScriptKind.TSX);
-    const jsxOutput = blankSourceFile(tsSource, onError);
+    const tsxInput = `const elm = <div>{x as string}</div>;\n`;
+    const tsxSource = ts.createSourceFile("input.tsx", tsxInput, ts.ScriptTarget.ESNext, false, ts.ScriptKind.TSX);
+    const jsxOutput = blankSourceFile(tsxSource, onError);
     assert.equal(onError.mock.callCount(), 0, "there should be no errors");
     assert.equal(jsxOutput, "const elm = <div>{x          }</div>;\n");
 });
