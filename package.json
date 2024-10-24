@@ -14,7 +14,10 @@
     "type": "module",
     "main": "./out/index.js",
     "exports": {
-        ".": "./out/index.js",
+        ".": {
+            "import": "./out/index.js",
+            "require": "./out/index.cjs"
+        },
         "./package.json": "./package.json",
         "./register": "./loader/register.js"
     },
@@ -31,10 +34,11 @@
     "devDependencies": {
         "@types/node": "^20.9.4",
         "prettier": "3.3.3",
-        "ts-blank-space-lkg": "npm:ts-blank-space@^0.3.3333"
+        "ts-blank-space-lkg": "npm:ts-blank-space@^0.3.3333",
+        "tsup": "^8.3.0"
     },
     "scripts": {
-        "build": "node --import=#r ./scripts/build.ts",
+        "build": "node --import=#r ./scripts/build.ts && tsup src/index.ts --format cjs --outDir out",
         "check": "tsc -p ./src/tsconfig.json --noEmit",
         "gen-types": "tsc -p ./src/tsconfig.json --emitDeclarationOnly",
         "fixtures": "node --import=#r ./tests/fixture/_run.ts",

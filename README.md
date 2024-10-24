@@ -64,19 +64,26 @@ The benefits of this library are:
 
 ## Contents
 
--   [Installing](#installing)
--   [API](#api)
--   [Node.js Loader](#nodejs-loader)
--   [SourceMaps](#where-are-my-sourcemaps)
--   [Implementation details](#does-it-really-just-blank-out-all-the-type-annotations)
--   [Unsupported Syntax](#unsupported-syntax)
--   [tsconfig.json](#recommended-tsconfigjson-compiler-settings)
--   [TSX/JSX](#tsxjsx)
--   [ESM Output](#ensuring-esm-output)
--   [Contributions](#contributions)
--   [License](#license)
--   [Code of Conduct](#code-of-conduct)
--   [Security Vulnerability Reporting](#security-vulnerability-reporting)
+- [Rationale](#rationale)
+- [Contents](#contents)
+- [Installing](#installing)
+- [API](#api)
+  - [String to String](#string-to-string)
+  - [Bring your own AST](#bring-your-own-ast)
+- [Node.js Loader](#nodejs-loader)
+- [Where are my SourceMaps?](#where-are-my-sourcemaps)
+- [Does it really just blank out all the type annotations?](#does-it-really-just-blank-out-all-the-type-annotations)
+  - [ASI (automatic semicolon insertion)](#asi-automatic-semicolon-insertion)
+  - [Arrow function return types that introduce a new line](#arrow-function-return-types-that-introduce-a-new-line)
+- [Unsupported Syntax](#unsupported-syntax)
+- [Recommended `tsconfig.json` compiler settings](#recommended-tsconfigjson-compiler-settings)
+- [TSX/JSX](#tsxjsx)
+- [Ensuring ESM output](#ensuring-esm-output)
+- [3rd party ecosystem plugins](#3rd-party-ecosystem-plugins)
+- [Contributions](#contributions)
+- [License](#license)
+- [Code of Conduct](#code-of-conduct)
+- [Security Vulnerability Reporting](#security-vulnerability-reporting)
 
 ## Installing
 
@@ -93,7 +100,16 @@ export default function tsBlankSpace(ts: string, onError?: (node) => void): stri
 ```
 
 ```javascript
+// ESM
 import tsBlankSpace from "ts-blank-space";
+
+console.log(tsBlankSpace(`let x: string;`));
+// "let x        ;"
+```
+
+```javascript
+// CommonJS
+const tsBlankSpace = require("ts-blank-space").default;
 
 console.log(tsBlankSpace(`let x: string;`));
 // "let x        ;"
