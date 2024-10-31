@@ -55,7 +55,7 @@ The benefits of this library are:
     -   No [native-addons](https://nodejs.org/api/addons.html)
     -   No [child process](https://nodejs.org/api/child_process.html)
 -   It is small
-    -   Less than 700 lines of code and one dependency ([`TypeScript`](https://www.npmjs.com/package/typescript))
+    -   Around 700 lines of code and one dependency ([`TypeScript`](https://www.npmjs.com/package/typescript))
     -   By doing so little, the code should be relatively easy to maintain
 -   Delegates the parsing to the [official TypeScript parser](https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API)
 -   No need for additional SourceMap processing; see ["where are my SourceMaps?"](#where-are-my-sourcemaps)
@@ -159,13 +159,11 @@ statementWithNoSemiColon
 ("not calling above statement");
 ```
 
-### Arrow function return types that introduce a new line
+### Arrow function type annotations that introduce a new line
 
-If the annotation marking the return type of an arrow function introduces a new line before the `=>`, then only replacing it with blank space would be incorrect.
+If the type annotations around an arrow function's parameters introduce a new line then only replacing them with blank space can be incorrect. Therefore, in addition to removing the type annotation, the `(` or `)` surrounding the function parameters may also be moved.
 
-Therefore, in addition to removing the type annotation, the `)` is moved down to the end of the type annotation.
-
-Example input:
+#### Example one - multi-line return type:
 
 <!-- prettier-ignore -->
 ```typescript
@@ -181,6 +179,24 @@ becomes:
 let f = (a        , b
 
 ) => [a, b];
+```
+
+#### Example two - `async` with multi-line type arguments:
+
+<!-- prettier-ignore -->
+```typescript
+let f = async <
+    T
+>(v: T) => {};
+```
+
+becomes:
+
+<!-- prettier-ignore -->
+```javascript
+let f = async (
+
+  v   ) => {};
 ```
 
 ## Unsupported Syntax
