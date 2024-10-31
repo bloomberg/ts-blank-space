@@ -188,3 +188,62 @@ Due to the following:
 -   `<const>val` can be re-written to `val as const`
 
 `ts-blank-space` has decided to not support the prefix style.
+
+### Async arrow functions with multiline generic parameters
+
+When using an `async` arrow function with generic parameters that span multiple lines, `ts-blank-space` may produce syntactically invalid JavaScript after removing the TypeScript syntax.
+
+Consider the following TypeScript code:
+
+```typescript
+// prettier-ignore
+const fn = async <
+    T,
+    U,
+    V
+>() => null;
+```
+
+After transformation with `ts-blank-space`, the output is:
+
+```javascript
+const fn = async
+
+
+
+ () => null;
+```
+
+This results in multiple empty lines and a syntactically invalid arrow function, leading to a runtime error:
+
+```
+Uncaught SyntaxError: Malformed arrow function parameter list
+```
+
+#### Workaround
+
+To avoid this issue, you can:
+
+-   Use a function declaration instead of a function expression:
+
+    ```typescript
+    // prettier-ignore
+    async function fn<
+        T,
+        U,
+        V
+    >() {
+        return null;
+    }
+    ```
+
+-   Keep the generic parameters on the same line:
+
+    ```typescript
+    // prettier-ignore
+    const fn = async <T, U, V>() => null;
+    ```
+
+-   Disable Prettier's automatic formatting for this section by adding `// prettier-ignore` comments.
+
+This issue occurs because the removal of the generic parameters leaves blank lines that interfere with the syntax of the `async` arrow function. By keeping the generic parameters on the same line or using a function declaration, you can avoid this problem.
