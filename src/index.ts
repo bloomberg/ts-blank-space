@@ -177,7 +177,7 @@ function visitVariableStatement(node: ts.VariableStatement): VisitResult {
 function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): VisitResult {
     visitor(node.expression);
     if (node.typeArguments) {
-        blankGenerics(node, node.typeArguments);
+        blankGenerics(node, node.typeArguments, /*startWithParen*/ false);
     }
     if (node.arguments) {
         const args = node.arguments;
@@ -194,7 +194,7 @@ function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): V
 function visitTaggedTemplate(node: ts.TaggedTemplateExpression): VisitResult {
     visitor(node.tag);
     if (node.typeArguments) {
-        blankGenerics(node, node.typeArguments);
+        blankGenerics(node, node.typeArguments, /*startWithParen*/ false);
     }
     visitor(node.template);
     return VISITED_JS;
@@ -233,7 +233,7 @@ function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
 
     // ... <T>
     if (node.typeParameters && node.typeParameters.length) {
-        blankGenerics(node, node.typeParameters);
+        blankGenerics(node, node.typeParameters, /*startWithParen*/ false);
     }
 
     const { heritageClauses } = node;
@@ -260,7 +260,7 @@ function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
 function visitExpressionWithTypeArguments(node: ts.ExpressionWithTypeArguments): VisitResult {
     visitor(node.expression);
     if (node.typeArguments) {
-        blankGenerics(node, node.typeArguments);
+        blankGenerics(node, node.typeArguments, /*startWithParen*/ false);
     }
     return VISITED_JS;
 }
@@ -309,6 +309,14 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
                 never(kind);
         }
     }
+}
+
+function isAsync(modifiers: ArrayLike<ts.ModifierLike> | undefined): boolean {
+    if (!modifiers) return false;
+    for (let i = 0; i < modifiers.length; i++) {
+        if (modifiers[i].kind === SK.AsyncKeyword) return true;
+    }
+    return false;
 }
 
 /**
@@ -394,14 +402,19 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
         visitor(node.name);
     }
 
+    let moveOpenParen = false;
     if (node.typeParameters && node.typeParameters.length) {
-        blankGenerics(node, node.typeParameters);
+        moveOpenParen = isAsync(node.modifiers) && spansLines(node.typeParameters.pos, node.typeParameters.end);
+        blankGenerics(node, node.typeParameters, moveOpenParen);
     }
 
     // method?
     node.questionToken && blankExact(node.questionToken);
 
     const params = node.parameters;
+    if (moveOpenParen) {
+        str.blank(params.pos - 1, params.pos);
+    }
     for (let i = 0; i < params.length; i++) {
         const p = params[i];
         if (i === 0 && p.name.getText(ast) === "this") {
@@ -594,10 +607,10 @@ function blankExactAndOptionalTrailingComma(n: ts.Node): void {
 /**
  * `<T1, T2>`
  */
-function blankGenerics(node: ts.Node, arr: ts.NodeArray<ts.Node>): void {
+function blankGenerics(node: ts.Node, arr: ts.NodeArray<ts.Node>, startWithParen: boolean): void {
     const start = arr.pos - 1;
     const end = scanRange(arr.end, node.end, getGreaterThanToken);
-    str.blank(start, end);
+    startWithParen ? str.blankButStartWithOpenParen(start, end) : str.blank(start, end);
 }
 
 function getClosingParenthesisPos(node: ts.NodeArray<ts.ParameterDeclaration>): number {

@@ -1,8 +1,9 @@
 // Copyright 2024 Bloomberg Finance L.P.
 // Distributed under the terms of the Apache 2.0 license.
 
-const FLAG_REPLACE_WITH_CLOSE_PAREN = 1;
-const FLAG_REPLACE_WITH_SEMI = 2;
+const FLAG_REPLACE_WITH_OPEN_PAREN = 1;
+const FLAG_REPLACE_WITH_CLOSE_PAREN = 2;
+const FLAG_REPLACE_WITH_SEMI = 3;
 
 function getSpace(input: string, start: number, end: number): string {
     let out = "";
@@ -29,6 +30,10 @@ export default class BlankString {
     constructor(input: string) {
         this.__input = input;
         this.__ranges = [];
+    }
+
+    blankButStartWithOpenParen(start: number, end: number): void {
+        this.__ranges.push(FLAG_REPLACE_WITH_OPEN_PAREN, start, end);
     }
 
     blankButEndWithCloseParen(start: number, end: number): void {
@@ -68,6 +73,9 @@ export default class BlankString {
                 rangeStart += 1;
             } else if (flags === FLAG_REPLACE_WITH_SEMI) {
                 out += ";";
+                rangeStart += 1;
+            } else if (flags === FLAG_REPLACE_WITH_OPEN_PAREN) {
+                out += "(";
                 rangeStart += 1;
             }
 
