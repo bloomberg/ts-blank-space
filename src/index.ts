@@ -228,7 +228,7 @@ function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
             blankStatement(node);
             return VISIT_BLANKED;
         }
-        visitModifiers(node.modifiers);
+        visitModifiers(node.modifiers, /* addSemi:*/ false);
     }
 
     // ... <T>
@@ -280,12 +280,17 @@ function isRemovedModifier(kind: ts.SyntaxKind): kind is (typeof classElementMod
     return classElementModifiersToRemove.has(kind as never);
 }
 
-function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>): void {
+function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>, addSemi: boolean): void {
     for (let i = 0; i < modifiers.length; i++) {
         const modifier = modifiers[i];
         const kind = modifier.kind;
         if (isRemovedModifier(kind)) {
-            blankExact(modifier);
+            if (addSemi && i === 0) {
+                str.blankButStartWithSemi(modifier.getStart(ast), modifier.end);
+                addSemi = false;
+            } else {
+                blankExact(modifier);
+            }
             continue;
         } else if (kind === SK.Decorator) {
             visitor(modifier);
@@ -328,7 +333,7 @@ function visitPropertyDeclaration(node: ts.PropertyDeclaration): VisitResult {
             blankStatement(node);
             return VISIT_BLANKED;
         }
-        visitModifiers(node.modifiers);
+        visitModifiers(node.modifiers, /* addSemi */ node.name.kind === SK.ComputedPropertyName);
     }
     node.exclamationToken && blankExact(node.exclamationToken);
     node.questionToken && blankExact(node.questionToken);
@@ -394,12 +399,13 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
         return VISIT_BLANKED;
     }
 
+    const nodeName = node.name;
     if (node.modifiers) {
-        visitModifiers(node.modifiers);
+        visitModifiers(node.modifiers, /* addSemi */ !!nodeName && nodeName.kind === SK.ComputedPropertyName);
     }
 
-    if (node.name) {
-        visitor(node.name);
+    if (nodeName) {
+        visitor(nodeName);
     }
 
     let moveOpenParen = false;

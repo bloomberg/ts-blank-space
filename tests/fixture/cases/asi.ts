@@ -78,4 +78,16 @@ class ASI {
         ((() => { 1/*trailing*/})(), 1) + 1 as number/*trailing*/
         (1);
     }
+    g = 2/*missing ; */
+    public ["computed-field"] = 1
+//  ;^^^^^
+    h = 3/*missing ; */
+    public ["computed-method"]() {}
+//  ;^^^^^
+}
+
+class NoASI {
+    f = 1/*missing ; */
+    static readonly ["computed-field"] = 1
+//         ^^^^^^^^
 }
