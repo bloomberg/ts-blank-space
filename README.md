@@ -139,9 +139,9 @@ There are two cases, described here, where it does more than replace the TypeScr
 
 ### ASI (automatic semicolon insertion)
 
-To guard against [ASI](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion) issues in the output, `ts-blank-space` will add `;` to the end of type-only statements.
+To guard against [ASI](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion) issues in the output, `ts-blank-space` will add `;` to the end of type-only statements, and when removing a leading type annotation could introduce an ASI hazard.
 
-Example input:
+#### Example one - type-only statement
 
 <!-- prettier-ignore -->
 ```typescript
@@ -157,6 +157,26 @@ becomes:
 statementWithNoSemiColon
 ;
 ("not calling above statement");
+```
+
+#### Example two - computed class fields/methods
+
+<!-- prettier-ignore -->
+```typescript
+class C {
+    field = 1/* no ; */
+    public ["computed field not accessing above"] = 2
+}
+```
+
+becomes:
+
+<!-- prettier-ignore -->
+```javascript
+class C {
+    field = 1/* no ; */
+    ;      ["computed field not accessing above"] = 2
+}
 ```
 
 ### Arrow function type annotations that introduce a new line
