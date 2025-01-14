@@ -316,14 +316,6 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>, addSemi: boolean)
     }
 }
 
-function isAsync(modifiers: ArrayLike<ts.ModifierLike> | undefined): boolean {
-    if (!modifiers) return false;
-    for (let i = 0; i < modifiers.length; i++) {
-        if (modifiers[i].kind === SK.AsyncKeyword) return true;
-    }
-    return false;
-}
-
 /**
  * prop: T
  */
@@ -409,15 +401,15 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
     }
 
     let moveOpenParen = false;
+    const params = node.parameters;
     if (node.typeParameters && node.typeParameters.length) {
-        moveOpenParen = isAsync(node.modifiers) && spansLines(node.typeParameters.pos, node.typeParameters.end);
+        moveOpenParen = spansLines(node.typeParameters.pos, params.pos);
         blankGenerics(node, node.typeParameters, moveOpenParen);
     }
 
     // method?
     node.questionToken && blankExact(node.questionToken);
 
-    const params = node.parameters;
     if (moveOpenParen) {
         str.blank(params.pos - 1, params.pos);
     }
