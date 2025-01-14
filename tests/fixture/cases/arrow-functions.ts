@@ -17,15 +17,22 @@ const c = async <
     T
 > => v;
 
+// https://github.com/bloomberg/ts-blank-space/issues/29
 (function () {
-    // https://github.com/bloomberg/ts-blank-space/issues/29
     return<T>
         (v: T) => v
-}());
+});
 (function () {
-    // https://github.com/bloomberg/ts-blank-space/issues/29
     return/**/<
         T
     >/**/(v: T)/**/:
     T/**/=> v
-}());
+});
+(function* () {
+    yield<T>
+(v: T)=>v;
+});
+(function* () {
+    throw<T>
+(v: T)=>v;
+});
