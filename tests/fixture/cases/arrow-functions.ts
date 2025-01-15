@@ -16,3 +16,23 @@ const c = async <
 // ^^^ ^^^^^^^^^^
     T
 > => v;
+
+// https://github.com/bloomberg/ts-blank-space/issues/29
+(function () {
+    return<T>
+        (v: T) => v
+});
+(function () {
+    return/**/<
+        T
+    >/**/(v: T)/**/:
+    T/**/=> v
+});
+(function* () {
+    yield<T>
+(v: T)=>v;
+});
+(function* () {
+    throw<T>
+(v: T)=>v;
+});

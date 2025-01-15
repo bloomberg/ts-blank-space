@@ -1,7 +1,7 @@
 {
     "name": "ts-blank-space",
     "description": "A small, fast, pure JavaScript type-stripper that uses the official TypeScript parser.",
-    "version": "0.4.4",
+    "version": "0.5.0",
     "license": "Apache-2.0",
     "homepage": "https://bloomberg.github.io/ts-blank-space",
     "contributors": [
