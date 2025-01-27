@@ -42,21 +42,52 @@ it("errors on parameter properties", () => {
     );
 });
 
-it("errors on namespace value", () => {
+it("errors on deprecated 'module' value", () => {
     const onError = mock.fn();
     const out = tsBlankSpace(
         `
-        namespace N {}
         module M {}
     `,
         onError,
     );
-    assert.equal(onError.mock.callCount(), 2);
+    assert.equal(onError.mock.callCount(), 1);
     assert.equal(
         out,
         `
-        namespace N {}
         module M {}
+    `,
+    );
+});
+
+it("errors on value namespaces", () => {
+    const onError = mock.fn();
+    const out = tsBlankSpace(
+        `
+        namespace A { 1; }
+        namespace B { globalThis; }
+        namespace C { export let x; }
+        namespace D { declare let x; }
+        namespace E { export type T = any; 2; }
+        namespace F { export namespace Inner { 3; } }
+        namespace G.H { 4; }
+        namespace I { export import X = E.T }
+        namespace J { {} }
+    `,
+        onError,
+    );
+    assert.equal(onError.mock.callCount(), 9);
+    assert.equal(
+        out,
+        `
+        namespace A { 1; }
+        namespace B { globalThis; }
+        namespace C { export let x; }
+        namespace D { declare let x; }
+        namespace E { export type T = any; 2; }
+        namespace F { export namespace Inner { 3; } }
+        namespace G.H { 4; }
+        namespace I { export import X = E.T }
+        namespace J { {} }
     `,
     );
 });

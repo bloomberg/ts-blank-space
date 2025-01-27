@@ -517,13 +517,36 @@ function visitExportAssignment(node: ts.ExportAssignment): VisitResult {
 }
 
 function visitEnumOrModule(node: ts.EnumDeclaration | ts.ModuleDeclaration): VisitResult {
-    if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
+    if (
+        (node.modifiers && modifiersContainsDeclare(node.modifiers)) ||
+        (node.kind === SK.ModuleDeclaration && !valueNamespaceWorker(node as ts.ModuleDeclaration))
+    ) {
         blankStatement(node);
         return VISIT_BLANKED;
     } else {
         onError && onError(node);
         return VISITED_JS;
     }
+}
+
+function valueNamespaceWorker(node: ts.Node): boolean {
+    switch (node.kind) {
+        case SK.TypeAliasDeclaration:
+        case SK.InterfaceDeclaration:
+            return false;
+        case SK.ImportEqualsDeclaration: {
+            const { modifiers } = node as ts.ImportEqualsDeclaration;
+            return modifiers?.some((m) => m.kind === SK.ExportKeyword) || false;
+        }
+        case SK.ModuleDeclaration: {
+            if (!(node.flags & tslib.NodeFlags.Namespace)) return true;
+            const { body } = node as ts.ModuleDeclaration;
+            if (!body) return false;
+            if (body.kind === SK.ModuleDeclaration) return valueNamespaceWorker(body);
+            return body.forEachChild(valueNamespaceWorker) || false;
+        }
+    }
+    return true;
 }
 
 function modifiersContainsDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolean {
