@@ -7,13 +7,17 @@
 
 The following TypeScript features can not be erased by `ts-blank-space` because they have runtime semantics
 
--   `enum` (unless `declare enum`) [more details](#enum)
--   `namespace` (unless `declare namespace`)
--   `module` (unless `declare module`)
+-   `enum` (unless `declare enum`) [more details](#enums)
+-   `namespace` (unless only contains types) [more details](#namespace-declarations)
+-   `module` (unless `declare module`) [more details](#module-declarations)
 -   `import lib = ...`, `export = ...` (TypeScript style CommonJS)
 -   `constructor(public x) {}` [more details](#constructor-parameter-properties)
 
-### Enum
+For more details on use of `declare` see [the `declare` hazard](#the-declare--hazard).
+
+### Enums
+
+The following `enum` declaration will not be transformed by `ts-blank-space`.
 
 ```typescript
 enum Direction {
@@ -24,7 +28,7 @@ enum Direction {
 }
 ```
 
-Alternative approach to defining an enum like value and type, which is `ts-blank-space` compatible:
+An alternative approach to defining an enum like value and type, which is `ts-blank-space` compatible:
 
 ```typescript
 const Direction = {
@@ -39,13 +43,16 @@ type Direction = (typeof Direction)[keyof typeof Direction];
 
 ### Constructor Parameter Properties
 
+The following usage of a constructor parameter property will not be transformed by `ts-blank-space`.
+
 ```typescript
 class Person {
     constructor(public name: string) {}
+    //          ^^^^^^
 }
 ```
 
-Alternative `ts-blank-space` compatible approach:
+The equivalent `ts-blank-space` compatible approach:
 
 ```typescript
 class Person {
@@ -55,6 +62,62 @@ class Person {
     }
 }
 ```
+
+### `namespace` declarations
+
+While sharing the same syntax there are technically two categories of `namespace` within TypeScript. Instantiated and non-instantiated. Instantiated namespaces create objects that exist at runtime. Non-instantiated namespaces can be erased. A namespace is non-instantiated if it only contains types, more specifically it may only contain:
+
+-   type aliases: `[export] type A = ...`
+-   interfaces: `[export] interface I { ... }`
+-   Importing types from other namespaces: `import A = OtherNamespace.X`
+-   More non-instantiated namespaces (the rule is recursive)
+
+`ts-blank-space` will also always erase namespaces marked with `declare`.
+
+Examples of supported namespace syntax can be seen in the test fixture [tests/fixture/cases/namespaces.ts](../tests/fixture/cases/namespaces.ts). Error cases can be seen in [tests/errors](../tests/errors.test.ts).
+
+### `module` declarations
+
+`ts-blank-space` only erases TypeScript's `module` declarations if they are marked with `declare` (see [`declare` hazard](#the-declare--hazard)).
+
+All other TypeScript `module` declarations will trigger the `onError` callback and be left in the output text verbatim. Including an empty declaration:
+
+```ts
+module M {} // `ts-blank-space` error
+```
+
+Note that, since TypeScript 5.6, use of `module` namespace declarations (not to be confused with _"ambient module declarations"_) will be shown with a strike-through (~~`module`~~) to hint that the syntax is deprecated in favour of [`namespace`](#namespace-declarations).
+
+See https://github.com/microsoft/TypeScript/issues/51825 for more information.
+
+### The `declare ...` hazard
+
+As with `declare const ...`, while `ts-blank-space` will erase syntax such as `declare enum ...` and `declare namespace ...` without error it should be used with the knowledge that of what it symbolizes.
+When using `declare` in TypeScript it is an _assertion_ by the author than the value will exist at runtime.
+
+For example:
+
+<!-- prettier-ignore -->
+```ts
+declare namespace N {
+    export const x: number;
+}
+console.log(N.x);
+```
+
+The above will not be a build time error and will be transformed to:
+
+<!-- prettier-ignore -->
+```js
+
+
+
+console.log(N.x);
+```
+
+So it may throw at runtime if nothing created a runtime value for `N` as promised by the `declare`.
+
+Tests are a great way to catch issues that may arise from an incorrect `declare`.
 
 ## Compile time only syntax
 

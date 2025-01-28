@@ -25,5 +25,12 @@ namespace With.Imports {
 }
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ nested namespaces
 
+// declaring the existence of a runtime namespace:
+declare namespace Declared {
+    export function foo(): void
+}
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare namespace`
+Declared.foo(); // May throw at runtime if declaration was false
+
 export const x: With.Imports.Foo = 1;
 //            ^^^^^^^^^^^^^^^^^^
