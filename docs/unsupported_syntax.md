@@ -9,7 +9,7 @@ The following TypeScript features can not be erased by `ts-blank-space` because 
 
 -   `enum` (unless `declare enum`) [more details](#enums)
 -   `namespace` (unless only contains types) [more details](#namespace-declarations)
--   `module` (unless `declare module`) [more details](#module-declarations)
+-   `module` (unless `declare module`) [more details](#module-namespace-declarations)
 -   `import lib = ...`, `export = ...` (TypeScript style CommonJS)
 -   `constructor(public x) {}` [more details](#constructor-parameter-properties)
 
@@ -65,7 +65,7 @@ class Person {
 
 ### `namespace` declarations
 
-While sharing the same syntax there are technically two categories of `namespace` within TypeScript. Instantiated and non-instantiated. Instantiated namespaces create objects that exist at runtime. Non-instantiated namespaces can be erased. A namespace is non-instantiated if it only contains types, more specifically it may only contain:
+While sharing the same syntax there are technically two categories of `namespace` within TypeScript. Instantiated and non-instantiated. Instantiated namespaces create objects that exist at runtime. Non-instantiated namespaces can be erased. A namespace is non-instantiated if it only contains types - more specifically it may only contain:
 
 -   type aliases: `[export] type A = ...`
 -   interfaces: `[export] interface I { ... }`
@@ -76,9 +76,9 @@ While sharing the same syntax there are technically two categories of `namespace
 
 Examples of supported namespace syntax can be seen in the test fixture [tests/fixture/cases/namespaces.ts](../tests/fixture/cases/namespaces.ts). Error cases can be seen in [tests/errors](../tests/errors.test.ts).
 
-### `module` declarations
+### `module` namespace declarations
 
-`ts-blank-space` only erases TypeScript's `module` declarations if they are marked with `declare` (see [`declare` hazard](#the-declare--hazard)).
+`ts-blank-space` only erases TypeScript's `module` namespace declarations if they are marked with `declare` (see [`declare` hazard](#the-declare--hazard)).
 
 All other TypeScript `module` declarations will trigger the `onError` callback and be left in the output text verbatim. Including an empty declaration:
 
@@ -92,8 +92,8 @@ See https://github.com/microsoft/TypeScript/issues/51825 for more information.
 
 ### The `declare ...` hazard
 
-As with `declare const ...`, while `ts-blank-space` will erase syntax such as `declare enum ...` and `declare namespace ...` without error it should be used with the knowledge that of what it symbolizes.
-When using `declare` in TypeScript it is an _assertion_ by the author than the value will exist at runtime.
+As with `declare const ...`, while `ts-blank-space` will erase syntax such as `declare enum ...` and `declare namespace ...` without error it should be used with understanding and mild caution.
+`declare` in TypeScript is an _assertion_ by the author that a value will exist at runtime.
 
 For example:
 
