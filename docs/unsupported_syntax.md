@@ -72,7 +72,7 @@ While sharing the same syntax there are technically two categories of `namespace
 -   Importing types from other namespaces: `import A = OtherNamespace.X`
 -   More non-instantiated namespaces (the rule is recursive)
 
-`ts-blank-space` will also always erase namespaces marked with `declare`.
+`ts-blank-space` will always erase non-instantiated namespaces and namespaces marked with [`declare`](#the-declare--hazard).
 
 Examples of supported namespace syntax can be seen in the test fixture [tests/fixture/cases/namespaces.ts](../tests/fixture/cases/namespaces.ts). Error cases can be seen in [tests/errors](../tests/errors.test.ts).
 
