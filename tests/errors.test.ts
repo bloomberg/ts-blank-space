@@ -1,6 +1,7 @@
 import { it, mock } from "node:test";
 import assert from "node:assert";
 import tsBlankSpace from "../src/index.ts";
+import ts from "typescript";
 
 it("errors on enums", () => {
     const onError = mock.fn();
@@ -42,21 +43,70 @@ it("errors on parameter properties", () => {
     );
 });
 
-it("errors on namespace value", () => {
+function errorCallbackToModuleDeclarationNames(onError: import("node:test").Mock<(...args: any[]) => void>): string[] {
+    return onError.mock.calls.map(({ arguments: [node] }) => {
+        assert(ts.isModuleDeclaration(node));
+        assert(ts.isIdentifier(node.name));
+        return node.name.escapedText.toString();
+    });
+}
+
+it("errors on TypeScript `module` declarations due to overlap with github.com/tc39/proposal-module-declarations", () => {
     const onError = mock.fn();
     const out = tsBlankSpace(
         `
-        namespace N {}
-        module M {}
+        module A {}
+        module B { export type T = string; }
+        module C { export const V = ""; }
+        module D.E {}
     `,
         onError,
     );
-    assert.equal(onError.mock.callCount(), 2);
+    assert.equal(onError.mock.callCount(), 4);
+    const errorNodeNames = errorCallbackToModuleDeclarationNames(onError);
+    assert.deepEqual(errorNodeNames, ["A", "B", "C", "D"]);
     assert.equal(
         out,
         `
-        namespace N {}
-        module M {}
+        module A {}
+        module B { export type T = string; }
+        module C { export const V = ""; }
+        module D.E {}
+    `,
+    );
+});
+
+it("errors on instantiated namespaces due to having runtime emit", () => {
+    const onError = mock.fn();
+    const out = tsBlankSpace(
+        `
+        namespace A { 1; }
+        namespace B { globalThis; }
+        namespace C { export let x; }
+        namespace D { declare let x; }
+        namespace E { export type T = any; 2; }
+        namespace F { export namespace Inner { 3; } }
+        namespace G.H { 4; }
+        namespace I { export import X = E.T }
+        namespace J { {} }
+    `,
+        onError,
+    );
+    assert.equal(onError.mock.callCount(), 9);
+    const errorNodeNames = errorCallbackToModuleDeclarationNames(onError);
+    assert.deepEqual(errorNodeNames, ["A", "B", "C", "D", "E", "F", "G", /* H (nested)*/ "I", "J"]);
+    assert.equal(
+        out,
+        `
+        namespace A { 1; }
+        namespace B { globalThis; }
+        namespace C { export let x; }
+        namespace D { declare let x; }
+        namespace E { export type T = any; 2; }
+        namespace F { export namespace Inner { 3; } }
+        namespace G.H { 4; }
+        namespace I { export import X = E.T }
+        namespace J { {} }
     `,
     );
 });
