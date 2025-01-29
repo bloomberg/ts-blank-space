@@ -92,6 +92,9 @@ See https://github.com/microsoft/TypeScript/issues/51825 for more information.
 
 ### The `declare ...` hazard
 
+_Note: This section describes a potential hazard in the TypeScript language that exists with or without `ts-blank-space`.
+It is described here only because adopting type-stripping may lead to developers reaching for `declare` as part of migration._
+
 As with `declare const ...`, while `ts-blank-space` will erase syntax such as `declare enum ...` and `declare namespace ...` without error it should be used with understanding and mild caution.
 `declare` in TypeScript is an _assertion_ by the author that a value will exist at runtime.
 
