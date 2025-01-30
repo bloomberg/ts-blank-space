@@ -47,10 +47,7 @@ export class C<T> extends Array<T> implements HasField {
         };
     }
     try {
-        let b64 = urlData.slice(1);
-        b64 += Array(((4 - (b64.length % 4)) % 4) + 1).join("=");
-        b64 = b64.replace(/\-/g, "+").replace(/\_/g, "/");
-        return JSON.parse(atob(b64));
+        return JSON.parse(utf8base64ToText(urlData.slice(1)));
     } catch (_e) {
         console.error(_e);
         return {
@@ -65,12 +62,23 @@ function saveURL() {
     const text = tsModel.getValue();
     const tsx = tsxConfig.enabled;
     try {
-        let encoded = `${btoa(JSON.stringify({ tsx, text } satisfies URLData))}`;
-        encoded = encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        const encoded = textToUtf8base64(JSON.stringify({ tsx, text }));
         window.history.replaceState(null, "", "#" + encoded);
     } catch (err) {
         console.error(err);
     }
+}
+
+function utf8base64ToText(base64: string): string {
+    base64 += Array(((4 - (base64.length % 4)) % 4) + 1).join("=");
+    base64 = base64.replace(/\-/g, "+").replace(/\_/g, "/");
+    return new TextDecoder().decode(Uint8Array.from(atob(base64), (m) => m.codePointAt(0)!));
+}
+
+function textToUtf8base64(text: string): string {
+    const bytes = new TextEncoder().encode(text);
+    const binString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("");
+    return btoa(binString).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 const tsxConfig = selectBooleanWrapper("lang-select", "tsx", "ts");
