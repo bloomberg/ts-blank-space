@@ -265,6 +265,7 @@ Because `ts-blank-space` only removes code, this is not performed. To force the 
 ## 3rd party ecosystem plugins
 
 -   Webpack/Rspack: [ts-blank-loader](https://github.com/leimonio/ts-blank-loader)
+-   ESLint: [ts-blank-eslint-parser](https://github.com/Rel1cx/ts-blank-eslint-parser)
 
 ## Contributions
 
