@@ -111,6 +111,32 @@ it("errors on instantiated namespaces due to having runtime emit", () => {
     );
 });
 
+it("importing instantiated namespace", () => {
+    const onError = mock.fn();
+    const out = tsBlankSpace(
+        `
+        namespace A { export let x = 1; }
+        namespace B { import x = A.x; }
+        namespace C { export import x = A.x; }
+        `,
+        onError,
+    );
+    assert.equal(onError.mock.callCount(), 2);
+    const errorNodeNames = errorCallbackToModuleDeclarationNames(onError);
+    assert.deepEqual(errorNodeNames, ["A", "C"]);
+    // Only 'B' is erased:
+    assert.equal(
+        out,
+        [
+            ``,
+            `        namespace A { export let x = 1; }`,
+            `        ;                              `,
+            `        namespace C { export import x = A.x; }`,
+            `        `,
+        ].join("\n"),
+    );
+});
+
 it("errors on CJS export assignment syntax", () => {
     const onError = mock.fn();
     const out = tsBlankSpace(
