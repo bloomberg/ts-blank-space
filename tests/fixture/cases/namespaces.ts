@@ -30,6 +30,13 @@ declare namespace Declared {
     export function foo(): void
 }
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare namespace`
+
+export namespace ValueImport {
+    import foo = Declared.foo;
+    export type T = typeof foo;
+}
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ // _value_ import namespace
+
 Declared.foo(); // May throw at runtime if declaration was false
 
 export const x: With.Imports.Foo = 1;
