@@ -9,7 +9,7 @@ The following TypeScript features can not be erased by `ts-blank-space` because 
 
 -   `enum` (unless `declare enum`) [more details](#enums)
 -   `namespace` (unless only contains types) [more details](#namespace-declarations)
--   `module` (unless `declare module`) [more details](#module-namespace-declarations)
+-   `module` (unless `declare module "path"`) [more details](#module-namespace-declarations)
 -   `import lib = ...`, `export = ...` (TypeScript style CommonJS)
 -   `constructor(public x) {}` [more details](#constructor-parameter-properties)
 
@@ -78,15 +78,22 @@ Examples of supported namespace syntax can be seen in the test fixture [tests/fi
 
 ### `module` namespace declarations
 
-`ts-blank-space` only erases TypeScript's `module` namespace declarations if they are marked with `declare` (see [`declare` hazard](#the-declare--hazard)).
+`ts-blank-space` only erases TypeScript's `module` statements if they are [ambient module augmentations](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation).
 
-All other TypeScript `module` declarations will trigger the `onError` callback and be left in the output text verbatim. Including an empty declaration:
+All other TypeScript `module` declarations will trigger the `onError` callback and be left in the output text verbatim.
 
 ```ts
-module M {} // `ts-blank-space` error
+// erasable ambient module augmentation:
+declare module "./path" {}
 ```
 
-Note that, since TypeScript 5.6, use of `module` namespace declarations (not to be confused with _"ambient module declarations"_) will be shown with a strike-through (~~`module`~~) to hint that the syntax is deprecated in favour of [`namespace`](#namespace-declarations).
+```ts
+// deprecated module namespaces:
+module M1 {} // `ts-blank-space` error
+declare module M2 {} // `ts-blank-space` error
+```
+
+Note that, since TypeScript 5.6, use of `module` namespace declarations will be shown with a strike-through (~~`module`~~) to hint that the syntax is deprecated in favour of [`namespace`](#namespace-declarations).
 
 See https://github.com/microsoft/TypeScript/issues/51825 for more information.
 

@@ -102,8 +102,13 @@ void 0;
 
 void 0;
 
-/**/declare module M {}
-//  ^^^^^^^^^^^^^^^^^^^ `declare module`
+/**/declare module "./a" {}
+//  ^^^^^^^^^^^^^^^^^^^^^^^ `declare module "path"`
+
+void 0;
+
+/**/declare global {}
+//  ^^^^^^^^^^^^^^^^^ `declare global {}`
 
 void 0;
 

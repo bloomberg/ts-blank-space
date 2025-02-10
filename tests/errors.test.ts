@@ -137,6 +137,20 @@ it("importing instantiated namespace", () => {
     );
 });
 
+it("errors on declared legacy modules", () => {
+    const onError = mock.fn();
+    const out = tsBlankSpace(`declare module M {}\n`, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    assert.equal(out, "declare module M {}\n");
+});
+
+it("errors on non-instantiated legacy modules", () => {
+    const onError = mock.fn();
+    const out = tsBlankSpace(`module M {}\n`, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    assert.equal(out, "module M {}\n");
+});
+
 it("errors on CJS export assignment syntax", () => {
     const onError = mock.fn();
     const out = tsBlankSpace(
