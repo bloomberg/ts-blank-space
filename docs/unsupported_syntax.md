@@ -78,7 +78,7 @@ Examples of supported namespace syntax can be seen in the test fixture [tests/fi
 
 ### `module` namespace declarations
 
-`ts-blank-space` only erases TypeScript's `module` statements if they are [ambient module augmentations](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation).
+`ts-blank-space` only erases TypeScript's `module` statements if they represent [Ambient Modules](https://www.typescriptlang.org/docs/handbook/modules/reference.html#ambient-modules) and applies to both _Ambient Module Augmentations_ as well as _Ambient Module Declarations_.
 
 All other TypeScript `module` declarations will trigger the `onError` callback and be left in the output text verbatim.
 
