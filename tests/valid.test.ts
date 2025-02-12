@@ -92,11 +92,18 @@ it("allows declared namespace value", () => {
     assert.equal(jsOutput, "                      \n");
 });
 
-it("allows declared module value", () => {
+it("allows declared module augmentation value", () => {
     const onError = mock.fn();
-    const jsOutput = tsBlankSpace(`declare module M {}\n`, onError);
+    const jsOutput = tsBlankSpace(`declare module "" {}\n`, onError);
     assert.equal(onError.mock.callCount(), 0);
-    assert.equal(jsOutput, "                   \n");
+    assert.equal(jsOutput, "                    \n");
+});
+
+it("allows declared global augmentation value", () => {
+    const onError = mock.fn();
+    const jsOutput = tsBlankSpace(`declare global {}\n`, onError);
+    assert.equal(onError.mock.callCount(), 0);
+    assert.equal(jsOutput, "                 \n");
 });
 
 it("TSX is preserved in the output", () => {

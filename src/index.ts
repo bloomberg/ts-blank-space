@@ -149,8 +149,8 @@ function innerVisitor(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
         case SK.FunctionExpression:
         case SK.GetAccessor:
         case SK.SetAccessor: return visitFunctionLikeDeclaration(node as ts.FunctionLikeDeclaration, kind);
-        case SK.EnumDeclaration:
-        case SK.ModuleDeclaration: return visitEnumOrModule(node as (ts.EnumDeclaration | ts.ModuleDeclaration));
+        case SK.EnumDeclaration: return visitEnum(node as ts.EnumDeclaration);
+        case SK.ModuleDeclaration: return visitModule(node as ts.ModuleDeclaration);
         case SK.IndexSignature: blankExact(node); return VISIT_BLANKED;
         case SK.TaggedTemplateExpression: return visitTaggedTemplate(node as ts.TaggedTemplateExpression);
         case SK.TypeAssertionExpression: return visitLegacyTypeAssertion(node as ts.TypeAssertion);
@@ -516,11 +516,29 @@ function visitExportAssignment(node: ts.ExportAssignment): VisitResult {
     return VISITED_JS;
 }
 
-function visitEnumOrModule(node: ts.EnumDeclaration | ts.ModuleDeclaration): VisitResult {
+function visitModule(node: ts.ModuleDeclaration): VisitResult {
     if (
-        (node.modifiers && modifiersContainsDeclare(node.modifiers)) ||
-        (node.kind === SK.ModuleDeclaration && !valueNamespaceWorker(node as ts.ModuleDeclaration))
+        // `declare global {...}
+        node.flags & tslib.NodeFlags.GlobalAugmentation ||
+        // `namespace N {...}`
+        (node.flags & tslib.NodeFlags.Namespace &&
+            // `declare namespace N {...}`
+            ((node.modifiers && modifiersContainsDeclare(node.modifiers)) ||
+                // `namespace N { <no values> }`
+                !valueNamespaceWorker(node))) ||
+        // `declare module "./path" {...}`
+        node.name.kind === SK.StringLiteral
     ) {
+        blankStatement(node);
+        return VISIT_BLANKED;
+    } else {
+        onError && onError(node);
+        return VISITED_JS;
+    }
+}
+
+function visitEnum(node: ts.EnumDeclaration): VisitResult {
+    if (node.modifiers && modifiersContainsDeclare(node.modifiers)) {
         blankStatement(node);
         return VISIT_BLANKED;
     } else {
