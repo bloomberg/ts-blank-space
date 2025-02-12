@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en" prefix="og: http://ogp.me/ns#">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="twitter:card" content="summary">
+        <meta property="twitter:domain" content="bloomberg.github.io">
+        <meta property="og:url" content="https://bloomberg.github.io/ts-blank-space">
+        <meta property="og:title" content="ts-blank-space">
+        <meta property="og:description" content="A small, fast, pure JavaScript type-stripper that uses the official TypeScript parser.">
+        <title>ts-blank-space</title>
+        <link rel="stylesheet" href="/ts-blank-space/node_modules/prism-themes/themes/prism-vs.min.css">
+        <link rel="stylesheet" href="/ts-blank-space/node_modules/prism-themes/themes/prism-vsc-dark-plus.min.css" disabled="" id="prism-dark-link">
+        <link rel="stylesheet" href="/ts-blank-space/assets/base.min.css">
+        <style>
+            html {
+                font-size: 18px;
+            }
+            body {
+                display: grid;
+                grid-template-columns: 1fr min(45rem, 90%) 1fr;
+                padding-bottom: 10rem;
+            }
+            body > * {
+                grid-column: 2;
+            }
+            header {
+                padding-bottom: 2em;
+            }
+            .gh-link svg {
+                display: inline-block;
+                height: 2em;
+            }
+        </style>
+    </head>
+    <body>
+        <header style="grid-column-start: 1; grid-column-end: -1; display: grid; grid-template-columns: 1fr 1fr">
+            <div style="background-color: #3178c6; flex-grow: 1; text-align: right">
+                <h1 class="cds-t-h1">ts-</h1>
+            </div>
+            <div style="background-color: #f90; flex-grow: 1">
+                <h1 class="cds-t-h1" style="float: left">blank-space</h1>
+                <menu style="float: right; padding: 5px">
+                    <a href="play" class="cds-t-h4" style="margin-right: 5px">playground</a>
+                    <a href="https://github.com/bloomberg/ts-blank-space" class="gh-link"><svg viewBox="0 0 98 96" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" fill="#24292f"></path></svg>
+</a>
+                </menu>
+            </div>
+        </header>
+        <main class="cds-prose"><h2>What is <code>ts-blank-space</code>?</h2>
+<p><a href="https://github.com/bloomberg/ts-blank-space"><code>ts-blank-space</code></a> is a fast type-stripping compiler that converts TypeScript to JavaScript. It supports a modern subset of TypeScript by erasing the types and replacing them with whitespace. That's it. It is <strong>not</strong> a type checker and does not perform any other code transformations.</p>
+<p>The underlying technique can improve build performance and simplify development. The implementation is pure TypeScript. It is simple enough to read and understand in a few minutes because it is only 700 lines of code and reuses the original TypeScript parser.</p>
+<h2>Type-Stripping</h2>
+<p>The core idea is to use spaces as a substitute for type annotations. You can think of <code>ts-blank-space</code> as a reference implementation of this type-stripping technique. Much like other compiler techniques seen in the JavaScript ecosystem, such as tree-shaking, it is a reusable idea that any TypeScript compiler could implement. <a href="https://github.com/swc-project/swc/pull/9144">Some already do!</a></p>
+<p>Let's look at some examples. If you use the classic TypeScript (<code>tsc</code>) compiler today without customizing any options, you'll see your source code undergo significant transformations.</p>
+<!-- prettier-ignore -->
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">class</span> <span class="token class-name">Cat</span><span class="token operator">&lt;</span><span class="token constant">T</span><span class="token operator">></span> <span class="token punctuation">{</span>
+  <span class="token keyword">public</span> <span class="token literal-property property">whiskers</span><span class="token operator">:</span> number<span class="token punctuation">;</span>
+  <span class="token keyword">public</span> <span class="token literal-property property">tail</span><span class="token operator">:</span> <span class="token constant">T</span><span class="token punctuation">;</span>
+
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token parameter"><span class="token literal-property property">count</span><span class="token operator">:</span> number<span class="token punctuation">,</span> <span class="token literal-property property">tail</span><span class="token operator">:</span> <span class="token constant">T</span></span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>whiskers <span class="token operator">=</span> count<span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>tail <span class="token operator">=</span> tail<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">throw</span> <span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<p>is compiled to:</p>
+<!-- prettier-ignore -->
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">var</span> Cat <span class="token operator">=</span> <span class="token comment">/** @class */</span> <span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">function</span> <span class="token function">Cat</span><span class="token punctuation">(</span><span class="token parameter">count<span class="token punctuation">,</span> tail</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>whiskers <span class="token operator">=</span> count<span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>tail <span class="token operator">=</span> tail<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> Cat<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">throw</span> <span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<p>That's because TypeScript is performing &quot;down-leveling&quot; to convert your modern JavaScript into something that can run on older JavaScript engines. Because this moves the code around, error stacks and breakpoint locations will not match; so sourcemaps are also generated to correct for this.</p>
+<p>Let's try disabling down-leveling using the <code>tsconfig.json</code> option <code>target: &quot;esnext&quot;</code>:</p>
+<!-- prettier-ignore -->
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">class</span> <span class="token class-name">Cat</span> <span class="token punctuation">{</span>
+    whiskers<span class="token punctuation">;</span>
+    tail<span class="token punctuation">;</span>
+    <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token parameter">count<span class="token punctuation">,</span> tail</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>whiskers <span class="token operator">=</span> count<span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>tail <span class="token operator">=</span> tail<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">throw</span> <span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<p>This looks much closer to the original code with the types erased. But the output is still visually smaller and occupies fewer lines. This means we're going to have inaccurate error stacks.</p>
+<pre class="language-text"><code class="language-text">// Original source
+Error
+    at Object.<anonymous> (cat.ts:11:7)</anonymous></code></pre>
+<pre class="language-text"><code class="language-text">// With TypeScript's output
+Error
+    at Object.<anonymous> (cat.js:8:7)</anonymous></code></pre>
+<p>One solution to this relocation problem is to ask TypeScript to generate sourcemaps. After all, debuggers and runtimes know how to use sourcemaps to translate the filenames and coordinates used for breakpoints and error stacks. But could we do better?</p>
+<p>Yes! Here's what the generated code looks like with <code>ts-blank-space</code>:</p>
+<!-- prettier-ignore -->
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">class</span> <span class="token class-name">Cat</span>    <span class="token punctuation">{</span>
+         whiskers        <span class="token punctuation">;</span>
+         tail   <span class="token punctuation">;</span>
+
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token parameter">count        <span class="token punctuation">,</span> tail</span>   <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>whiskers <span class="token operator">=</span> count<span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>tail <span class="token operator">=</span> tail<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">throw</span> <span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<p>This might look a little wacky. However, by leaving the code coordinates unchanged, we've also eliminated the need to generate sourcemaps. There's no encoding and decoding locations. Error stack coordinates are always accurate!</p>
+<p>Finally, <a href="https://github.com/bloomberg/ts-blank-space/blob/8a8eddf77e3a9c81d6a58d9ee08c808a4b338f51/loader/hooks.js#L28">we can teach</a> the JS engine and debugger about the original filename by adding one line (<code>//# sourceURL=cat.ts</code>) to the end of the JS file. This magic comment is part of the <a href="https://tc39.es/source-map/#linking-evald-code-to-named-generated-code">sourcemap specification</a> and is <a href="https://github.com/v8/v8/blob/8393fca199737e1a137f5f0d6bc9468748b06542/src/parsing/scanner.cc#L252-L271">supported</a> <a href="https://github.com/WebKit/WebKit/blob/79271e75c2fec165d6badfa191b6b9a6edeee611/Source/JavaScriptCore/parser/Lexer.cpp#L2555-L2560">natively</a>, so we end up naming files correctly in error stacks with no loss of performance.</p>
+<h2>Build Performance Benefits</h2>
+<p>The typical build operations to emit JavaScript code from TypeScript source involves:</p>
+<ol>
+<li>Parsing the TypeScript into TypeScript's Abstract Syntax Tree (AST)</li>
+<li>Transforming this into a JavaScript AST</li>
+<li>Generating code from the JavaScript AST</li>
+<li>Sourcemap mapping calculation from the generated code to the original locations in the AST</li>
+</ol>
+<p><code>ts-blank-space</code> replaces steps 2, 3, 4 with basic string substitution on spans extracted from the AST. The AST is used merely to discover the start and end points of the type annotations in order to shake them off.</p>
+<p>Skipping this work is what makes this a swift approach. Additional time is saved by decreasing the number of sourcemaps that need to be <a href="https://github.com/ampproject/remapping">merged</a> during build scenarios that involve a sequence of transforms and corresponding sourcemaps.</p>
+<h3>Build Performance Results</h3>
+<p>Here's a micro-benchmark of what happens when compiling a huge TypeScript file (<a href="https://gist.github.com/acutmore/63cbfa9367d11ff5ef496f03999243e7/7e907f90496e086edba26e0f220f7a696c9aecd2#file-checker-txt">52 KLoC</a>) ten times using a variety of build tools.</p>
+<p><img src="assets/benchmark-chart-1.jpg" alt="a bar chart comparing the times to run the benchmark. From fastest to slowest the results are: esbuild, swc, ts-blank-space, swc/wasm-typescript, sucrase, swc/wasm, esbuild-wasm, typescript, and babel. esbuild and swc are categorized as having native binaries in contrast to ts-blank-space being distributed as JavaScript"></p>
+<p>For the supported subset of TypeScript, <code>ts-blank-space</code> is 5.6x faster than <code>tsc</code>. Today, it appears to be the fastest emitter written in JavaScript, and it even beats the Wasm-based emitters. Credit for this speed should primarily be attributed to the highly-optimized TypeScript parser that is doing the heavy lifting. It is also worth calling out the impressive speed of <code>sucrase</code>, which is also written in JavaScript and is only marginally slower even though it supports additional syntax.</p>
+<h4>Performance Results with AST Re-use</h4>
+<p>At Bloomberg, we want to use the TypeScript AST for both JavaScript-based analysis and emitting JavaScript. This means we are already paying the cost of generating the TypeScript AST, so <code>ts-blank-space</code> can operate on this as-is.</p>
+<p>Here's a similar benchmark in which we measure the combined time to (a) emit JavaScript and (b) generate a JavaScript-accessible AST. <code>babel</code>, <code>@swc/core</code>, and <code>@swc/wasm</code> have APIs to produce the AST. <code>sucrase</code> and <code>esbuild</code> <a href="https://github.com/alangpierce/sucrase/blob/main/README.md#what-sucrase-is-not">do</a> <a href="https://esbuild.github.io/plugins/#plugin-api-limitations">not</a> provide access to an AST. For these, we fall back to using <code>typescript</code> to provide the AST.</p>
+<p><img src="assets/benchmark-chart-2.jpg" alt="a bar chart with the same results as the previous chart, however with AST access overhead added to the times. Now the results from fastest to slowest are ts-blank-space, esbuild, swc, sucrase, swc/wasm-typescript, swc/wasm, esbuild-wasm, typescript, and babel. ts-blank-space, typescript, and babel have essentially no AST access overhead in contrast to the other libraries that have more significant overheads"></p>
+<p>With these requirements, we've found <code>ts-blank-space</code> provides the fastest overall results.</p>
+<p>On large files, such as those used in the benchmark, we've seen Garbage Collection (GC) account for up to 17% of build time. With internal benchmarks of real-life code, the file size is typically smaller. Here we've seen <code>ts-blank-space</code> go even faster, with GC dropping closer to 3%.</p>
+<p>The full code and results of the benchmark can be found in <a href="https://github.com/bloomberg/ts-blank-space/tree/main/perf">the <code>perf</code> folder of the repository</a>.</p>
+<h2>Development Time Benefits</h2>
+<h3>Simpler Startup</h3>
+<p>Debuggers require sourcemaps to be loaded and processed before app startup in order to reliably set breakpoints in terms of generated coordinates ahead of first execution. Eliminating sourcemaps means fewer moving parts and potentially faster startup.</p>
+<h3>Faster Errors</h3>
+<p>Avoiding sourcemaps can also increase runtime performance with respect to Error stacks. Node has the ability to toggle whether runtime processing of Error stacks uses sourcemaps. Node includes <a href="https://github.com/nodejs/node/blob/main/benchmark/es/error-stack.js">a microbenchmark</a> which demonstrates that the cost of reading a mapped error stack is approximately twice that of an unmapped error stack.</p>
+<pre class="language-text"><code class="language-text">> node benchmark/es/error-stack.js
+es/error-stack.js n=100000 method="without-sourcemap": 107,059.95251565645
+es/error-stack.js n=100000 method="sourcemap": 55,918.729592805634</code></pre>
+<h3>Resilience</h3>
+<p>Bloomberg is a heavy user of sourcemaps, and we have some engineers who are helping to <a href="https://ecma-international.org/news/ecma-tc39-ecmascript-initiates-a-new-task-group-to-standardize-source-maps/">make them even better.</a> For sourcemaps to work, many different tools must perfectly align end-to-end. This can lead to them <a href="https://x.com/robpalmer2/status/1583581325289656320">sometimes failing</a>. With <code>ts-blank-space</code> your debugging experience will be based on accurate locations even if your environment is misconfigured or you find yourself in situations when sourcemaps would have been inaccessible.</p>
+<h2>Maintenance Benefits</h2>
+<p>The default parser used by <code>ts-blank-space</code> is the official TypeScript parser. This maximizes alignment with the upstream TypeScript project. Specifically, this means that it should be trivial for <code>ts-blank-space</code> to support any new syntax that is added to the TypeScript language.</p>
+<p>This reduces the effort and compatibility risk associated with maintaining another parser. It also means the project benefits from any performance or correctness improvements that are made to the central TypeScript parser.</p>
+<p>Beyond the parser, the remaining code is only 700 lines of TypeScript. This small size makes it easy to review and understand by TypeScript users.</p>
+<h2>Limitations</h2>
+<p><code>ts-blank-space</code> <a href="https://github.com/bloomberg/ts-blank-space/blob/main/docs/unsupported_syntax.md">does not support</a> every TypeScript syntax. As such, it may not be suitable for your needs.</p>
+<p>JSX is tolerated but not compiled. This means it preserves the tags in the output: <code>*.tsx</code> becomes <code>*.jsx</code>.</p>
+<p>We refer to the supported subset as <strong><em>Modern TypeScript</em></strong> because it represents nearly all TypeScript syntax, except for those TypeScript-specific features that may be considered <a href="https://www.typescriptlang.org/docs/handbook/2/modules.html#typescript-namespaces">legacy</a> or <a href="https://www.totaltypescript.com/why-i-dont-like-typescript-enums">discouraged</a> in some way - despite not being formally deprecated.</p>
+<p>These unsupported TypeScript features already have preferred alternatives:</p>
+<ul>
+<li>Prefix-style type assertions (<code>&lt;type&gt;value</code>)
+<ul>
+<li>...should be replaced with <code>as</code>-style type assertions.</li>
+</ul>
+</li>
+<li>CommonJS-specific syntax <code>(import =</code> and <code>export =)</code>
+<ul>
+<li>...should be replaced with standard ES modules - CommonJS is not supported.</li>
+</ul>
+</li>
+<li>Instantiated Namespaces (<code>namespace Foo</code> and <code>module Foo</code>)
+<ul>
+<li>...should be <a href="https://www.typescriptlang.org/docs/handbook/2/modules.html#typescript-namespaces">replaced</a> with standard ES modules.</li>
+</ul>
+</li>
+</ul>
+<p>The following unsupported TypeScript features must be avoided when using <code>ts-blank-space</code>. Unfortunately the alternatives are not always as concise. We would be excited if more powerful and coherent alternatives than these were to succeed as JavaScript language proposals.</p>
+<ul>
+<li>Enums (<code>enum</code>)
+<ul>
+<li><a href="https://www.typescriptlang.org/docs/handbook/enums.html#objects-vs-enums">Alternative patterns</a> include const objects and string unions.</li>
+</ul>
+</li>
+<li>Constructor Parameter Properties (<code>constructor(public prop) {}</code>)
+<ul>
+<li>Explicit field declarations and assignments are needed instead.</li>
+</ul>
+</li>
+</ul>
+<p>Note that <a href="https://www.typescriptlang.org/docs/handbook/namespaces.html#ambient-namespaces">ambient Namespaces</a> and <a href="https://www.typescriptlang.org/docs/handbook/enums.html#ambient-enums">ambient Enums</a> <strong>are</strong> supported (i.e., <code>declare namespace</code>, <code>declare enum</code>).</p>
+<p>We've successfully used this TypeScript subset within Bloomberg for many years, following the clear mental model that <a href="https://www.bloomberg.com/company/stories/10-insights-adopting-typescript-at-scale/">TypeScript is JavaScript + Types</a>. During this time, the primary unsupported feature that users said they missed was Enums. Most of the time, that need was appeased via the <a href="https://www.typescriptlang.org/docs/handbook/enums.html#objects-vs-enums">alternative patterns</a>.</p>
+<h2>Getting Started</h2>
+<p><code>ts-blank-space</code> is just a library that transforms strings. It is a single function. It is not a CLI or toolchain.</p>
+<ul>
+<li>If you want to see how the code is transformed, please use the <a href="play">playground</a>.</li>
+<li>The quickest way to really use this library is to use the example <a href="https://github.com/bloomberg/ts-blank-space#nodejs-loader">Node loader</a>.</li>
+<li>For anything more, you will need to integrate the library into a CLI or toolchain.</li>
+</ul>
+<h2>Should I use this library?</h2>
+<p>Only if you want to. While <code>ts-blank-space</code> is battle-tested and used in production at Bloomberg, the idea of it is more important than its implementation.</p>
+<p><code>ts-blank-space</code> has a singular purpose and a limited scope. Many users will continue to be better served by existing tools with more comprehensive scopes. And who knows? If those tools find ways to make use of the ideas presented here, everyone wins! 😉</p>
+</main>
+        <script>
+            const darkMode = window.matchMedia("(prefers-color-scheme: dark)");
+            function themeUpdate() {
+                document.getElementById("prism-dark-link").toggleAttribute("disabled", !darkMode.matches);
+            }
+            darkMode.addEventListener("change", themeUpdate);
+            themeUpdate();
+        </script>
+    </body>
+</html>
