@@ -6,6 +6,7 @@
         "moduleDetection": "force",
         "verbatimModuleSyntax": true,
         "useDefineForClassFields": true,
+        "erasableSyntaxOnly": true,
         "declaration": true,
         "declarationDir": "../out"
     },
