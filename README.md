@@ -237,6 +237,9 @@ When unsupported syntax is encountered, `ts-blank-space` will call the optional 
     // Because imports and exports are preserved as written, only removing the
     // parts which are explicitly annotated with the `type` keyword
     "verbatimModuleSyntax": true,
+    // As of `typescript@5.8` there is a built-in check to error on the non-erasable
+    // syntax that tools such as `ts-blank-space` don't support e.g. parameter properties.
+    "erasableSyntaxOnly": true,
 }
 ```
 
