@@ -12,6 +12,7 @@ The following TypeScript features can not be erased by `ts-blank-space` because 
 -   `module` (unless `declare module "path"`) [more details](#module-namespace-declarations)
 -   `import lib = ...`, `export = ...` (TypeScript style CommonJS)
 -   `constructor(public x) {}` [more details](#constructor-parameter-properties)
+-   `experimentalDecorators` and `emitDecoratorMetadata` [more details](#decorators)
 
 For more details on use of `declare` see [the `declare` hazard](#the-declare--hazard).
 
@@ -128,6 +129,17 @@ console.log(N.x);
 So it may throw at runtime if nothing created a runtime value for `N` as promised by the `declare`.
 
 Tests are a great way to catch issues that may arise from an incorrect `declare`.
+
+### Decorators
+
+Decorators in TypeScript have two different interpretations. There is the [official stage 3 decorators proposal](https://github.com/tc39/proposal-decorators) and TypeScript's own [`experimentalDecorators`](https://www.typescriptlang.org/tsconfig/#experimentalDecorators).
+
+As `ts-blank-space` only removes type annotations, and decorators are a runtime feature they are correctly preserved in the output. However, at the time of writing, there are no runtimes that have shipped support for the decorator syntax. If a JavaScript runtime does add support it will be for https://github.com/tc39/proposal-decorators and not `experimentalDecorators`.
+
+Further reading on decorators:
+
+-   https://devblogs.microsoft.com/typescript/announcing-typescript-5-0/#decorators
+-   https://2ality.com/2022/10/javascript-decorators.html
 
 ## Compile time only syntax
 
