@@ -5,14 +5,14 @@ import { join, resolve } from "node:path";
 import { readFileSync, existsSync } from "node:fs";
 import { text } from "node:stream/consumers";
 
-test("exports correctly working loader hooks", async (t) => {
+async function runFixture(fixtureFile: string): Promise<string> {
     const packageRoot = join(import.meta.dirname, "..", "package.json");
     const packageJson = JSON.parse(readFileSync(packageRoot, "utf-8"));
     const loaderPath = resolve(packageRoot, "..", packageJson.exports["./register"]);
 
     assert(existsSync(loaderPath), "exported loader should exist");
 
-    const fixturePath = join(import.meta.dirname, "fixture", "hello.ts");
+    const fixturePath = join(import.meta.dirname, "fixture", fixtureFile);
     assert(existsSync(fixturePath), "fixture should exist");
 
     const child = fork(fixturePath, /* args: */ [], {
@@ -31,5 +31,15 @@ test("exports correctly working loader hooks", async (t) => {
     });
 
     assert(typeof result === "string", `result: ${result}`);
-    assert.equal(result.trim(), "hello world");
+    return result.trim();
+}
+
+test("exports correctly working loader hooks", async (t) => {
+    const result = await runFixture("hello.ts");
+    assert.equal(result, "hello world");
+});
+
+test("loads .mts files with the loader", async (t) => {
+    const result = await runFixture("hello.mts");
+    assert.equal(result, "hello world");
 });
