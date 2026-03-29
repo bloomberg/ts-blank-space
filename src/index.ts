@@ -30,7 +30,7 @@ let src = "";
 let str = new BlankString("");
 let ast: ts.SourceFile;
 let onError: ErrorCb | undefined;
-let seenJS = false;
+let semicolonNeeded = false;
 let parentStatement: ts.Node | undefined = undefined;
 
 /**
@@ -69,7 +69,7 @@ export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): st
         ast = undefined!;
         str = undefined!;
         src = "";
-        seenJS = false;
+        semicolonNeeded = false;
         parentStatement = undefined;
     }
 }
@@ -81,9 +81,9 @@ function visitUnknownNodeArray(nodes: ts.NodeArray<ts.Node>): VisitResult {
 
 function visitNodeArray(nodes: ts.NodeArray<ts.Node>, isStatementLike: boolean, isFunctionBody: boolean): VisitResult {
     const previousParentStatement = parentStatement;
-    const previousSeenJS = seenJS;
+    const previousSemicolonNeeded = semicolonNeeded;
     if (isFunctionBody) {
-        seenJS = false; // 'seenJS' resets for nested execution context
+        semicolonNeeded = false; // 'semicolonNeeded' resets for nested execution context
     }
     for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i];
@@ -91,14 +91,14 @@ function visitNodeArray(nodes: ts.NodeArray<ts.Node>, isStatementLike: boolean, 
             parentStatement = n;
         }
         if (visitStatementLike(n) === VISITED_JS) {
-            seenJS = src.charCodeAt(n.end - 1) !== 59 /* ; */;
+            semicolonNeeded = src.charCodeAt(n.end - 1) !== 59 /* ; */;
         }
     }
     parentStatement = previousParentStatement;
     if (isFunctionBody) {
-        seenJS = previousSeenJS;
+        semicolonNeeded = previousSemicolonNeeded;
     }
-    return seenJS ? VISITED_JS : VISIT_BLANKED;
+    return semicolonNeeded ? VISITED_JS : VISIT_BLANKED;
 }
 
 function visitStatementLike(node: ts.Node): VisitResult {
@@ -119,7 +119,7 @@ function visitStatementLike(node: ts.Node): VisitResult {
 
 function visitor(node: ts.Node): VisitResult {
     const r = innerVisitor(node, node.kind);
-    if (r === VISITED_JS) seenJS = src.charCodeAt(node.end - 1) !== 59 /* ; */;
+    if (r === VISITED_JS) semicolonNeeded = src.charCodeAt(node.end - 1) !== 59 /* ; */;
     return r;
 }
 
@@ -630,7 +630,7 @@ function blankExact(n: ts.Node): void {
 }
 
 function blankStatement(n: ts.Node): void {
-    if (seenJS) {
+    if (semicolonNeeded) {
         str.blankButStartWithSemi(n.getStart(ast), n.end);
     } else {
         str.blank(n.getStart(ast), n.end);
