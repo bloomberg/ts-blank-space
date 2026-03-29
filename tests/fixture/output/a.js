@@ -11,7 +11,7 @@ class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
     static accessor f1;
             f2/**/ /**/        /*︎*/;
 //  ^^^^^^^       ^    ^^^^^^^^
-    ;               
+                    
 //  ^^^^^^^^^^^^^^^^ declared property
 
            method/**/   /*︎*/(/*︎*/        /**/ a  /*︎*/        /**/)/*︎*/      /*︎*/ {
@@ -82,7 +82,7 @@ class E extends (function() {}       ) {
 void 0;
 
 /** @doc */
-;          
+           
 // ^^^^^^^^ type alias
 
 
@@ -97,32 +97,32 @@ function foo   (p      = ()      => 1)      {
 
 void 0;
 
-/**/;                     
+/**/                      
 //  ^^^^^^^^^^^^^^^^^^^^^^ `declare namespace`
 
 void 0;
 
-/**/;                      
+/**/                       
 //  ^^^^^^^^^^^^^^^^^^^^^^^ `declare module "path"`
 
 void 0;
 
-/**/;                
+/**/                 
 //  ^^^^^^^^^^^^^^^^^ `declare global {}`
 
 void 0;
 
-/**/;             
+/**/              
 //  ^^^^^^^^^^^^^^ `declare let`
 
 void 0;
 
-/**/;                             
+/**/                              
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare class`
 
 void 0;
 
-/**/;                                         
+/**/                                          
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare function`
 
 void 0;

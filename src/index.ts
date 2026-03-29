@@ -91,7 +91,7 @@ function visitNodeArray(nodes: ts.NodeArray<ts.Node>, isStatementLike: boolean, 
             parentStatement = n;
         }
         if (visitStatementLike(n) === VISITED_JS) {
-            seenJS = true;
+            seenJS = src.charCodeAt(n.end - 1) !== 59 /* ; */;
         }
     }
     parentStatement = previousParentStatement;
@@ -119,7 +119,7 @@ function visitStatementLike(node: ts.Node): VisitResult {
 
 function visitor(node: ts.Node): VisitResult {
     const r = innerVisitor(node, node.kind);
-    if (r === VISITED_JS) seenJS = true;
+    if (r === VISITED_JS) seenJS = src.charCodeAt(node.end - 1) !== 59 /* ; */;
     return r;
 }
 
