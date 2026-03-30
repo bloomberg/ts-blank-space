@@ -91,3 +91,15 @@ class NoASI {
     static          ["computed-field"] = 1
 //         ^^^^^^^^
 }
+
+// Semi-colon preservation rules
+let x;
+              
+let y;
+
+let a
+;             
+let b
+
+function foo() {}
+;             
