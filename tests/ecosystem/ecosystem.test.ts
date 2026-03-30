@@ -99,7 +99,8 @@ async function sameEmit(source: string, t: TestContext, filename: string, multip
         },
     });
     if (tsOut.diagnostics?.length) {
-        t.skip("TS errored: " + tsOut.diagnostics[0].messageText);
+        const msg = tsOut.diagnostics[0].messageText;
+        t.skip("TS errored: " + (typeof msg === "string" ? msg : msg?.messageText));
         return;
     }
     let nope = false;

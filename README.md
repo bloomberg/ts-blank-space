@@ -115,7 +115,7 @@ console.log(blankSourceFile(ast));
 
 ## Node.js Loader
 
-`ts-blank-space` exposes the required [Node.js module loader hooks](https://nodejs.org/api/module.html#customization-hooks) to use `ts-blank-space` to pre-process `*.ts` that are imported before they are evaluated.
+`ts-blank-space` exposes the required [Node.js module loader hooks](https://nodejs.org/api/module.html#customization-hooks) to use `ts-blank-space` to pre-process `*.ts` and `*.mts` that are imported before they are evaluated.
 
 ```sh
 # Install (one time):
@@ -125,9 +125,9 @@ $ npm install --save-dev ts-blank-space
 $ node --import ts-blank-space/register ./path/to/your/file.ts
 ```
 
-In addition to loading `*.ts` files, an import resolver is also registered which catches failed `*.js` imports and re-attempts the import replacing the extension with `.ts`. This allows import paths to choose either `.ts` or `.js` depending on which other factors the project may need to take into account such as bundling and package distribution.
+In addition to loading `*.ts` and `*.mts` files, an import resolver is also registered which catches failed `*.js` and `*.mjs` imports and re-attempts the import replacing the extension with `.ts` or `.mts`. This allows import paths to choose either `.ts` or `.js` (and `.mts` or `.mjs`) depending on which other factors the project may need to take into account such as bundling and package distribution.
 
-:information_source: The loader assumes that all `.ts` files are [ESM](https://nodejs.org/api/esm.html).
+:information_source: The loader assumes that all `.ts` and `.mts` files are [ESM](https://nodejs.org/api/esm.html).
 
 ## Where are my SourceMaps?
 
