@@ -14,7 +14,7 @@
     "dependencies": {
         "monaco-editor": "^0.50.0",
         "ts-blank-space": "..",
-        "typescript": "^5.5.4"
+        "typescript": "^6.0.2"
     },
     "devDependencies": {
         "@11ty/eleventy": "3.0.0",
