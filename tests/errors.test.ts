@@ -185,6 +185,74 @@ it("errors on CJS import syntax", () => {
     );
 });
 
+it("errors on `as` expression that would change operator precedence", () => {
+    const onError = mock.fn();
+    const tsInput = `1+1 as T / 2`;
+    let jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    // TypeScript would emit `(1+1) / 2`, but ts-blank-space can't insert
+    // the leading `(` without shifting offsets, so it must error.
+    assert.equal(jsOutput, `1+1 as T / 2`);
+});
+
+it("errors on nested `as` expressions that would change operator precedence", () => {
+    const onError = mock.fn();
+    const tsInput = `1 + 1 as unknown as number / 2`;
+    const jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    assert.equal(jsOutput, `1 + 1 as unknown as number / 2`);
+});
+
+it("errors even with comments between assertion chain and next operator", () => {
+    const onError = mock.fn();
+    const tsInput = `1 + 1 as unknown /* comment */ / 2`;
+    const jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    assert.equal(jsOutput, tsInput);
+});
+
+it("covers assertion-chain binary precedence error cases across operators", () => {
+    const runErrorCase = (input: string, context: string) => {
+        const onError = mock.fn();
+        const jsOutput = tsBlankSpace(input, onError);
+        assert.equal(onError.mock.callCount(), 1, `unexpected onError count: ${context}`);
+        assert.equal(jsOutput, input, `should preserve source when it errors: ${context}`);
+    };
+
+    runErrorCase(`1 ** 1 as unknown ** 2`, "same operator **");
+
+    const higherPrecedenceCases = [
+        { base: "<", next: "<<" },
+        { base: "<=", next: "<<" },
+        { base: ">", next: "<<" },
+        { base: ">=", next: "<<" },
+        { base: "instanceof", next: "<<" },
+        { base: "in", next: "<<" },
+        { base: "<<", next: "+" },
+        { base: ">>", next: "+" },
+        { base: ">>>", next: "+" },
+        { base: "+", next: "*" },
+        { base: "-", next: "*" },
+        { base: "*", next: "**" },
+        { base: "/", next: "**" },
+        { base: "%", next: "**" },
+    ];
+
+    for (const { base, next } of higherPrecedenceCases) {
+        runErrorCase(`a ${base} a as unknown ${next} a`, `${next} should outrank ${base}`);
+    }
+
+    runErrorCase(`1 + 1 as unknown * 2`, "targeted higher-precedence operator");
+});
+
+it("errors on `satisfies` expression that would change operator precedence", () => {
+    const onError = mock.fn();
+    const tsInput = `1+1 satisfies T / 2`;
+    let jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    assert.equal(jsOutput, `1+1 satisfies T / 2`);
+});
+
 it("errors on prefix type assertion", () => {
     const onError = mock.fn();
     const tsInput = `let x = <string>"test";`;

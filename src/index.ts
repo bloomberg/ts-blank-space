@@ -352,6 +352,11 @@ function visitNonNullExpression(node: ts.NonNullExpression): VisitResult {
  * `exp satisfies T, exp as T`
  */
 function visitTypeAssertion(node: ts.SatisfiesExpression | ts.AsExpression): VisitResult {
+    if (assertionChainWouldChangeBinaryGrouping(node)) {
+        onError && onError(node);
+        return VISITED_JS;
+    }
+
     const r = visitor(node.expression);
     const nodeEnd = node.end;
     if (parentStatement && nodeEnd === parentStatement.end && src.charCodeAt(nodeEnd) !== 59 /* ; */) {
@@ -368,6 +373,110 @@ function visitTypeAssertion(node: ts.SatisfiesExpression | ts.AsExpression): Vis
 function visitLegacyTypeAssertion(node: ts.TypeAssertion): VisitResult {
     onError && onError(node);
     return visitor(node.expression);
+}
+
+function isAssertionExpression(node: ts.Node): node is ts.AsExpression | ts.SatisfiesExpression {
+    return node.kind === SK.AsExpression || node.kind === SK.SatisfiesExpression;
+}
+
+function assertionChainWouldChangeBinaryGrouping(node: ts.AsExpression | ts.SatisfiesExpression): boolean {
+    let baseExpr: ts.Expression = node.expression;
+    while (isAssertionExpression(baseExpr)) {
+        baseExpr = baseExpr.expression;
+    }
+
+    if (!tslib.isBinaryExpression(baseExpr)) {
+        return false;
+    }
+
+    let chainTop: ts.Node = node;
+    while (chainTop.parent && isAssertionExpression(chainTop.parent) && chainTop.parent.expression === chainTop) {
+        chainTop = chainTop.parent;
+    }
+
+    const nextToken = scanRange(chainTop.end, ast.end, scanner.scan.bind(scanner));
+    const basePrecedence = getBinaryOperatorPrecedence(baseExpr.operatorToken.kind);
+    const nextPrecedence = getBinaryOperatorPrecedence(nextToken);
+    if (basePrecedence === undefined || nextPrecedence === undefined) {
+        return false;
+    }
+
+    if (hasUnsafeNullishLogicalMix(baseExpr.operatorToken.kind, nextToken)) {
+        return true;
+    }
+
+    if (nextPrecedence > basePrecedence) {
+        return true;
+    }
+
+    if (nextPrecedence === basePrecedence) {
+        return !areOperatorsSafelyAssociative(baseExpr.operatorToken.kind, nextToken);
+    }
+
+    return false;
+}
+
+function getBinaryOperatorPrecedence(token: ts.SyntaxKind): number | undefined {
+    switch (token) {
+        case SK.AsteriskAsteriskToken:
+            return 15;
+        case SK.AsteriskToken:
+        case SK.SlashToken:
+        case SK.PercentToken:
+            return 14;
+        case SK.PlusToken:
+        case SK.MinusToken:
+            return 13;
+        case SK.LessThanLessThanToken:
+        case SK.GreaterThanGreaterThanToken:
+        case SK.GreaterThanGreaterThanGreaterThanToken:
+            return 12;
+        case SK.LessThanToken:
+        case SK.LessThanEqualsToken:
+        case SK.GreaterThanToken:
+        case SK.GreaterThanEqualsToken:
+        case SK.InstanceOfKeyword:
+        case SK.InKeyword:
+            return 11;
+        case SK.EqualsEqualsToken:
+        case SK.ExclamationEqualsToken:
+        case SK.EqualsEqualsEqualsToken:
+        case SK.ExclamationEqualsEqualsToken:
+            return 10;
+        case SK.AmpersandToken:
+            return 9;
+        case SK.CaretToken:
+            return 8;
+        case SK.BarToken:
+            return 7;
+        case SK.AmpersandAmpersandToken:
+            return 6;
+        case SK.BarBarToken:
+            return 5;
+        case SK.QuestionQuestionToken:
+            return 4;
+        default:
+            return undefined;
+    }
+}
+
+function isNullishOrLogical(token: ts.SyntaxKind): boolean {
+    return token === SK.QuestionQuestionToken || token === SK.BarBarToken || token === SK.AmpersandAmpersandToken;
+}
+
+function hasUnsafeNullishLogicalMix(left: ts.SyntaxKind, right: ts.SyntaxKind): boolean {
+    if (!isNullishOrLogical(left) || !isNullishOrLogical(right)) {
+        return false;
+    }
+    return left !== right;
+}
+
+function areOperatorsSafelyAssociative(left: ts.SyntaxKind, right: ts.SyntaxKind): boolean {
+    // Exponentiation is right-associative, so `(a ** b) ** c` and `a ** b ** c` differ.
+    if (left === SK.AsteriskAsteriskToken || right === SK.AsteriskAsteriskToken) {
+        return false;
+    }
+    return true;
 }
 
 const unsupportedParameterModifiers = new Set([
