@@ -55,7 +55,7 @@ The benefits of this library are:
     -   No [native-addons](https://nodejs.org/api/addons.html)
     -   No [child process](https://nodejs.org/api/child_process.html)
 -   It is small
-    -   Around 700 lines of code and one dependency ([`TypeScript`](https://www.npmjs.com/package/typescript))
+    -   Around 800 lines of code and one dependency ([`TypeScript`](https://www.npmjs.com/package/typescript))
     -   By doing so little, the code should be relatively easy to maintain
 -   Delegates the parsing to the [official TypeScript parser](https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API)
 -   No need for additional SourceMap processing; see ["where are my SourceMaps?"](#where-are-my-sourcemaps)
@@ -222,6 +222,8 @@ let f = async (
 ## Unsupported Syntax
 
 Some parts of TypeScript are not supported because they can't be erased in place due to having runtime semantics. See [unsupported_syntax.md](./docs/unsupported_syntax.md).
+
+In addition, some compile-time-only assertion forms such as `as` / `satisfies` can still be unsupported in specific precedence-sensitive positions, because erasing them would require adding parentheses to keep JavaScript semantics the same.
 
 When unsupported syntax is encountered, `ts-blank-space` will call the optional `onError` callback and continue. Examples can be seen in [`errors.test.ts`](./tests/errors.test.ts).
 

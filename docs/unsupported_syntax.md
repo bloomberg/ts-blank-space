@@ -143,6 +143,77 @@ Further reading on decorators:
 
 ## Compile time only syntax
 
+-   Legacy prefix type assertions (for example `<const>value`) are not erased [more details](#legacy-prefix-type-assertions)
+-   Some trailing `as` / `satisfies` expressions are not erased when removing them would change binary operator grouping [more details](#as--satisfies-expressions-that-would-change-operator-grouping)
+
+### `as` / `satisfies` expressions that would change operator grouping
+
+In most cases, `as` and `satisfies` are erased in place. However, some forms require TypeScript to add parentheses to preserve runtime semantics. Since `ts-blank-space` preserves the source positions, these cases are reported through `onError` and left unchanged.
+
+Simple example that will error:
+
+<!-- prettier-ignore -->
+```typescript
+1 + 1 as number / 2;
+```
+
+TypeScript would effectively group that as:
+
+<!-- prettier-ignore -->
+```javascript
+(1 + 1) / 2;
+```
+
+Erasing only the assertion text would incorrectly produce:
+
+<!-- prettier-ignore -->
+```javascript
+1 + 1           / 2;
+```
+
+Which has the semantics of `1 + (1 / 2)`. So this is not supported and `onError` is called.
+
+Note, the precedence of the two runtime operators determines if this is erasable or an error.
+
+Given:
+
+<!-- prettier-ignore -->
+```typescript
+left OP1 right as T OP2 tail
+```
+
+`ts-blank-space` looks at:
+
+-   `OP1`: the operator inside the asserted binary expression (`left OP1 right`)
+-   `OP2`: the next operator immediately after the assertion chain
+
+Then applies the following rules:
+
+-   If `OP2` has **higher precedence** than `OP1`, erasing would re-group evaluation, so `onError` is called and the assertion text is preserved.
+-   If `OP2` has **lower precedence** than `OP1`, erasing keeps grouping unchanged, so the assertion is erased.
+-   If `OP2` has **equal precedence**, erasure is usually safe, except for cases that are not safely associative (for example `**`).
+-   The same check applies to chained assertions like `expr as A as B` and `expr satisfies A as B`.
+
+Supported (safe to erase) example:
+
+<!-- prettier-ignore -->
+```typescript
+1 * 1 as number + 2;
+```
+
+After erasure, grouping is still effectively `(1 * 1) + 2`, so this is supported.
+
+The same applies to nested assertion chains, for example:
+
+<!-- prettier-ignore -->
+```typescript
+1 + 1 as unknown as number / 2;
+```
+
+Thanks to [Masaki Hara](https://github.com/qnighy) for [identifying this restriction](https://github.com/bloomberg/ts-blank-space/issues/62).
+
+### Legacy prefix type assertions
+
 TypeScript type assertions have no runtime semantics, however `ts-blank-space` does not erase the legacy prefix-style type assertions.
 
 <!-- prettier-ignore -->
