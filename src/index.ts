@@ -135,6 +135,7 @@ function innerVisitor(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
         case SK.InterfaceDeclaration:
             blankStatement(node as (ts.TypeAliasDeclaration | ts.InterfaceDeclaration));
             return VISIT_BLANKED;
+        case SK.BinaryExpression: return visitBinaryExpression(node as ts.BinaryExpression);
         case SK.ClassDeclaration:
         case SK.ClassExpression: return visitClassLike(node as ts.ClassLikeDeclaration);
         case SK.ExpressionWithTypeArguments: return visitExpressionWithTypeArguments(node as ts.ExpressionWithTypeArguments);
@@ -379,6 +380,48 @@ function isAssertionExpression(node: ts.Node): node is ts.AsExpression | ts.Sati
     return node.kind === SK.AsExpression || node.kind === SK.SatisfiesExpression;
 }
 
+/**
+ * Detect if erasing a type-assertion annotation would result in a runtime
+ * syntax error due to unparenthesized mixing of `??` with `&&` or `||`.
+ * e.g. In `a ?? b as T && c` erasing `as T` would produce `a ?? b && c` which is a SyntaxError.
+ */
+function visitBinaryExpression(node: ts.BinaryExpression): VisitResult {
+    const opKind = node.operatorToken.kind;
+    if (isNullishOrLogical(opKind)) {
+        if (
+            tslib.isBinaryExpression(node.right) &&
+            hasUnsafeNullishLogicalMix(opKind, node.right.operatorToken.kind) &&
+            isAssertionExpression(node.right.left)
+        ) {
+            // e.g. `a ?? b as T && c` parses as `??[a, &&[as[b, T], c]]`
+            visitor(node.left);
+            onError && onError(node.right.left);
+            visitor(node.right.right);
+            return VISITED_JS;
+        }
+        if (
+            tslib.isBinaryExpression(node.left) &&
+            hasUnsafeNullishLogicalMix(opKind, node.left.operatorToken.kind) &&
+            isAssertionExpression(node.left.right)
+        ) {
+            // e.g. `a && b as T ?? c` parses as `??[&&[a, as[b, T]], c]`
+            //   or `a || b as T ?? c` parses as `??[||[a, as[b, T]], c]`
+            //   or `a ?? b as T || c` parses as `||[??[a, as[b, T]], c]`
+            visitor(node.left.left);
+            onError && onError(node.left.right);
+            visitor(node.right);
+            return VISITED_JS;
+        }
+    }
+    visitor(node.left);
+    visitor(node.right);
+    return VISITED_JS;
+}
+
+/**
+ * Detect cases where erasing a type assertion would change operator grouping. e.g. `1 + 1 as T / 2`
+ * @see https://github.com/bloomberg/ts-blank-space/issues/62
+ */
 function assertionChainWouldChangeBinaryGrouping(node: ts.AsExpression | ts.SatisfiesExpression): boolean {
     let baseExpr: ts.Expression = node.expression;
     while (isAssertionExpression(baseExpr)) {
@@ -389,27 +432,19 @@ function assertionChainWouldChangeBinaryGrouping(node: ts.AsExpression | ts.Sati
         return false;
     }
 
-    let chainTop: ts.Node = node;
-    while (chainTop.parent && isAssertionExpression(chainTop.parent) && chainTop.parent.expression === chainTop) {
-        chainTop = chainTop.parent;
-    }
-
-    const nextToken = scanRange(chainTop.end, ast.end, scanner.scan.bind(scanner));
+    const nextToken = scanRange(node.end, ast.end, scanner.scan.bind(scanner));
     const basePrecedence = getBinaryOperatorPrecedence(baseExpr.operatorToken.kind);
     const nextPrecedence = getBinaryOperatorPrecedence(nextToken);
     if (basePrecedence === undefined || nextPrecedence === undefined) {
         return false;
     }
 
-    if (hasUnsafeNullishLogicalMix(baseExpr.operatorToken.kind, nextToken)) {
-        return true;
-    }
-
     if (nextPrecedence > basePrecedence) {
-        return true;
+        return true; // higher next precedence is unsafe, the grouping would change
     }
 
     if (nextPrecedence === basePrecedence) {
+        // Only right-associative is unsafe e.g. `**`
         return !areOperatorsSafelyAssociative(baseExpr.operatorToken.kind, nextToken);
     }
 
@@ -464,11 +499,12 @@ function isNullishOrLogical(token: ts.SyntaxKind): boolean {
     return token === SK.QuestionQuestionToken || token === SK.BarBarToken || token === SK.AmpersandAmpersandToken;
 }
 
+// JavaScript requires explicit parentheses when mixing `??` with `||` or `&&`.
 function hasUnsafeNullishLogicalMix(left: ts.SyntaxKind, right: ts.SyntaxKind): boolean {
-    if (!isNullishOrLogical(left) || !isNullishOrLogical(right)) {
-        return false;
-    }
-    return left !== right;
+    if (left === right) return false;
+    if (left === SK.QuestionQuestionToken) return isNullishOrLogical(right);
+    if (right === SK.QuestionQuestionToken) return isNullishOrLogical(left);
+    return false;
 }
 
 function areOperatorsSafelyAssociative(left: ts.SyntaxKind, right: ts.SyntaxKind): boolean {

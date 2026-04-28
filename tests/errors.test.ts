@@ -185,7 +185,7 @@ it("errors on CJS import syntax", () => {
     );
 });
 
-it("errors on `as` expression that would change operator precedence", () => {
+it("errors on `as` expression that would change operator precedence if erased", () => {
     const onError = mock.fn();
     const tsInput = `1+1 as T / 2`;
     let jsOutput = tsBlankSpace(tsInput, onError);
@@ -195,7 +195,17 @@ it("errors on `as` expression that would change operator precedence", () => {
     assert.equal(jsOutput, `1+1 as T / 2`);
 });
 
-it("errors on nested `as` expressions that would change operator precedence", () => {
+it("errors on (invalid) `as const` expression that would change operator precedence if evaluated", () => {
+    const onError = mock.fn();
+    const tsInput = `1+1 as const / 2`;
+    let jsOutput = tsBlankSpace(tsInput, onError);
+    assert.equal(onError.mock.callCount(), 1);
+    // TypeScript would emit `(1+1) / 2`, but ts-blank-space can't insert
+    // the leading `(` without shifting offsets, so it must error.
+    assert.equal(jsOutput, `1+1 as const / 2`);
+});
+
+it("errors on nested `as` expressions that would change operator precedence if erased", () => {
     const onError = mock.fn();
     const tsInput = `1 + 1 as unknown as number / 2`;
     const jsOutput = tsBlankSpace(tsInput, onError);
@@ -203,12 +213,89 @@ it("errors on nested `as` expressions that would change operator precedence", ()
     assert.equal(jsOutput, `1 + 1 as unknown as number / 2`);
 });
 
+it("errors on (invalid) ambiguous `??` precedence that would error if erased", () => {
+    logicalOr: {
+        const onError = mock.fn();
+        // TypeScript produces an error for this input:
+        const tsInput = `a ?? b as any || 2`; // "ts(5076): '??' and '||' operations cannot be mixed without parentheses"
+        // If that TS error was ignored the TS emitted code would actually be valid
+        // because TS adds parenthesis: `(a ?? b) || 2`.
+        // `ts-blank-space` would only erase, meaning there would be a runtime syntax error.
+        // To catch this early we should emit an error.
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1);
+        assert.equal(jsOutput, `a ?? b as any || 2`);
+    }
+
+    logicalAnd: {
+        const onError = mock.fn();
+        const tsInput = `a ?? b as any && 2`; // "ts(5076): '??' and '||' operations cannot be mixed without parentheses"
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1);
+        assert.equal(jsOutput, `a ?? b as any && 2`);
+    }
+
+    logicalOrReversed: {
+        const onError = mock.fn();
+        const tsInput = `a || b as any ?? 2`;
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1);
+        assert.equal(jsOutput, `a || b as any ?? 2`);
+    }
+
+    logicalAndReversed: {
+        const onError = mock.fn();
+        const tsInput = `a && b as any ?? 2`;
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1);
+        assert.equal(jsOutput, `a && b as any ?? 2`);
+    }
+
+    satisfies: {
+        const onError = mock.fn();
+        const tsInput = `a ?? b satisfies any || 2`;
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1);
+        assert.equal(jsOutput, `a ?? b satisfies any || 2`);
+    }
+
+    assertionChain: {
+        const onError = mock.fn();
+        const tsInput = `a ?? b as any as unknown && 2`;
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1);
+        assert.equal(jsOutput, `a ?? b as any as unknown && 2`);
+    }
+});
+
+it("errors on `??` mix nested inside a larger expression", () => {
+    threeOperatorChain: {
+        // `a ?? b as T && c || d` parses as `||[??[a, &&[as[b, T], c]], d]`
+        // The ?? mix error is caught at the inner `??` node
+        const onError = mock.fn();
+        const tsInput = `a ?? b as T && c || d`;
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1);
+        assert.equal(jsOutput, `a ?? b as T && c || d`);
+    }
+
+    precedenceErrorDeeperInTree: {
+        // `1 + 2 as T * 3 + 4` parses as `+[*[as[+[1, 2], T], 3], 4]`
+        // The precedence error (+ vs *) is caught on the nested `as` node
+        const onError = mock.fn();
+        const tsInput = `1 + 2 as T * 3 + 4`;
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1);
+        assert.equal(jsOutput, `1 + 2 as T * 3 + 4`);
+    }
+});
+
 it("errors even with comments between assertion chain and next operator", () => {
     const onError = mock.fn();
     const tsInput = `1 + 1 as unknown /* comment */ / 2`;
     const jsOutput = tsBlankSpace(tsInput, onError);
     assert.equal(onError.mock.callCount(), 1);
-    assert.equal(jsOutput, tsInput);
+    assert.equal(jsOutput, `1 + 1 as unknown /* comment */ / 2`);
 });
 
 it("covers assertion-chain binary precedence error cases across operators", () => {
