@@ -203,13 +203,6 @@ Supported (safe to erase) example:
 
 After erasure, grouping is still effectively `(1 * 1) + 2`, so this is supported.
 
-The same applies to nested assertion chains, for example:
-
-<!-- prettier-ignore -->
-```typescript
-1 + 1 as unknown as number / 2;
-```
-
 Thanks to [Masaki Hara](https://github.com/qnighy) for [identifying this restriction](https://github.com/bloomberg/ts-blank-space/issues/62).
 
 ### Legacy prefix type assertions
