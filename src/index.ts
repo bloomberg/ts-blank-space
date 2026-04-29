@@ -444,8 +444,8 @@ function assertionChainWouldChangeBinaryGrouping(node: ts.AsExpression | ts.Sati
     }
 
     if (nextPrecedence === basePrecedence) {
-        // Only right-associative is unsafe e.g. `**`
-        return !areOperatorsSafelyAssociative(baseExpr.operatorToken.kind, nextToken);
+        // Exponentiation is unsafe as it is right-associative. `(2 ** 2) ** 3` !== `2 ** 2 ** 3`.
+        return baseExpr.operatorToken.kind === SK.AsteriskAsteriskToken || nextToken === SK.AsteriskAsteriskToken;
     }
 
     return false;
@@ -505,14 +505,6 @@ function hasUnsafeNullishLogicalMix(left: ts.SyntaxKind, right: ts.SyntaxKind): 
     if (left === SK.QuestionQuestionToken) return isNullishOrLogical(right);
     if (right === SK.QuestionQuestionToken) return isNullishOrLogical(left);
     return false;
-}
-
-function areOperatorsSafelyAssociative(left: ts.SyntaxKind, right: ts.SyntaxKind): boolean {
-    // Exponentiation is right-associative, so `(a ** b) ** c` and `a ** b ** c` differ.
-    if (left === SK.AsteriskAsteriskToken || right === SK.AsteriskAsteriskToken) {
-        return false;
-    }
-    return true;
 }
 
 const unsupportedParameterModifiers = new Set([
