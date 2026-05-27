@@ -8,17 +8,32 @@ const FALLBACK_EXTENSIONS = [
     [".mjs", ".mts"],
 ];
 
+function fallbackSpecifier(err) {
+    const url = err?.url;
+    if (typeof url !== "string") return null;
+    for (const [fromExtension, toExtension] of FALLBACK_EXTENSIONS) {
+        if (url.endsWith(fromExtension)) {
+            return url.slice(0, -fromExtension.length) + toExtension;
+        }
+    }
+    return null;
+}
+
+function transformLoadResult(sourceText, url) {
+    return {
+        format: "module",
+        shortCircuit: true,
+        source: tsBlankSpace(sourceText) + "\n//# sourceURL=" + url,
+    };
+}
+
 export async function resolve(specifier, context, nextResolve) {
     try {
         return await nextResolve(specifier, context);
     } catch (err) {
-        const url = err?.url;
-        if (typeof url === "string") {
-            for (const [fromExtension, toExtension] of FALLBACK_EXTENSIONS) {
-                if (url.endsWith(fromExtension)) {
-                    return nextResolve(url.slice(0, -fromExtension.length) + toExtension, context);
-                }
-            }
+        const fallback = fallbackSpecifier(err);
+        if (fallback !== null) {
+            return nextResolve(fallback, context);
         }
         throw err;
     }
@@ -29,13 +44,27 @@ export async function load(url, context, nextLoad) {
         return nextLoad(url, context);
     }
 
-    const format = "module";
-    const result = await nextLoad(url, { ...context, format });
-    const transformedSource = tsBlankSpace(result.source.toString());
+    const result = await nextLoad(url, { ...context, format: "module" });
+    return transformLoadResult(result.source.toString(), url);
+}
 
-    return {
-        format,
-        shortCircuit: true,
-        source: transformedSource + "\n//# sourceURL=" + url,
-    };
+export function resolveSync(specifier, context, nextResolve) {
+    try {
+        return nextResolve(specifier, context);
+    } catch (err) {
+        const fallback = fallbackSpecifier(err);
+        if (fallback !== null) {
+            return nextResolve(fallback, context);
+        }
+        throw err;
+    }
+}
+
+export function loadSync(url, context, nextLoad) {
+    if (!TS_EXTENSIONS.some((extension) => url.endsWith(extension))) {
+        return nextLoad(url, context);
+    }
+
+    const result = nextLoad(url, { ...context, format: "module" });
+    return transformLoadResult(result.source.toString(), url);
 }
