@@ -355,3 +355,23 @@ it("errors on prefix type assertion as arrow body within binary expressions", ()
     assert.equal(onError.mock.callCount(), 1);
     assert.equal(jsOutput, `(()=><any>{p:null}.p ?? 1);`);
 });
+
+// (negative) Test cases from https://github.com/microsoft/TypeScript/issues/63533
+it("error with the test cases from TypeScript issue 63533", () => {
+    const cases = [
+        `export const x03 = 1 + 1 as number * 2;`,
+        `export const x04 = 1 + 1 as any as number * 2;`,
+        `export const x23 = 1 >> 1 as number + 2;`,
+        `export const x24 = 1 >> 1 as any as number + 2;`,
+        `export const y03 = 1 + 1 satisfies number * 2;`,
+        `export const y04 = 1 + 1 satisfies any satisfies number * 2;`,
+        `export const y23 = 1 >> 1 satisfies number + 2;`,
+        `export const y24 = 1 >> 1 satisfies any satisfies number + 2;`,
+    ];
+    for (const tsInput of cases) {
+        const onError = mock.fn();
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1);
+        assert.equal(jsOutput, tsInput);
+    }
+});
