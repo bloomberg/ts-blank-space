@@ -1,19 +1,19 @@
-/**/                                 
+                                     
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `import type`
 
 import { "🙂" as C2 } from "./modules";
 
-             
-class C {}
+;            
+ lass C {}
 C === C2;
 
-/**/                  
-//  ^^^^^^^^^^^^^^^^^^ `export type`
+;                     
+ ;                                  
 
-/**/                                 
-//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `export type *`
+                                     
+ /  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `export type *`
 
-import {                          deepEqual} from "node:assert";
+import {ty                    */, deepEqual} from "node:assert";
 //      ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 export {
@@ -23,10 +23,10 @@ export {
     C as "🙂"
 }
 
-/**/;                  
-//  ^^^^^^^^^^^^^^^^^^^
+/*;                    
+    ^^^^^^^^^^^^^^^^^^^
 
 export default {
-    v: true         
-//         ^^^^^^^^^
+    v: true as      
+           ^^^^^^^^^
 };

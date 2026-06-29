@@ -1,0 +1,15 @@
+// @ts-check
+import * as fs from "node:fs";
+import blankSpace from "ts-blank-space";
+
+function assert(v) {
+    if (!v) throw new Error();
+}
+
+const input = fs.readFileSync(process.argv[2], "utf-8");
+const count = Number(process.argv[3]) || 100;
+
+for (let i = 0; i < count; i++) {
+    const output = blankSpace(input);
+    assert(output.length > 100);
+}

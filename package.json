@@ -23,7 +23,7 @@
     },
     "types": "./out/index.d.ts",
     "dependencies": {
-        "typescript": "5.1.6 - 6.0.x"
+        "typescript": "^7.0.1-rc"
     },
     "imports": {
         "#r": "ts-blank-space-lkg/register"

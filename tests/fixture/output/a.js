@@ -4,17 +4,17 @@ let x /**/        /**/ = 1 ;
 []                   ;
 // ^^^^^^^^^^^^^^^^^^
 
-class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
-//          ^^^^^                      ^^^     ^^^^^^^^^^^^^^
+class C /**/     /*︎*/ extends Array/**/                       /*︎*/ {
+                                                             
              field/**/        /**/ = "";
 //  ^^^^^^^^          ^^^^^^^^
     static accessor f1;
-            f2/**/ /**/        /*︎*/;
-//  ^^^^^^^       ^    ^^^^^^^^
+            f2     /**/        /*︎*/;
+                               
                     
-//  ^^^^^^^^^^^^^^^^ declared property
+                                      
 
-           method/**/   /*︎*/(/*︎*/        /**/ a  /*︎*/        /**/)/*︎*/      /*︎*/ {
+           method/**/   /*︎*/(             /**/ a  /*︎*/        /**/)/*︎*/      /*︎*/ {
 //  ^^^^^^           ^^^         ^^^^^^^^      ^     ^^^^^^^^         ^^^^^^
     }
 
@@ -28,7 +28,7 @@ class C /**/     /*︎*/ extends Array/**/    /*︎*/              /*︎*/ {
 }
 
 class D extends C      {
-//               ^^^^^
+                      
              method(...args)      {}
 //  ^^^^^^^^                ^^^^^
 }
@@ -39,9 +39,8 @@ class E extends (function() {}       ) {
 //       ^^^^^^^^
 }
 
-            class A {
-// ^^^^^^^^
-    ;          
+            class A {;           
+               
 //  ^^^^^^^^^^^ abstract property
     b;
                       
@@ -73,15 +72,14 @@ class E extends (function() {}       ) {
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ overload
     function overload()      {}
 //                     ^^^^^
-}
-
-/** @doc */
-;             
+};
+           
+              
 // ^^^^^^^^^^^ interface
 
 void 0;
 
-/** @doc */
+           
            
 // ^^^^^^^^ type alias
 
@@ -90,39 +88,38 @@ function foo   (p      = ()      => 1)      {
 //          ^^^  ^^^^^     ^^^^^      ^^^^^
     return p       ;
 //           ^^^^^^
-}
-
-/**/;                 
+};
+                      
 //  ^^^^^^^^^^^^^^^^^^ `declare enum`
 
 void 0;
 
-/**/                      
+                          
 //  ^^^^^^^^^^^^^^^^^^^^^^ `declare namespace`
 
 void 0;
 
-/**/                       
+                           
 //  ^^^^^^^^^^^^^^^^^^^^^^^ `declare module "path"`
 
 void 0;
 
-/**/                 
+/**/declare global {}
 //  ^^^^^^^^^^^^^^^^^ `declare global {}`
 
 void 0;
 
-/**/              
+                  
 //  ^^^^^^^^^^^^^^ `declare let`
 
 void 0;
 
-/**/                              
+                                  
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare class`
 
 void 0;
 
-/**/                                          
+                                              
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `declare function`
 
 void 0;
