@@ -104,7 +104,7 @@ void 0;
 
 void 0;
 
-/**/declare global {}
+                     
 //  ^^^^^^^^^^^^^^^^^ `declare global {}`
 
 void 0;

@@ -661,9 +661,10 @@ function visitExportAssignment(node: ts.ExportAssignment): VisitResult {
 }
 
 function visitModule(node: ts.ModuleDeclaration): VisitResult {
+    const name = node.name;
     if (
         // `declare global {...}
-        // TODO: node.flags & ts.NodeFlags.GlobalAugmentation ||
+        (name.kind === SK.Identifier && (name as ts.Identifier).text === "global") ||
         // `namespace N {...}`
         (node.keyword === SK.NamespaceKeyword &&
             // `declare namespace N {...}`
@@ -671,7 +672,7 @@ function visitModule(node: ts.ModuleDeclaration): VisitResult {
                 // `namespace N { <no values> }`
                 !valueNamespaceWorker(node))) ||
         // `declare module "./path" {...}`
-        node.name.kind === SK.StringLiteral
+        name.kind === SK.StringLiteral
     ) {
         blankStatement(node);
         return VISIT_BLANKED;
