@@ -9,8 +9,9 @@ class A {}
 export
 @Object.freeze     
 //            <any>
-class C {};
-                                        
+class C {}
+
+;                                       
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 class E {
@@ -19,7 +20,7 @@ class E {
     field;
 
     @Object.freeze     
-                       
+//                <any>
             method() {}
 //  private
 

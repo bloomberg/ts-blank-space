@@ -2,7 +2,9 @@ import { it, mock } from "node:test";
 import assert from "node:assert";
 import * as fs from "node:fs";
 import { join } from "node:path";
-// import ts from "typescript";
+import * as ts from "@typescript/native-preview/unstable/ast";
+import { createVirtualFileSystem } from "@typescript/native-preview/unstable/fs";
+import { API as TSAPI } from "@typescript/native-preview/unstable/sync";
 import { casesDir, outputForInput, testFixture } from "./fixture/helpers.js";
 import tsBlankSpace, { blankSourceFile } from "../src/index.ts";
 
@@ -106,14 +108,31 @@ it("allows declared global augmentation value", () => {
     assert.equal(jsOutput, "                 \n");
 });
 
-// it("TSX is preserved in the output", () => {
-//     const onError = mock.fn();
-//     const tsxInput = `const elm = <div>{x as string}</div>;\n`;
-//     const tsxSource = ts.createSourceFile("input.tsx", tsxInput, ts.ScriptTarget.ESNext, false, ts.ScriptKind.TSX);
-//     const jsxOutput = blankSourceFile(tsxSource, onError);
-//     assert.equal(onError.mock.callCount(), 0, "there should be no errors");
-//     assert.equal(jsxOutput, "const elm = <div>{x          }</div>;\n");
-// });
+it("TSX is preserved in the output", () => {
+    // Given:
+    const onError = mock.fn();
+    const tsxInput = `const elm = <div>{x as string}</div>;\n`;
+
+    const api = new TSAPI({
+        cwd: "/",
+        fs: createVirtualFileSystem({
+            "/tsconfig.json": JSON.stringify({ files: ["/input.tsx"] }),
+            "/input.tsx": tsxInput,
+        }),
+    });
+    const snap = api.updateSnapshot({ openProject: "/tsconfig.json" });
+    const program = snap.getProjects()[0].program;
+    const tsxSource = program.getSourceFile("/input.tsx");
+    assert(tsxSource);
+
+    // When:
+    const jsxOutput = blankSourceFile(tsxSource, onError);
+
+    // Then:
+    assert.equal(onError.mock.callCount(), 0, "there should be no errors");
+    assert.equal(jsxOutput, "const elm = <div>{x          }</div>;\n");
+    api.close();
+});
 
 // Easy to miss this case as it's only a single character
 it("handles variable definite assignment assertions", () => {

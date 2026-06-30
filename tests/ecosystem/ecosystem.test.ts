@@ -124,7 +124,7 @@ async function sameEmit(source: string, t: TestContext, filename: string, multip
     }
 }
 
-function tidyLines(input) {
+function tidyLines(input: string) {
     return input
         .split("\n")
         .filter((line) => line !== "export {};")

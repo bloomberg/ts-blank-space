@@ -1,12 +1,15 @@
 const foo = "";
 
-foo;           
+foo
+;          
 (1);
 
-foo;           
+foo
+;          
 ``;
 
-foo;           
+foo
+;          
 `${123}`;
 
 function bar   () {
@@ -15,26 +18,33 @@ function bar   () {
     (1);
 }
 
-foo;              
+foo
+;             
 (1);
 
-foo;                 
+foo
+;                
 (1);
 
-foo;                      
+foo
+;                     
 (1);
 
-foo;                  
+foo
+;                 
 (1);
 
-foo;                      
+foo
+;                     
 (1);
 
-foo;                    
+foo
+;                   
 (1);
 
 function f3()       {
-    if (true);                      
+    if (true)
+        ;             
         console.log('f3'); // <- not part of the if
 }
 
@@ -68,11 +78,11 @@ class ASI {
         ((() => { 1/*trailing*/})(), 1) + 1;         /*trailing*/
         (1);
     }
-    g = 2;             
-           ["computed-field"] = 1
+    g = 2/*missing ; */
+    ;      ["computed-field"] = 1
 //  ;^^^^^
-    h = 3;             
-           ["computed-method"]() {}
+    h = 3/*missing ; */
+    ;      ["computed-method"]() {}
 //  ;^^^^^
 }
 
@@ -87,7 +97,9 @@ let x;
               
 let y;
 
-let a;              
+let a
+;             
 let b
 
-function foo() {};              
+function foo() {}
+;             

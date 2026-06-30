@@ -1,7 +1,9 @@
 import * as fs from "node:fs";
 import assert from "node:assert";
 import { mock } from "node:test";
-// import ts from "typescript";
+import * as ts from "@typescript/native-preview/unstable/ast";
+import { createVirtualFileSystem } from "@typescript/native-preview/unstable/fs";
+import { API as TSAPI } from "@typescript/native-preview/unstable/sync";
 import { join, relative, resolve } from "node:path";
 import tsBlankSpace from "../../src/index.ts";
 
@@ -36,46 +38,102 @@ export function testFixture(fixturePath: string, expectedOutputPath: string) {
     assertValidOutput(latestOutput);
 }
 
-function assertIdentifiersAreAligned(jsString: string, tsString: string) {
-    // const tsSource = ts.createSourceFile("input.ts", tsString, ts.ScriptTarget.ESNext, false, ts.ScriptKind.TS);
-    // const jsSource = ts.createSourceFile("output.js", jsString, ts.ScriptTarget.ESNext, false, ts.ScriptKind.JS);
+function computeLineStarts(text: string): number[] {
+    const lineStarts = [0];
+    for (let i = 0; i < text.length; i++) {
+        const ch = text.charCodeAt(i);
+        if (ch === 10) {
+            lineStarts.push(i + 1);
+        } else if (ch === 13) {
+            if (i + 1 < text.length && text.charCodeAt(i + 1) === 10) {
+                i++;
+            }
+            lineStarts.push(i + 1);
+        }
+    }
+    return lineStarts;
+}
 
-    // let sawIdentifiers = false;
-    // jsSource.forEachChild(function visit(n) {
-    //     if (n.kind === ts.SyntaxKind.Identifier) {
-    //         sawIdentifiers = true;
-    //         const id = n.getText(jsSource);
-    //         const pos = n.getStart(jsSource);
-    //         const { line, character } = jsSource.getLineAndCharacterOfPosition(pos);
-    //         const inputIndex = tsSource.getPositionOfLineAndCharacter(line, character);
-    //         if (!tsString.startsWith(id, inputIndex)) {
-    //             // SourceMaps are line:column based so these must not change
-    //             throw new Error(
-    //                 `Expected to see '${id}' at position ${line}:${character} but saw '${tsString.slice(inputIndex, inputIndex + id.length)}'`,
-    //             );
-    //         }
-    //         if (!tsString.startsWith(id, pos)) {
-    //             // Other tools, such as V8 code coverage, give the positions as byte offsets, so these also cannot change
-    //             throw new Error(
-    //                 `Expected to see '${id}' at offset ${pos} but saw '${tsString.slice(inputIndex, inputIndex + id.length)}'`,
-    //             );
-    //         }
-    //     }
-    //     n.forEachChild(visit);
-    // });
-    // assert(sawIdentifiers);
+function getLineAndCharacterOfPosition(lineStarts: number[], pos: number): { line: number; character: number } {
+    let low = 0;
+    let high = lineStarts.length - 1;
+    while (low <= high) {
+        const mid = (low + high) >>> 1;
+        if (lineStarts[mid] <= pos) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+    const line = high;
+    return { line, character: pos - lineStarts[line] };
+}
+
+function getPositionOfLineAndCharacter(lineStarts: number[], line: number, character: number): number {
+    return lineStarts[line] + character;
+}
+
+function assertIdentifiersAreAligned(jsString: string, tsString: string) {
+    const api = new TSAPI({
+        cwd: "/",
+        fs: createVirtualFileSystem({
+            "/tsconfig.json": JSON.stringify({
+                files: ["/input.ts", "/output.js"],
+                compilerOptions: {
+                    allowJs: true,
+                },
+            }),
+            "/input.ts": tsString,
+            "/output.js": jsString,
+        }),
+    });
+    const snap = api.updateSnapshot({ openProject: "/tsconfig.json" });
+    const program = snap.getProjects()[0].program;
+    const tsSource = program.getSourceFile("/input.ts");
+    const jsSource = program.getSourceFile("/output.js");
+    assert(tsSource);
+    assert(jsSource);
+    const jsLineStarts = computeLineStarts(jsString);
+    const tsLineStarts = computeLineStarts(tsString);
+    let sawIdentifiers = false;
+    jsSource.forEachChild(function visit(n) {
+        if (n.kind === ts.SyntaxKind.Identifier) {
+            sawIdentifiers = true;
+            const id = n.getText(jsSource);
+            const pos = n.getStart(jsSource);
+            const { line, character } = getLineAndCharacterOfPosition(jsLineStarts, pos);
+            const inputIndex = getPositionOfLineAndCharacter(tsLineStarts, line, character);
+            if (!tsString.startsWith(id, inputIndex)) {
+                // SourceMaps are line:column based so these must not change
+                throw new Error(
+                    `Expected to see '${id}' at position ${line}:${character} but saw '${tsString.slice(inputIndex, inputIndex + id.length)}'`,
+                );
+            }
+            if (!tsString.startsWith(id, pos)) {
+                // Other tools, such as V8 code coverage, give the positions as byte offsets, so these also cannot change
+                throw new Error(
+                    `Expected to see '${id}' at offset ${pos} but saw '${tsString.slice(inputIndex, inputIndex + id.length)}'`,
+                );
+            }
+        }
+        n.forEachChild(visit);
+    });
+    assert(sawIdentifiers);
+    api.close();
 }
 
 function assertValidOutput(jsString: string) {
-    // const { diagnostics } = ts.transpileModule(jsString, {
-    //     fileName: "input.js",
-    //     reportDiagnostics: true,
-    //     compilerOptions: {
-    //         target: ts.ScriptTarget.ESNext,
-    //         allowJs: true,
-    //     },
-    // });
-    // if (diagnostics && diagnostics.length) {
-    //     throw new Error("output is not valid JavaScript: " + diagnostics[0].messageText);
-    // }
+    const api = new TSAPI({
+        cwd: "/",
+        fs: createVirtualFileSystem({
+            "/tsconfig.json": JSON.stringify({ files: ["/output.js"] }),
+            "/output.js": jsString,
+        }),
+    });
+    const snap = api.updateSnapshot({ openProject: "/tsconfig.json" });
+    const program = snap.getProjects()[0].program;
+    const diagnostics = program.getSyntacticDiagnostics();
+    if (diagnostics && diagnostics.length) {
+        throw new Error("output is not valid JavaScript: " + diagnostics[0].text);
+    }
 }

@@ -1,12 +1,11 @@
 // Copyright 2024 Bloomberg Finance L.P.
 // Distributed under the terms of the Apache 2.0 license.
 
-import * as ts from "typescript/unstable/ast";
-import { createVirtualFileSystem } from "typescript/unstable/fs";
-import { API as TSAPI } from "typescript/unstable/sync";
+import * as ts from "@typescript/native-preview/unstable/ast";
+import { createVirtualFileSystem } from "@typescript/native-preview/unstable/fs";
+import { API as TSAPI } from "@typescript/native-preview/unstable/sync";
 import BlankString from "./blank-string.js";
 const SK = ts.SyntaxKind;
-
 
 // These values must be 'falsey' to not stop TypeScript's walk
 const VISIT_BLANKED = "";
@@ -294,7 +293,7 @@ function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>, addSemi: boolean)
         const kind = modifier.kind;
         if (isRemovedModifier(kind)) {
             if (addSemi && i === 0) {
-                str.blankButStartWithSemi(modifier.pos, modifier.end);
+                str.blankButStartWithSemi(modifier.getStart(ast), modifier.end);
                 addSemi = false;
             } else {
                 blankExact(modifier);
@@ -586,7 +585,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
         } else {
             // danger! new line between parameters and `=>`
             const paramEnd = getClosingParenthesisPos(node.parameters);
-            str.blankButEndWithCloseParen(paramEnd - 1, returnType.end);
+            str.blankButEndWithCloseParen(paramEnd - 1, returnType.getEnd());
         }
     }
 
@@ -767,25 +766,25 @@ function getClosingParen() {
 
 function blankTypeNode(n: ts.TypeNode): void {
     // -1 for `:`
-    str.blank(n.pos - 1, n.end);
+    str.blank(n.getFullStart() - 1, n.end);
 }
 
 function blankExact(n: ts.Node): void {
-    str.blank(n.pos, n.end);
+    str.blank(n.getStart(ast), n.end);
 }
 
 function blankStatement(n: ts.Node): void {
     if (semicolonNeeded) {
-        str.blankButStartWithSemi(n.pos, n.end);
+        str.blankButStartWithSemi(n.getStart(ast), n.end);
     } else {
-        str.blank(n.pos, n.end);
+        str.blank(n.getStart(ast), n.end);
     }
 }
 
 function blankExactAndOptionalTrailingComma(n: ts.Node): void {
     scanner.resetTokenState(n.end);
     const trailingComma = scanner.scan() === SK.CommaToken;
-    str.blank(n.pos, trailingComma ? scanner.getTokenEnd() : n.end);
+    str.blank(n.getStart(ast), trailingComma ? scanner.getTokenEnd() : n.end);
 }
 
 /**

@@ -1,7 +1,7 @@
 import { it, mock } from "node:test";
 import assert from "node:assert";
 import tsBlankSpace from "../src/index.ts";
-import * as ts from "typescript/unstable/ast/is";
+import * as ts from "@typescript/native-preview/unstable/ast/is";
 
 it("errors on enums", () => {
     const onError = mock.fn();
