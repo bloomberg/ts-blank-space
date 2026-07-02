@@ -23,7 +23,7 @@
     },
     "types": "./out/index.d.ts",
     "dependencies": {
-        "@typescript/native-preview": "^7.0.0-dev.20260629.1",
+        "@typescript/native-preview": "^7.0.0-dev.20260701.1",
         "typescript": "^7.0.1-rc"
     },
     "imports": {
