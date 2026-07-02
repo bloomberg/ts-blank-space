@@ -8,7 +8,8 @@
         "useDefineForClassFields": true,
         "erasableSyntaxOnly": true,
         "declaration": true,
-        "declarationDir": "../out"
+        "declarationDir": "../out",
+        "skipLibCheck": true
     },
     "files": ["./index.ts"]
 }
