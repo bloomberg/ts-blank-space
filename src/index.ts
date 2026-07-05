@@ -6,6 +6,7 @@ import { createVirtualFileSystem } from "@typescript/native-preview/unstable/fs"
 import { API as TSAPI } from "@typescript/native-preview/unstable/sync";
 import BlankString from "./blank-string.js";
 const SK = ts.SyntaxKind;
+const tslib = ts;
 
 // These values must be 'falsey' to not stop TypeScript's walk
 const VISIT_BLANKED = "";
@@ -45,6 +46,7 @@ export default function tsBlankSpace(input: string, onErrorArg?: ErrorCb): strin
     const sh = api.updateSnapshot({ fileChanges: { changed: ["/input.ts"] } });
     try {
         const ast = sh.getProject("/tsconfig.json")!.program.getSourceFile("/input.ts")!;
+        src = input;
         return blankSourceFile(ast, onErrorArg);
     } finally {
         // sh.dispose();
@@ -59,7 +61,7 @@ export default function tsBlankSpace(input: string, onErrorArg?: ErrorCb): strin
  */
 export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): string {
     try {
-        src = source.text;
+        if (!src) src = source.text;
         str = new BlankString(src);
         onError = onErrorArg;
         scanner.setText(src);
@@ -82,7 +84,7 @@ export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): st
 
 function visitUnknownNodeArray(nodes: ts.NodeArray<ts.Node>): VisitResult {
     if (nodes.length === 0) return VISITED_JS;
-    return visitNodeArray(nodes, ts.isStatement(nodes[0]), /* isFunctionBody: */ false);
+    return visitNodeArray(nodes, tslib.isStatement(nodes.at(0)!), /* isFunctionBody: */ false);
 }
 
 function visitNodeArray(nodes: ts.NodeArray<ts.Node>, isStatementLike: boolean, isFunctionBody: boolean): VisitResult {
@@ -91,20 +93,31 @@ function visitNodeArray(nodes: ts.NodeArray<ts.Node>, isStatementLike: boolean, 
     if (isFunctionBody) {
         semicolonNeeded = false; // 'semicolonNeeded' resets for nested execution context
     }
-    for (let i = 0; i < nodes.length; i++) {
-        const n = nodes[i];
-        if (isStatementLike) {
-            parentStatement = n;
-        }
-        if (visitStatementLike(n) === VISITED_JS) {
-            semicolonNeeded = src.charCodeAt(n.end - 1) !== 59 /* ; */;
-        }
+    if (isStatementLike) {
+        // Access RemoteNode API directly for big performance boost
+        (nodes as any).forEachNode(visitNodeArrayStatementInner);
+    } else {
+        // Access RemoteNode API directly for big performance boost
+        (nodes as any).forEachNode(visitNodeArrayNotStatementInner);
     }
     parentStatement = previousParentStatement;
     if (isFunctionBody) {
         semicolonNeeded = previousSemicolonNeeded;
     }
     return semicolonNeeded ? VISITED_JS : VISIT_BLANKED;
+}
+
+function visitNodeArrayStatementInner(n: ts.Node) {
+    parentStatement = n;
+    if (visitStatementLike(n) === VISITED_JS) {
+        semicolonNeeded = src.charCodeAt(n.end - 1) !== 59 /* ; */;
+    }
+}
+
+function visitNodeArrayNotStatementInner(n: ts.Node) {
+    if (visitStatementLike(n) === VISITED_JS) {
+        semicolonNeeded = src.charCodeAt(n.end - 1) !== 59 /* ; */;
+    }
 }
 
 function visitStatementLike(node: ts.Node): VisitResult {
@@ -189,7 +202,7 @@ function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): V
     if (node.arguments) {
         const args = node.arguments;
         for (let i = 0; i < args.length; i++) {
-            visitor(args[i]);
+            visitor(args.at(i)!);
         }
     }
     return VISITED_JS;
@@ -246,7 +259,7 @@ function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
     const { heritageClauses } = node;
     if (heritageClauses) {
         for (let i = 0; i < heritageClauses.length; i++) {
-            const hc = heritageClauses[i];
+            const hc = heritageClauses.at(i)!;
             // implements T
             if (hc.token === SK.ImplementsKeyword) {
                 blankExact(hc);
@@ -287,9 +300,9 @@ function isRemovedModifier(kind: ts.SyntaxKind): kind is (typeof classElementMod
     return classElementModifiersToRemove.has(kind as never);
 }
 
-function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>, addSemi: boolean): void {
+function visitModifiers(modifiers: ts.NodeArray<ts.ModifierLike>, addSemi: boolean): void {
     for (let i = 0; i < modifiers.length; i++) {
-        const modifier = modifiers[i];
+        const modifier = modifiers.at(i)!;
         const kind = modifier.kind;
         if (isRemovedModifier(kind)) {
             if (addSemi && i === 0) {
@@ -395,7 +408,7 @@ function visitBinaryExpression(node: ts.BinaryExpression): VisitResult {
     const opKind = node.operatorToken.kind;
     if (isNullishOrLogical(opKind)) {
         if (
-            ts.isBinaryExpression(node.right) &&
+            tslib.isBinaryExpression(node.right) &&
             hasUnsafeNullishLogicalMix(opKind, node.right.operatorToken.kind) &&
             isAssertionExpression(node.right.left)
         ) {
@@ -406,7 +419,7 @@ function visitBinaryExpression(node: ts.BinaryExpression): VisitResult {
             return VISITED_JS;
         }
         if (
-            ts.isBinaryExpression(node.left) &&
+            tslib.isBinaryExpression(node.left) &&
             hasUnsafeNullishLogicalMix(opKind, node.left.operatorToken.kind) &&
             isAssertionExpression(node.left.right)
         ) {
@@ -434,7 +447,7 @@ function assertionChainWouldChangeBinaryGrouping(node: ts.AsExpression | ts.Sati
         baseExpr = baseExpr.expression;
     }
 
-    if (!ts.isBinaryExpression(baseExpr)) {
+    if (!tslib.isBinaryExpression(baseExpr)) {
         return false;
     }
 
@@ -557,7 +570,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
         str.blank(params.pos - 1, params.pos);
     }
     for (let i = 0; i < params.length; i++) {
-        const p = params[i];
+        const p = params.at(i)!;
         if (i === 0 && "text" in p.name && p.name.text === "this") {
             blankExactAndOptionalTrailingComma(p);
             continue;
@@ -565,7 +578,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
         if (onError && p.modifiers) {
             // error on non-standard parameter properties
             for (let i = 0; i < p.modifiers.length; i++) {
-                const modifier = p.modifiers[i];
+                const modifier = p.modifiers.at(i)!;
                 if (unsupportedParameterModifiers.has(modifier.kind)) {
                     onError(modifier);
                 }
@@ -615,10 +628,10 @@ function visitImportDeclaration(node: ts.ImportDeclaration): VisitResult {
             return VISIT_BLANKED;
         }
         const { namedBindings } = node.importClause;
-        if (namedBindings && ts.isNamedImports(namedBindings)) {
+        if (namedBindings && tslib.isNamedImports(namedBindings)) {
             const elements = namedBindings.elements;
             for (let i = 0; i < elements.length; i++) {
-                const e = elements[i];
+                const e = elements.at(i)!;
                 e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
             }
         }
@@ -636,10 +649,10 @@ function visitExportDeclaration(node: ts.ExportDeclaration): VisitResult {
     }
 
     const { exportClause } = node;
-    if (exportClause && ts.isNamedExports(exportClause)) {
+    if (exportClause && tslib.isNamedExports(exportClause)) {
         const elements = exportClause.elements;
         for (let i = 0; i < elements.length; i++) {
-            const e = elements[i];
+            const e = elements.at(i)!;
             e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
         }
     }
@@ -711,9 +724,9 @@ function valueNamespaceWorker(node: ts.Node): boolean {
     return true;
 }
 
-function modifiersContainsDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolean {
+function modifiersContainsDeclare(modifiers: ts.NodeArray<ts.ModifierLike>): boolean {
     for (let i = 0; i < modifiers.length; i++) {
-        const modifier = modifiers[i];
+        const modifier = modifiers.at(i)!;
         if (modifier.kind === SK.DeclareKeyword) {
             return true;
         }
@@ -721,9 +734,9 @@ function modifiersContainsDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolea
     return false;
 }
 
-function modifiersContainsAbstractOrDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolean {
+function modifiersContainsAbstractOrDeclare(modifiers: ts.NodeArray<ts.ModifierLike>): boolean {
     for (let i = 0; i < modifiers.length; i++) {
-        const modifierKind = modifiers[i].kind;
+        const modifierKind = modifiers.at(i)!.kind;
         if (modifierKind === SK.AbstractKeyword || modifierKind === SK.DeclareKeyword) {
             return true;
         }
