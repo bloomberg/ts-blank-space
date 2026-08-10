@@ -30,11 +30,19 @@ const fs = createVirtualFileSystem({
     "/tsconfig.json": config,
     "/input.ts": "export {}",
 });
-const api = new TSAPI({
-    cwd: "/",
-    fs,
-});
-api.updateSnapshot({ openProject: "/tsconfig.json" });
+let _api: TSAPI | undefined;
+function getApi() {
+    if(_api === undefined) {
+         _api = new TSAPI({
+            cwd: "/",
+            fs,
+        });
+        _api.updateSnapshot({ openProject: "/tsconfig.json" });
+    }
+    return _api
+}
+
+
 
 /**
  * @param input string containing TypeScript
@@ -43,6 +51,7 @@ api.updateSnapshot({ openProject: "/tsconfig.json" });
  */
 export default function tsBlankSpace(input: string, onErrorArg?: ErrorCb): string {
     fs.writeFile!("/input.ts", input);
+    const api = getApi();
     const sh = api.updateSnapshot({ fileChanges: { changed: ["/input.ts"] } });
     try {
         const ast = sh.getProject("/tsconfig.json")!.program.getSourceFile("/input.ts")!;
