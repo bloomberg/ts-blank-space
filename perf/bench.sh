@@ -11,6 +11,7 @@ count=10
 
 hyperfine --warmup 3 \
    -n "ts-blank-space"              "node ./ts-blank-space.js $fixture $count"\
+   -n "ts-blank-space@upstream"     "node ./ts-blank-space-npm.js $fixture $count"\
    -n "sucrase"                     "node ./sucrase.js $fixture $count"\
    -n "sucrase:ts-ast"              "node ./sucrase.js $fixture $count --ts-ast"\
    -n "@swc/core"                   "node ./swc-native-async.js $fixture $count"\

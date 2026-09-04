@@ -8,7 +8,8 @@
         "@swc/wasm-typescript": "^1.7.11",
         "esbuild": "^0.25.0",
         "esbuild-wasm": "^0.23.0",
-        "sucrase": "^3.34.0"
+        "sucrase": "^3.34.0",
+        "ts-blank-space": "^0.9.0"
     },
     "scripts": {
         "this": "node ./this.js ./checker.txt 100",

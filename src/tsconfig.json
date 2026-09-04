@@ -1,14 +1,15 @@
 {
     "compilerOptions": {
         "strict": true,
-        "target": "es2020",
+        "target": "es2022",
         "module": "nodeNext",
         "moduleDetection": "force",
         "verbatimModuleSyntax": true,
         "useDefineForClassFields": true,
         "erasableSyntaxOnly": true,
         "declaration": true,
-        "declarationDir": "../out"
+        "declarationDir": "../out",
+        "skipLibCheck": true
     },
     "files": ["./index.ts"]
 }

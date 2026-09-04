@@ -1,10 +1,12 @@
 // Copyright 2024 Bloomberg Finance L.P.
 // Distributed under the terms of the Apache 2.0 license.
 
-import type * as ts from "typescript";
-import tslib from "typescript";
+import * as ts from "@typescript/native-preview/unstable/ast";
+import { createVirtualFileSystem } from "@typescript/native-preview/unstable/fs";
+import { API as TSAPI } from "@typescript/native-preview/unstable/sync";
 import BlankString from "./blank-string.js";
-const SK = tslib.SyntaxKind;
+const SK = ts.SyntaxKind;
+const tslib = ts;
 
 // These values must be 'falsey' to not stop TypeScript's walk
 const VISIT_BLANKED = "";
@@ -13,17 +15,7 @@ const VISITED_JS = null;
 type VisitResult = typeof VISIT_BLANKED | typeof VISITED_JS;
 type ErrorCb = (n: ts.Node) => void;
 
-const languageOptions: ts.CreateSourceFileOptions = {
-    languageVersion: tslib.ScriptTarget.ESNext,
-    impliedNodeFormat: tslib.ModuleKind.ESNext,
-};
-
-const scanner = tslib.createScanner(tslib.ScriptTarget.ESNext, /*skipTrivia: */ true, tslib.LanguageVariant.Standard);
-if (tslib.JSDocParsingMode) {
-    // TypeScript >= 5.3
-    languageOptions.jsDocParsingMode = tslib.JSDocParsingMode.ParseNone;
-    scanner.setJSDocParsingMode(tslib.JSDocParsingMode.ParseNone);
-}
+const scanner = ts.createScanner(/*skipTrivia: */ true, ts.LanguageVariant.Standard);
 
 // State is hoisted to module scope so we can avoid creating per-run closures
 let src = "";
@@ -33,16 +25,42 @@ let onError: ErrorCb | undefined;
 let semicolonNeeded = false;
 let parentStatement: ts.Node | undefined = undefined;
 
+const config = JSON.stringify({ files: ["/input.ts"] });
+const fs = createVirtualFileSystem({
+    "/tsconfig.json": config,
+    "/input.ts": "export {}",
+});
+let _api: TSAPI | undefined;
+function getApi() {
+    if(_api === undefined) {
+         _api = new TSAPI({
+            cwd: "/",
+            fs,
+        });
+        _api.updateSnapshot({ openProject: "/tsconfig.json" });
+    }
+    return _api
+}
+
+
+
 /**
  * @param input string containing TypeScript
  * @param onErrorArg callback when unsupported syntax is encountered
  * @returns the resulting JavaScript
  */
 export default function tsBlankSpace(input: string, onErrorArg?: ErrorCb): string {
-    return blankSourceFile(
-        tslib.createSourceFile("input.ts", input, languageOptions, /* setParentNodes: */ false, tslib.ScriptKind.TS),
-        onErrorArg,
-    );
+    fs.writeFile!("/input.ts", input);
+    const api = getApi();
+    const sh = api.updateSnapshot({ fileChanges: { changed: ["/input.ts"] } });
+    try {
+        const ast = sh.getProject("/tsconfig.json")!.program.getSourceFile("/input.ts")!;
+        src = input;
+        return blankSourceFile(ast, onErrorArg);
+    } finally {
+        // sh.dispose();
+        api.clearSourceFileCache();
+    }
 }
 
 /**
@@ -52,11 +70,10 @@ export default function tsBlankSpace(input: string, onErrorArg?: ErrorCb): strin
  */
 export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): string {
     try {
-        const input = source.getFullText(source);
-        src = input;
-        str = new BlankString(input);
+        if (!src) src = source.text;
+        str = new BlankString(src);
         onError = onErrorArg;
-        scanner.setText(input);
+        scanner.setText(src);
         ast = source;
 
         visitNodeArray(ast.statements, /* isStatementLike: */ true, /* isFunctionBody: */ false);
@@ -76,7 +93,7 @@ export function blankSourceFile(source: ts.SourceFile, onErrorArg?: ErrorCb): st
 
 function visitUnknownNodeArray(nodes: ts.NodeArray<ts.Node>): VisitResult {
     if (nodes.length === 0) return VISITED_JS;
-    return visitNodeArray(nodes, tslib.isStatement(nodes[0]), /* isFunctionBody: */ false);
+    return visitNodeArray(nodes, tslib.isStatement(nodes.at(0)!), /* isFunctionBody: */ false);
 }
 
 function visitNodeArray(nodes: ts.NodeArray<ts.Node>, isStatementLike: boolean, isFunctionBody: boolean): VisitResult {
@@ -85,20 +102,31 @@ function visitNodeArray(nodes: ts.NodeArray<ts.Node>, isStatementLike: boolean, 
     if (isFunctionBody) {
         semicolonNeeded = false; // 'semicolonNeeded' resets for nested execution context
     }
-    for (let i = 0; i < nodes.length; i++) {
-        const n = nodes[i];
-        if (isStatementLike) {
-            parentStatement = n;
-        }
-        if (visitStatementLike(n) === VISITED_JS) {
-            semicolonNeeded = src.charCodeAt(n.end - 1) !== 59 /* ; */;
-        }
+    if (isStatementLike) {
+        // Access RemoteNode API directly for big performance boost
+        (nodes as any).forEachNode(visitNodeArrayStatementInner);
+    } else {
+        // Access RemoteNode API directly for big performance boost
+        (nodes as any).forEachNode(visitNodeArrayNotStatementInner);
     }
     parentStatement = previousParentStatement;
     if (isFunctionBody) {
         semicolonNeeded = previousSemicolonNeeded;
     }
     return semicolonNeeded ? VISITED_JS : VISIT_BLANKED;
+}
+
+function visitNodeArrayStatementInner(n: ts.Node) {
+    parentStatement = n;
+    if (visitStatementLike(n) === VISITED_JS) {
+        semicolonNeeded = src.charCodeAt(n.end - 1) !== 59 /* ; */;
+    }
+}
+
+function visitNodeArrayNotStatementInner(n: ts.Node) {
+    if (visitStatementLike(n) === VISITED_JS) {
+        semicolonNeeded = src.charCodeAt(n.end - 1) !== 59 /* ; */;
+    }
 }
 
 function visitStatementLike(node: ts.Node): VisitResult {
@@ -183,7 +211,7 @@ function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): V
     if (node.arguments) {
         const args = node.arguments;
         for (let i = 0; i < args.length; i++) {
-            visitor(args[i]);
+            visitor(args.at(i)!);
         }
     }
     return VISITED_JS;
@@ -240,7 +268,7 @@ function visitClassLike(node: ts.ClassLikeDeclaration): VisitResult {
     const { heritageClauses } = node;
     if (heritageClauses) {
         for (let i = 0; i < heritageClauses.length; i++) {
-            const hc = heritageClauses[i];
+            const hc = heritageClauses.at(i)!;
             // implements T
             if (hc.token === SK.ImplementsKeyword) {
                 blankExact(hc);
@@ -281,9 +309,9 @@ function isRemovedModifier(kind: ts.SyntaxKind): kind is (typeof classElementMod
     return classElementModifiersToRemove.has(kind as never);
 }
 
-function visitModifiers(modifiers: ArrayLike<ts.ModifierLike>, addSemi: boolean): void {
+function visitModifiers(modifiers: ts.NodeArray<ts.ModifierLike>, addSemi: boolean): void {
     for (let i = 0; i < modifiers.length; i++) {
-        const modifier = modifiers[i];
+        const modifier = modifiers.at(i)!;
         const kind = modifier.kind;
         if (isRemovedModifier(kind)) {
             if (addSemi && i === 0) {
@@ -328,8 +356,8 @@ function visitPropertyDeclaration(node: ts.PropertyDeclaration): VisitResult {
         }
         visitModifiers(node.modifiers, /* addSemi */ node.name.kind === SK.ComputedPropertyName);
     }
-    node.exclamationToken && blankExact(node.exclamationToken);
-    node.questionToken && blankExact(node.questionToken);
+    const postfixToken = node.postfixToken;
+    if (postfixToken) blankExact(postfixToken);
     node.type && blankTypeNode(node.type);
 
     visitor(node.name);
@@ -528,7 +556,7 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
         return VISIT_BLANKED;
     }
 
-    const nodeName = node.name;
+    const nodeName = "name" in node ? node.name : undefined;
     if (node.modifiers) {
         visitModifiers(node.modifiers, /* addSemi */ !!nodeName && nodeName.kind === SK.ComputedPropertyName);
     }
@@ -545,21 +573,21 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
     }
 
     // method?
-    node.questionToken && blankExact(node.questionToken);
+    "postfixToken" in node && node.postfixToken && blankExact(node.postfixToken);
 
     if (moveOpenParen) {
         str.blank(params.pos - 1, params.pos);
     }
     for (let i = 0; i < params.length; i++) {
-        const p = params[i];
-        if (i === 0 && p.name.getText(ast) === "this") {
+        const p = params.at(i)!;
+        if (i === 0 && "text" in p.name && p.name.text === "this") {
             blankExactAndOptionalTrailingComma(p);
             continue;
         }
         if (onError && p.modifiers) {
             // error on non-standard parameter properties
             for (let i = 0; i < p.modifiers.length; i++) {
-                const modifier = p.modifiers[i];
+                const modifier = p.modifiers.at(i)!;
                 if (unsupportedParameterModifiers.has(modifier.kind)) {
                     onError(modifier);
                 }
@@ -604,7 +632,7 @@ function spansLines(a: number, b: number): boolean {
  */
 function visitImportDeclaration(node: ts.ImportDeclaration): VisitResult {
     if (node.importClause) {
-        if (node.importClause.isTypeOnly) {
+        if (node.importClause.phaseModifier === SK.TypeKeyword) {
             blankStatement(node);
             return VISIT_BLANKED;
         }
@@ -612,7 +640,7 @@ function visitImportDeclaration(node: ts.ImportDeclaration): VisitResult {
         if (namedBindings && tslib.isNamedImports(namedBindings)) {
             const elements = namedBindings.elements;
             for (let i = 0; i < elements.length; i++) {
-                const e = elements[i];
+                const e = elements.at(i)!;
                 e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
             }
         }
@@ -633,7 +661,7 @@ function visitExportDeclaration(node: ts.ExportDeclaration): VisitResult {
     if (exportClause && tslib.isNamedExports(exportClause)) {
         const elements = exportClause.elements;
         for (let i = 0; i < elements.length; i++) {
-            const e = elements[i];
+            const e = elements.at(i)!;
             e.isTypeOnly && blankExactAndOptionalTrailingComma(e);
         }
     }
@@ -654,17 +682,18 @@ function visitExportAssignment(node: ts.ExportAssignment): VisitResult {
 }
 
 function visitModule(node: ts.ModuleDeclaration): VisitResult {
+    const name = node.name;
     if (
         // `declare global {...}
-        node.flags & tslib.NodeFlags.GlobalAugmentation ||
+        (name.kind === SK.Identifier && (name as ts.Identifier).text === "global") ||
         // `namespace N {...}`
-        (node.flags & tslib.NodeFlags.Namespace &&
+        (node.keyword === SK.NamespaceKeyword &&
             // `declare namespace N {...}`
             ((node.modifiers && modifiersContainsDeclare(node.modifiers)) ||
                 // `namespace N { <no values> }`
                 !valueNamespaceWorker(node))) ||
         // `declare module "./path" {...}`
-        node.name.kind === SK.StringLiteral
+        name.kind === SK.StringLiteral
     ) {
         blankStatement(node);
         return VISIT_BLANKED;
@@ -694,7 +723,7 @@ function valueNamespaceWorker(node: ts.Node): boolean {
             return modifiers?.some((m) => m.kind === SK.ExportKeyword) || false;
         }
         case SK.ModuleDeclaration: {
-            if (!(node.flags & tslib.NodeFlags.Namespace)) return true;
+            if ((node as ts.ModuleDeclaration).keyword !== SK.NamespaceKeyword) return true;
             const { body } = node as ts.ModuleDeclaration;
             if (!body) return false;
             if (body.kind === SK.ModuleDeclaration) return valueNamespaceWorker(body);
@@ -704,9 +733,9 @@ function valueNamespaceWorker(node: ts.Node): boolean {
     return true;
 }
 
-function modifiersContainsDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolean {
+function modifiersContainsDeclare(modifiers: ts.NodeArray<ts.ModifierLike>): boolean {
     for (let i = 0; i < modifiers.length; i++) {
-        const modifier = modifiers[i];
+        const modifier = modifiers.at(i)!;
         if (modifier.kind === SK.DeclareKeyword) {
             return true;
         }
@@ -714,9 +743,9 @@ function modifiersContainsDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolea
     return false;
 }
 
-function modifiersContainsAbstractOrDeclare(modifiers: ArrayLike<ts.ModifierLike>): boolean {
+function modifiersContainsAbstractOrDeclare(modifiers: ts.NodeArray<ts.ModifierLike>): boolean {
     for (let i = 0; i < modifiers.length; i++) {
-        const modifierKind = modifiers[i].kind;
+        const modifierKind = modifiers.at(i)!.kind;
         if (modifierKind === SK.AbstractKeyword || modifierKind === SK.DeclareKeyword) {
             return true;
         }
@@ -738,7 +767,7 @@ function endPosOfToken(token: ts.SyntaxKind): number {
             first = false;
         }
         if (next === token) break;
-        if (next === SK.EndOfFileToken) {
+        if (next === SK.EndOfFile) {
             // We should always find the token we are looking for
             // if we don't, return the start of where we started searching from
             return start;

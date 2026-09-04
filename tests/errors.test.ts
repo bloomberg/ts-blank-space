@@ -1,7 +1,7 @@
 import { it, mock } from "node:test";
 import assert from "node:assert";
 import tsBlankSpace from "../src/index.ts";
-import ts from "typescript";
+import * as ts from "@typescript/native-preview/unstable/ast/is";
 
 it("errors on enums", () => {
     const onError = mock.fn();
@@ -47,7 +47,7 @@ function errorCallbackToModuleDeclarationNames(onError: import("node:test").Mock
     return onError.mock.calls.map(({ arguments: [node] }) => {
         assert(ts.isModuleDeclaration(node));
         assert(ts.isIdentifier(node.name));
-        return node.name.escapedText.toString();
+        return node.name.text;
     });
 }
 

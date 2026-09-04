@@ -23,7 +23,7 @@
     },
     "types": "./out/index.d.ts",
     "dependencies": {
-        "typescript": "5.1.6 - 6.0.x"
+        "@typescript/native-preview": "^7.0.0-dev.20260701.1"
     },
     "imports": {
         "#r": "ts-blank-space-lkg/register"
@@ -35,8 +35,8 @@
     },
     "scripts": {
         "build": "node --import=#r ./scripts/build.ts",
-        "check": "tsc -p ./src/tsconfig.json --noEmit",
-        "gen-types": "tsc -p ./src/tsconfig.json --emitDeclarationOnly",
+        "check": "tsgo -p ./src/tsconfig.json --noEmit",
+        "gen-types": "tsgo -p ./src/tsconfig.json --emitDeclarationOnly",
         "fixtures": "node --import=#r ./tests/fixture/_run.ts",
         "fixtures:watch": "node --watch-path ./tests/fixture/cases --import=#r ./tests/fixture/_run.ts",
         "pretest": "npm run build",
