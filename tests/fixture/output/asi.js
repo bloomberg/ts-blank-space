@@ -84,12 +84,32 @@ class ASI {
     h = 3/*missing ; */
     ;      ["computed-method"]() {}
 //  ;^^^^^
+    i = 4/*missing ; */
+    ;       *generator() {}
+//  ;^^^^^^
+    j = 5/*missing ; */
+    ;             
+//  ;^^^^^^^^^^^^^
+    *[Symbol.iterator]() {}
+}
+
+         class AbstractASI {
+    f = 1/*missing ; */
+    ;                      
+//  ;^^^^^^^^^^^^^^^^^^^^^^
+    ["computed-method"]() {}
 }
 
 class NoASI {
     f = 1/*missing ; */
     static          ["computed-field"] = 1
 //         ^^^^^^^^
+    g = 2;
+            *generator() {}
+//  ^^^^^^^
+    h = 3;
+           ["computed-method"]() {}
+//  ^^^^^^
 }
 
 // Semi-colon preservation rules
