@@ -523,14 +523,22 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
             blankStatement(node);
             return VISIT_BLANKED;
         }
-        // else: overload
-        blankExact(node);
+        // else: overload or abstract member
+        if (kind === SK.FunctionDeclaration) {
+            blankExact(node);
+        } else {
+            // class member, the next member may start with `[` or `*`
+            blankStatement(node);
+        }
         return VISIT_BLANKED;
     }
 
     const nodeName = node.name;
     if (node.modifiers) {
-        visitModifiers(node.modifiers, /* addSemi */ !!nodeName && nodeName.kind === SK.ComputedPropertyName);
+        // `[` of a computed name and `*` of a generator could continue the previous class member
+        const addSemi =
+            semicolonNeeded && ((!!nodeName && nodeName.kind === SK.ComputedPropertyName) || !!node.asteriskToken);
+        visitModifiers(node.modifiers, addSemi);
     }
 
     if (nodeName) {
