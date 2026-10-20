@@ -328,9 +328,17 @@ function visitPropertyDeclaration(node: ts.PropertyDeclaration): VisitResult {
         }
         visitModifiers(node.modifiers, /* addSemi */ node.name.kind === SK.ComputedPropertyName);
     }
-    node.exclamationToken && blankExact(node.exclamationToken);
-    node.questionToken && blankExact(node.questionToken);
-    node.type && blankTypeNode(node.type);
+
+    let addSemi = !node.initializer && isContextualModifierName(node.name);
+    const postfixToken = node.exclamationToken || node.questionToken;
+    if (postfixToken) {
+        blankRange(postfixToken.getStart(ast), postfixToken.end, addSemi);
+        addSemi = false;
+    }
+    if (node.type) {
+        // -1 for `:`
+        blankRange(node.type.getFullStart() - 1, node.type.end, addSemi);
+    }
 
     visitor(node.name);
 
@@ -338,6 +346,12 @@ function visitPropertyDeclaration(node: ts.PropertyDeclaration): VisitResult {
         visitor(node.initializer);
     }
     return VISITED_JS;
+}
+
+function isContextualModifierName(name: ts.PropertyName): boolean {
+    if (name.kind !== SK.Identifier) return false;
+    const text = name.text;
+    return text === "get" || text === "set" || text === "static";
 }
 
 /**
@@ -768,6 +782,10 @@ function getClosingParen() {
 function blankTypeNode(n: ts.TypeNode): void {
     // -1 for `:`
     str.blank(n.getFullStart() - 1, n.end);
+}
+
+function blankRange(start: number, end: number, startWithSemi: boolean): void {
+    startWithSemi ? str.blankButStartWithSemi(start, end) : str.blank(start, end);
 }
 
 function blankExact(n: ts.Node): void {

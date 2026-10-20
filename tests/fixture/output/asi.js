@@ -112,6 +112,34 @@ class NoASI {
 //  ^^^^^^
 }
 
+// Fields named like a modifier must not become a modifier of the next member
+class ContextualModifierNames {
+    get;
+//     ;
+    a() {}
+    set;        
+//     ;^^^^^^^^
+    b(v) {}
+    static;       
+//        ;^^^^^^^
+    c() {}
+    static get;        
+//            ;^^^^^^^^
+    d() {}
+}
+
+class ContextualModifierNamesNoASI {
+    get = 1;         
+//          ^^^^^^^^^
+    a() {}
+    async         
+//       ^^^^^^^^^
+    b() {}
+    "set"         
+//       ^^^^^^^^^
+    c() {}
+}
+
 // Semi-colon preservation rules
 let x;
               
