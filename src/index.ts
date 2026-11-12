@@ -329,6 +329,10 @@ function visitPropertyDeclaration(node: ts.PropertyDeclaration): VisitResult {
         visitModifiers(node.modifiers, /* addSemi */ node.name.kind === SK.ComputedPropertyName);
     }
 
+    // Visit the name before blanking anything after it, a computed key can contain type syntax:
+    // `[k as T]: U`. BlankString expects ranges in source order.
+    visitor(node.name);
+
     let addSemi = !node.initializer && isContextualModifierName(node.name);
     const postfixToken = node.exclamationToken || node.questionToken;
     if (postfixToken) {
@@ -339,8 +343,6 @@ function visitPropertyDeclaration(node: ts.PropertyDeclaration): VisitResult {
         // -1 for `:`
         blankRange(node.type.getFullStart() - 1, node.type.end, addSemi);
     }
-
-    visitor(node.name);
 
     if (node.initializer) {
         visitor(node.initializer);
