@@ -77,6 +77,14 @@ let g: Box<any>,
         // @ts-expect-error: computed property names must have simple type
         [("A" + "B") as "AB"] =  1;
 //                   as "AB"
+
+        // type syntax in the key and after it
+        [("C" + "D") as "CD"]: number = 1;
+//                   as "CD" : number
+        static [("E" + "F") as "EF"]?: number;
+//                          as "EF" ?: number
+        [foo<"GH">("GH")]!: string;
+//          <"GH">       !: string
     }
 };
 
