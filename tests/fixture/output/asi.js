@@ -91,6 +91,18 @@ class ASI {
     ;             
 //  ;^^^^^^^^^^^^^
     *[Symbol.iterator]() {}
+    k = 6/*missing ; */
+    ;       in = 1
+//  ;^^^^^^
+    l = 7/*missing ; */
+    ;        instanceof        
+//  ;^^^^^^^           ^^^^^^^^
+    m = 8/*missing ; */
+    ;      in() {}
+//  ;^^^^^
+    n = 9/*missing ; */
+    ;         instanceof() {}
+//  ;^^^^^^^^^
 }
 
          class AbstractASI {

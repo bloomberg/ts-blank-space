@@ -91,6 +91,18 @@ class ASI {
     method(): void
 //  ;^^^^^^^^^^^^^
     *[Symbol.iterator]() {}
+    k = 6/*missing ; */
+    private in = 1
+//  ;^^^^^^
+    l = 7/*missing ; */
+    readonly instanceof: number
+//  ;^^^^^^^           ^^^^^^^^
+    m = 8/*missing ; */
+    public in() {}
+//  ;^^^^^
+    n = 9/*missing ; */
+    protected instanceof() {}
+//  ;^^^^^^^^^
 }
 
 abstract class AbstractASI {

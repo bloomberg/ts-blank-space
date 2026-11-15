@@ -326,7 +326,10 @@ function visitPropertyDeclaration(node: ts.PropertyDeclaration): VisitResult {
             blankStatement(node);
             return VISIT_BLANKED;
         }
-        visitModifiers(node.modifiers, /* addSemi */ node.name.kind === SK.ComputedPropertyName);
+        visitModifiers(
+            node.modifiers,
+            /* addSemi */ node.name.kind === SK.ComputedPropertyName || isBinaryOperatorName(node.name),
+        );
     }
 
     // Visit the name before blanking anything after it, a computed key can contain type syntax:
@@ -348,6 +351,15 @@ function visitPropertyDeclaration(node: ts.PropertyDeclaration): VisitResult {
         visitor(node.initializer);
     }
     return VISITED_JS;
+}
+
+/**
+ * `in` and `instanceof` can continue the previous field's initializer: `f = a\n in = 1`
+ */
+function isBinaryOperatorName(name: ts.PropertyName): boolean {
+    if (name.kind !== SK.Identifier) return false;
+    const text = name.text;
+    return text === "in" || text === "instanceof";
 }
 
 function isContextualModifierName(name: ts.PropertyName): boolean {
@@ -551,9 +563,11 @@ function visitFunctionLikeDeclaration(node: ts.FunctionLikeDeclaration, kind: ts
 
     const nodeName = node.name;
     if (node.modifiers) {
-        // `[` of a computed name and `*` of a generator could continue the previous class member
+        // `[` of a computed name, `*` of a generator and an `in`/`instanceof` name could continue the previous class member
         const addSemi =
-            semicolonNeeded && ((!!nodeName && nodeName.kind === SK.ComputedPropertyName) || !!node.asteriskToken);
+            semicolonNeeded &&
+            ((!!nodeName && (nodeName.kind === SK.ComputedPropertyName || isBinaryOperatorName(nodeName))) ||
+                !!node.asteriskToken);
         visitModifiers(node.modifiers, addSemi);
     }
 
