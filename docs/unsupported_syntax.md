@@ -145,6 +145,21 @@ Further reading on decorators:
 
 -   Legacy prefix type assertions (for example `<const>value`) are not erased [more details](#legacy-prefix-type-assertions)
 -   Some trailing `as` / `satisfies` expressions are not erased when removing them would change binary operator grouping [more details](#as--satisfies-expressions-that-would-change-operator-grouping)
+-   Instantiation expressions that end an optional chain (for example `a?.b<T>.c`) are not erased [more details](#instantiation-expressions-that-end-an-optional-chain)
+
+### Instantiation expressions that end an optional chain
+
+An instantiation expression ends an optional chain, so TypeScript emits `a?.b<T>.c` as:
+
+<!-- prettier-ignore -->
+```javascript
+(a?.b).c;
+```
+
+Erasing only `<T>` would produce `a?.b   .c`, where the chain carries on: when `a` is nullish it gives `undefined` instead of throwing.
+Forms like `a?.b<T>.c = 1` would not even be valid JavaScript. So these cases call `onError` and are left unchanged.
+
+`a?.b<T>`, `a?.b<T>?.c` and `(a?.b<T>).c` are still erased, as erasing them keeps the same meaning.
 
 ### `as` / `satisfies` expressions that would change operator grouping
 

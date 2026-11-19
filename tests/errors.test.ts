@@ -375,3 +375,45 @@ it("error with the test cases from TypeScript issue 63533", () => {
         assert.equal(jsOutput, tsInput);
     }
 });
+
+it("errors on instantiation expressions that end an optional chain", () => {
+    // TypeScript ends the optional chain at `<T>` and emits `(a?.b).c`.
+    // Erasing only `<T>` would give `a?.b.c`, which keeps the chain going:
+    // when `a` is nullish it returns `undefined` instead of throwing.
+    const cases = [
+        `a?.b<T>.c;`,
+        `a?.b<T>\n[c];`,
+        `a?.b<T>.c();`,
+        `a?.[0]<T>.c;`,
+        `a?.(0)<T>.c;`,
+        `a?.b.c<T>.d;`,
+        `a?.b!<T>.c;`,
+        `a?.b<T>.c = 1;`, // would be invalid JavaScript if erased
+        "a?.b<T>.c``;", // would be invalid JavaScript if erased
+        `class C { #c = 1; m(a) { a?.b<T>.#c; } }`,
+    ];
+    for (const tsInput of cases) {
+        const onError = mock.fn();
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 1, tsInput);
+        assert.equal(jsOutput, tsInput);
+    }
+});
+
+it("erases instantiation expressions in optional chains that do not end the chain", () => {
+    const cases = [
+        [`a?.b<T>;`, `a?.b   ;`],
+        [`a?.b<T>?.c;`, `a?.b   ?.c;`],
+        [`a?.b<T>?.();`, `a?.b   ?.();`],
+        [`(a?.b<T>).c;`, `(a?.b   ).c;`],
+        [`(a?.b)<T>.c;`, `(a?.b)   .c;`],
+        [`a.b<T>.c;`, `a.b   .c;`],
+        [`class C extends a?.b<T> {}`, `class C extends a?.b    {}`],
+    ];
+    for (const [tsInput, expected] of cases) {
+        const onError = mock.fn();
+        const jsOutput = tsBlankSpace(tsInput, onError);
+        assert.equal(onError.mock.callCount(), 0, tsInput);
+        assert.equal(jsOutput, expected);
+    }
+});
