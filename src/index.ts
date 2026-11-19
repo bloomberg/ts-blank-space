@@ -131,6 +131,8 @@ function innerVisitor(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
         case SK.VariableStatement: return visitVariableStatement(node as ts.VariableStatement);
         case SK.CallExpression:
         case SK.NewExpression: return visitCallOrNewExpression(node as (ts.CallExpression | ts.NewExpression));
+        case SK.PropertyAccessExpression:
+        case SK.ElementAccessExpression: return visitAccessExpression(node as ts.AccessExpression);
         case SK.TypeAliasDeclaration:
         case SK.InterfaceDeclaration:
             blankStatement(node as (ts.TypeAliasDeclaration | ts.InterfaceDeclaration));
@@ -176,6 +178,10 @@ function visitVariableStatement(node: ts.VariableStatement): VisitResult {
  * `new Set<string>()` | `foo<string>()`
  */
 function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): VisitResult {
+    if (node.kind === SK.CallExpression && !node.questionDotToken && endsOptionalChain(node.expression)) {
+        onError && onError(node.expression);
+        return VISITED_JS;
+    }
     visitor(node.expression);
     if (node.typeArguments) {
         blankGenerics(node, node.typeArguments, /*startWithParen*/ false);
@@ -193,12 +199,41 @@ function visitCallOrNewExpression(node: ts.NewExpression | ts.CallExpression): V
  * foo<T>`tagged template`
  */
 function visitTaggedTemplate(node: ts.TaggedTemplateExpression): VisitResult {
+    if (endsOptionalChain(node.tag)) {
+        onError && onError(node.tag);
+        return VISITED_JS;
+    }
     visitor(node.tag);
     if (node.typeArguments) {
         blankGenerics(node, node.typeArguments, /*startWithParen*/ false);
     }
     visitor(node.template);
     return VISITED_JS;
+}
+
+/**
+ * `a.b` | `a[b]`
+ */
+function visitAccessExpression(node: ts.AccessExpression): VisitResult {
+    if (!node.questionDotToken && endsOptionalChain(node.expression)) {
+        onError && onError(node.expression);
+        return VISITED_JS;
+    }
+    return node.forEachChild(visitor, visitUnknownNodeArray) || VISITED_JS;
+}
+
+/**
+ * `a?.b<T>` followed by `.c`, `[c]`, `(c)` or a template.
+ * The instantiation expression ends the optional chain, so TypeScript emits `(a?.b).c`.
+ * Erasing only `<T>` would give `a?.b.c`, which continues the chain instead.
+ * `a?.b<T>?.c` is fine: a new chain starts there either way.
+ */
+function endsOptionalChain(node: ts.Expression): boolean {
+    if (node.kind !== SK.ExpressionWithTypeArguments) return false;
+    let expr: ts.Expression = (node as ts.ExpressionWithTypeArguments).expression;
+    // `a?.b!<T>.c`
+    while (expr.kind === SK.NonNullExpression) expr = (expr as ts.NonNullExpression).expression;
+    return tslib.isOptionalChain(expr);
 }
 
 /**
