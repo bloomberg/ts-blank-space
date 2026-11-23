@@ -152,7 +152,7 @@ function innerVisitor(node: ts.Node, kind: ts.SyntaxKind): VisitResult {
         case SK.SetAccessor: return visitFunctionLikeDeclaration(node as ts.FunctionLikeDeclaration, kind);
         case SK.EnumDeclaration: return visitEnum(node as ts.EnumDeclaration);
         case SK.ModuleDeclaration: return visitModule(node as ts.ModuleDeclaration);
-        case SK.IndexSignature: blankExact(node); return VISIT_BLANKED;
+        case SK.IndexSignature: blankStatement(node); return VISIT_BLANKED;
         case SK.TaggedTemplateExpression: return visitTaggedTemplate(node as ts.TaggedTemplateExpression);
         case SK.TypeAssertionExpression: return visitLegacyTypeAssertion(node as ts.TypeAssertion);
     }

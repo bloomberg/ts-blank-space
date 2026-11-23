@@ -103,6 +103,14 @@ class ASI {
     n = 9/*missing ; */
     ;         instanceof() {}
 //  ;^^^^^^^^^
+    o = 10/*missing ; */
+    ;                        
+//  ;^^^^^^^^^^^^^^^^^^^^^^^^
+    ["computed-field-2"] = 1
+    p = 11/*missing ; */
+    ;                          
+//  ;^^^^^^^^^^^^^^^^^^^^^^^^^^
+    *generator2() {}
 }
 
          class AbstractASI {
@@ -122,6 +130,10 @@ class NoASI {
     h = 3;
            ["computed-method"]() {}
 //  ^^^^^^
+    i = 4;
+                             
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ["computed-field-2"] = 1
 }
 
 // Fields named like a modifier must not become a modifier of the next member
