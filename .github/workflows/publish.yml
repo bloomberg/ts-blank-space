@@ -21,7 +21,10 @@ jobs:
                   registry-url: "https://registry.npmjs.org"
                   package-manager-cache: false
             - run: npm ci
-            # Build explicitly so publishing doesn't depend on lifecycle scripts (e.g. ignore-scripts)
+              env:
+                  NPM_CONFIG_IGNORE_SCRIPTS: "true"
             - run: npm run gen-types
             - run: npm run build
             - run: npm publish
+              env:
+                  NPM_CONFIG_IGNORE_SCRIPTS: "true"
