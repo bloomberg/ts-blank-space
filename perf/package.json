@@ -1,8 +1,8 @@
 {
     "type": "module",
     "dependencies": {
-        "@babel/core": "^7.25.2",
-        "@babel/plugin-transform-typescript": "^7.25.2",
+        "@babel/core": "^8.0.1",
+        "@babel/plugin-transform-typescript": "^8.0.1",
         "@swc/core": "^1.7.11",
         "@swc/wasm": "^1.7.11",
         "@swc/wasm-typescript": "^1.7.11",
